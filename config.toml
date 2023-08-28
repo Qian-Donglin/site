@@ -1,0 +1,16 @@
+baseURL = 'https://Qian-Donglin.github.io/'
+languageCode = 'en-us'
+title = 'Sen(Qian)のメモ'
+disablePathToLower = true
+enableGitInfo = true
+theme = "hugo-book"
+# publishDir = "docs"
+# canonifyurls = true
+[params]
+	BookTheme = 'auto'
+	BookToC = true
+	BookRepo = 'https://github.com/Qian-Donglin/site'
+	BookCommitPath = 'commit'
+	BookSearch = true
+	BookComments = true
+	BookPortableLinks = true
