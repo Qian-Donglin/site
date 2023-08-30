@@ -6,6 +6,7 @@ enableGitInfo = true
 theme = "hugo-book"
 # publishDir = "docs"
 # canonifyurls = true
+BookSearch = true
 [params]
 	BookTheme = 'auto'
 	BookToC = true
