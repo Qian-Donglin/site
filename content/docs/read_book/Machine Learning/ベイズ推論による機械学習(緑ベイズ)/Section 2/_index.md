@@ -12,7 +12,7 @@ weight: 1
 # 期待値
 
 $$
-\mathbb{E} [f(\mathbf{x})] = \in f(\mathbf{x}) p(\mathbf{x}) d\mathbf{x}
+\mathbb{E} [f(\mathbf{x})] = \int f(\mathbf{x}) p(\mathbf{x}) d\mathbf{x}
 $$
 
 と定義される。純粋に$p(\mathbf{x})$の取る平均は$\mathbb{E} [\mathbf{x}] = \int \mathbf{x} p(\mathbf{x}) d\mathbf{x}$
@@ -43,7 +43,7 @@ $$
 しかし、独立ではない場合は、上の積分を丁寧に行うしかない。これは条件付期待値。
 
 $$
-\int \int \mathbf{x} ^ T \mathbf{y} p(\mathbf{x, y})d\mathbf{x} \mathbf{y} 
+\int \int \mathbf{x} ^ T \mathbf{y} p(\mathbf{x, y})d\mathbf{x} d\mathbf{y} 
 = \mathbb{E}_{\mathbf{y}} [ \mathbb{E} _{\mathbf{x | y}} [\mathbf{x} ^ T \mathbf{y}] ]
 $$
 
@@ -138,3 +138,77 @@ $$
 
 ## ポアソン分布
 
+非負の整数$x$について、以下の確率で生成する。
+
+$$
+\mathrm{Poi} (x | \lambda) = \frac{\lambda ^ x}{x!} e^ {-\lambda} \\\\ 
+\log \mathrm{Poi} (x | \lambda) = x \log \lambda - \log x! - \lambda
+$$
+
+$x$が大きくなると明らかに確率は下がるが、**完全には0にならない**のが二項分布とかとの違い。
+
+$$
+\mathbb{E} [x] = \lambda \\\\ 
+\mathbb{E} [x^2] = \lambda (\lambda + 1)
+$$
+
+# 連続確率分布
+
+## β分布
+
+**$x \in (0, 1)$の値を生成する分布**。$\Gamma(a) = (a - 1)!$のガンマ関数(非自然数も定義しているが)　下のガンマ関数部は**正規化項**。
+意味していることは**表の確率が$x$コインを投げて表$a - 1$回、裏$b - 1$回が出る分布**。
+
+$$
+\mathrm{Beta}(x | a, b) = \frac{\Gamma(a + b)}{\Gamma(a) \Gamma(b)} x ^ {a - 1} (1 - x) ^ {b - 1} \\\\ 
+\log \mathrm{Beta}(x | a, b) = (a - 1) \log x + (b - 1) \log (1 - x) + \log \frac{\Gamma(a + b)}{\Gamma(a) \Gamma(b)}
+$$
+
+期待値は以下の通り。$\psi(x) = \frac{d}{dx} \log \Gamma(x) = \frac{\Gamma ^ {\prime}(x)}{\Gamma(x)}$
+というdigamma関数だとすると、
+
+$$
+\mathbb{E} [x] = \frac{a}{a + b} \\\\ 
+\mathbb{E} [\log x] = \psi(a) - \psi(a + b) = \mathbb{E} [\log (1 - x)] \\\\ 
+$$
+
+なお、同じ$a = 1, b = 2$と$a = 3, b = 9$でも、期待値は同じだけど、後者の方がとがっている分布になる。**試行回数が増えてより自信をもって確実に言える**みたいなもの。
+
+β分布は、**ベルヌーイ分布と二項分布の共役事前分布**である。
+
+## ディリクレ分布
+
+β分布は連続かつ、$x$か$1 - x$の二択であったが、これを三択以上に拡張したもの。
+同様に**$x \in (0, 1)$の値を生成する分布**である。
+
+$$
+\mathrm{Dir}(\mathbf{x} | \mathbf{\alpha}) = \frac{\Gamma(\sum _{i = 1}^{K} \alpha_i)}{\prod _{i = 1}^{K} \Gamma(\alpha_i)} \prod _{i = 1}^{N} c_i ^ {\alpha_i - 1} \\\\ 
+\log \mathrm{Dir}(\mathbf{x} | \mathbf{\alpha}) = \sum _{i = 1} ^ K (\alpha_i - 1) \log x_i + \log \frac{\Gamma(\sum _{i = 1}^{K} \alpha_i)}{\prod _{i = 1}^{K} \Gamma(\alpha_i)}
+$$
+
+期待値関連はβ分布と似ている。
+
+$$
+\mathbb{E} [x_k] = \frac{\alpha_k}{\sum _{i = 1} ^ {K} \alpha_i } \\\\ 
+\mathbb{E} [\log x_k] = \psi(\alpha_k) - \psi(\sum _{i = 1}^{K} \alpha_i)
+$$
+
+**ディリクレ分布は、β分布からして、カテゴリ分布と多項分布の共役事前分布**。
+
+## ガンマ分布
+
+正の実数$x$を生成する。
+
+$$
+\mathrm{Gam}(x | a, b) = \frac{b ^ a}{\Gamma(a)} x ^ {a - 1} e ^ {-b \lambda} \\\\ 
+\log \mathrm{Gam}(x | a, b) = \log (a - 1)x - b \lambda + \log \frac{b ^ a}{\Gamma(a)}  
+$$
+
+期待値は以下の通り。
+
+$$
+\mathrm{E} [x] = \frac{a}{b} \\\\ 
+\mathrm{E} [\log x] = \psi(a) - \log b
+$$
+
+**ガンマ分布はポアソン分布と1次元ガウス分布の分散の逆数の共役事前分布である**。
