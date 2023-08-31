@@ -1,5 +1,5 @@
 ---
-title: "(G) abc317 E"
+title: "(G+) abc317 E"
 weight: 1
 # bookFlatSection: false
 # bookToc: true
