@@ -25,7 +25,7 @@ weight: 1
 すべての$y_i$は独立なので、$\mathbf{y}$の場合はそれらの総乗に。また、明らかに$\mathbf{y}$がないとき、$\mathbf{X}$と$\mathbf{w}$はお互いに独立なので、$p(\mathbf{w}, \mathbf{X}) = p(\mathbf{w}) p(\mathbf{X})$が成り立つ。
 
 $$
-p(\mathbf{y}, \mathbf{w}, \mathbf{X}) = p(\mathbf{w}) \prod _{i = 1}^{N} p(y_n | \mathbf{w}, \mathbf{x}_i) p(\mathbf{x})_i
+p(\mathbf{y}, \mathbf{w}, \mathbf{X}) = p(\mathbf{w}) \prod _{i = 1}^{N} p(y_n | \mathbf{w}, \mathbf{x}_i) p(\mathbf{x}_i)
 $$
 
 したがって、回帰のグラフィカルモデルは`(x_n) -> y_n <- (w)`である。
@@ -63,7 +63,7 @@ $$
 \mathrm{Sig}(x) = \frac{1}{1 + e^{-x}}
 $$
 
-これを使うことで、$(-\inf, +\inf)$を$(0, 1)$に変換できる。これが確率らしきものなので、確率と考えてもいい。
+これを使うことで、$(-\infty, +\infty)$を$(0, 1)$に変換できる。これが確率らしきものなので、確率と考えてもいい。
 
 これを**多クラス分類に拡張**すると、**ソフトマックス関数を使えばいい**。
 入力は$\mathbf{a} = (a_1, a_2, \cdots, a_K) ^ T$という$K$次元のベクトルで、それぞれが**各クラスを代表する値**。クラス$k$である確率は
@@ -80,9 +80,19 @@ $$
 
 ### クラスタリングのグラフィカルモデル
 
-観測データ$\mathbf{X}$と、それらに対するクラスの割り当て$\mathbf{S} = (\mathbf{s}_1, \cdots, \mathbf{s}_N)$()があるとする。各クラスターごとのパラメタを$\mathbf{\Theta} = (\mathbf{\theta}_1, \cdots, \mathbf{\theta}_N)$とする。
+観測データ$\mathbf{X}$と、それらに対するクラスの割り当て$\mathbf{S} = (\mathbf{s}_1, \cdots, \mathbf{s}_N)$($\mathbf{s}_i$はそれぞれone-hotベクトルと想定)があるとする。各クラスターごとのパラメタを$\mathbf{\Theta} = (\mathbf{\theta}_1, \cdots, \mathbf{\theta}_N)$とする。
+この時、$p(\mathbf{X}, \mathbf{S}, \mathbf{\Theta})$は、
 
-skip!
+$$
+p(\mathbf{X}, \mathbf{S}, \mathbf{\Theta}) = p(\mathbf{\Theta}) p(\mathbf{X} | \mathbf{S}, \mathbf{\Theta}) p(\mathbf{S})
+= p(\mathbf{\Theta}) \prod_{i = 1}^{N}  p(\mathbf{x}_i | \mathbf{s}_i, \mathbf{\Theta}) p(\mathbf{s}_i)
+$$
+
+これが対応するグラフィカルモデルは`(x) -> (y) <- (W)`。
+
+**ある事前分布$p(\mathbf{\Theta})$に従って$\mathbf{\Theta}$を決めて、そこから各データの$\mathbf{x}_n$の所属$\mathbf{s}_n$を元に、$p(\mathbf{x}_n | \mathbf{s}_n, \mathbf{\Theta})$で各データが生成されるという前提を取っている**。
+
+ここで、$\mathbf{s}_n$は分類したカテゴリを示すが、$\mathbf{x}_n$を生成する時にこれは未観測の変数であると考えられる=**隠れ変数**。
 
 ## 次元削減
 
@@ -167,7 +177,7 @@ $y_1$が得られた時の$x$の事後分布$p(x | y_1)$は、ベイズの定理
 ここで、新たに観測した$y_2$が得られたとして、$p(x | y_1)$から、アップデートした事後分布の$p(x | y_1, y_2)$を得たい。
 
 $$
-p(x | y_1, y_2) \propto p(x, y_1, y_2) = p(y_1 | x) p(y_2 | x) p(x) = p(y_2 | x) p(y_1 | x)
+p(x | y_1, y_2) \propto p(x, y_1, y_2) = p(y_1 | x) p(y_2 | x) p(x) \propto p(y_2 | x) p(x | y_1)
 $$
 
 毎回の観測が独立なので、$p(x, y_1, y_2) = p(x, y_1) p(x, y_2) = p(y_1 | x) p(y_2 | x) p(x)$が成り立つ。
@@ -177,7 +187,7 @@ $$
 これを一般化する。観測データが$N$個で**それぞれ独立ならば**、$\mathbf{y} = (y_1, \cdots, y_N)$だとすると、同時分布は
 
 $$
-p(x , \mathbf{y}) = p(x) \Pi _{i = 1}^{N} p(y_i | x)
+p(x ,\mathbf{y}) = p(x) \Pi _{i = 1}^{N} p(y_i | x)
 $$
 
 によって、

@@ -34,7 +34,7 @@ $$
 を計算する。もし$\mathbf{x}, \mathbf{y}$が**お互いに独立**であるなら、$p(\mathbf{x}, \mathbf{y}) = p(\mathbf{x}) p(\mathbf{y})$であり、
 
 $$
-\int \int \mathbf{x} ^ T \mathbf{y} p(\mathbf{x, y})d\mathbf{x} \mathbf{y} 
+\int \int \mathbf{x} ^ T \mathbf{y} p(\mathbf{x, y})d\mathbf{x} d\mathbf{y} 
 = \int \mathbf{x} ^ T p(\mathbf{x}) d\mathbf{x} + \int \mathbf{y} p(\mathbf{y}) d \mathbf{y}
 = \mathbb{E} [\mathbf{x} ^ T] \mathbb{E} [\mathbf{y}]
 $$
