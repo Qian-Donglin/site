@@ -92,7 +92,7 @@ $$
 この時、**$x$回表が出る確率**は以下のようになる。
 
 $$
-\mathrm{Bin | M, \mu} = _M C _x \mu ^ x (1 - \mu) ^ {M - x} 
+\mathrm{Bin}(x | M, \mu) = _M C _x \mu ^ x (1 - \mu) ^ {M - x} 
 $$
 
 明らかに上式は$M = 1$において、ベルヌーイ分布と同じようになる。$x = 0$ならば表が出ない、$x = 1$ならば表が出る。$M > 1$だと$x$は回数という意味だが、$x = 1$である限りベルヌーイ分布と同じ。
@@ -195,13 +195,13 @@ $$
 
 **ディリクレ分布は、β分布からして、カテゴリ分布と多項分布の共役事前分布**。
 
-## ガンマ分布
+## γ分布
 
 正の実数$x$を生成する。
 
 $$
 \mathrm{Gam}(x | a, b) = \frac{b ^ a}{\Gamma(a)} x ^ {a - 1} e ^ {-b \lambda} \\\\ 
-\log \mathrm{Gam}(x | a, b) = \log (a - 1)x - b \lambda + \log \frac{b ^ a}{\Gamma(a)}  
+\log \mathrm{Gam}(x | a, b) = \log (a - 1)x - b \lambda + \log \frac{b ^ a}{\Gamma(a)}
 $$
 
 期待値は以下の通り。
