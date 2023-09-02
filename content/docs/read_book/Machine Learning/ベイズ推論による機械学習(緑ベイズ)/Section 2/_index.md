@@ -212,3 +212,26 @@ $$
 $$
 
 **ガンマ分布はポアソン分布と1次元ガウス分布の分散の逆数の共役事前分布である**。
+
+## ガウス分布
+
+期待値$mu$, 分散$\sigma$のパラメタを持つ。
+
+$$
+\mathcal{N} (x | \mu, \sigma^2) = \frac{1}{\sqrt{2 \pi} \sigma} \exp( - \frac{(x - \mu) ^ 2}{2 \sigma^2}) \\\\ 
+\log \mathcal{N} (x | \mu, \sigma^2) = -\frac{1}{2} (\frac{(x - \mu) ^ 2}{2 \sigma^2} + 2\log \sigma + \log 2 \pi)
+$$
+
+期待値として、
+
+$$
+\mathbb{E} [x] = \mu \\\\ 
+\mathbb{E} [x^2] = \mu^2 + \sigma^2
+$$
+
+エントロピーは以下の通り。
+
+$$
+- \mathbb{E} [\log x] = \mathbb{E} \frac{1}{2} [(\frac{x^2 - 2 \mu x + \mu^2}{\sigma ^ 2} + 2 \log \sigma + \log 2 \pi) ]\\\\ 
+= \frac{1}{2}()
+$$
