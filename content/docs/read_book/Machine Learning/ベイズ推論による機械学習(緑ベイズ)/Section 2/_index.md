@@ -232,6 +232,76 @@ $$
 エントロピーは以下の通り。
 
 $$
-- \mathbb{E} [\log x] = \mathbb{E} \frac{1}{2} [(\frac{x^2 - 2 \mu x + \mu^2}{\sigma ^ 2} + 2 \log \sigma + \log 2 \pi) ]\\\\ 
-= \frac{1}{2}()
+- \mathbb{E} [\log p(x)] = \mathbb{E} \frac{1}{2} [\frac{x^2 - 2 \mu x + \mu^2}{\sigma ^ 2} + 2 \log \sigma + \log 2 \pi ]\\\\ 
+= \frac{1}{2} \mathbb{E}[\frac{\mu ^ 2 + \sigma ^ 2 - 2\mu^2 + \mu^2}{\sigma ^ 2} + 2 \log \sigma + \log 2 \pi]
+= \frac{1}{2} (1 + 2 \log \sigma + \log 2 \pi)
 $$
+
+2つのガウス分布$\mathcal{N} (\mu_1, \sigma_1 ^ 2)$と$\mathcal{N} (\mu_2, \sigma_2 ^ 2)$のKLダイバージェンスは、
+
+$$
+\mathbb{E}_{p} [\log p(x)] - \mathbb{E}_{p} [\log q(x)]
+= -\frac{1}{2} (\frac{(\mu_1 - \mu_2) ^ 2 + \sigma_2 ^ 2}{\sigma_1 ^ 2}) + 2\log \frac{\sigma_1}{\sigma_2} - 1
+$$
+
+## 多次元ガウス分布
+
+先ほどのは1変数であったが、これを多次元にしたもの。$\mathbf{\mu}$は期待値のベクトル、$\mathbf{\Sigma}$は今日分散行列。まあ正定値で対称ですね。
+$D$は次元数。
+
+$$
+\mathcal{N} (\mathbf{x} | \mathbf{\mu}, \mathbf{\Sigma})
+= \frac{1}{\sqrt{2\pi} ^ D |\Sigma|} \exp(-\frac{1}{2} (\mathbf{x} - \mathbf{\mu}) ^ T \mathbf{\Sigma} ^ {-1} (\mathbf{x} - \mathbf{\mu})) \\\\ 
+\log \mathcal{N} (\mathbf{x} | \mathbf{\mu}, \mathbf{\Sigma})
+= -\frac{1}{2} ((\mathbf{x} - \mathbf{\mu}) ^ T \mathbf{\Sigma} ^ {-1} (\mathbf{x} - \mathbf{\mu}) + \log |\mathbf{\Sigma}| + D \log 2 \pi)
+$$
+
+上式において、$\mathbf{\Sigma}$は対角行列ならば、お互いの共分散が0なので$D$個の独立したガウス分布に分けられる。
+共分散が0でなくても、シルベスター標準形に直すことで$D$この独立したガウス分布、ともやはりみなせる。
+
+期待値は以下の通り。二次元の$x x ^ T$は行列を作る。
+
+$$
+\mathbb{E} [\mathbf{x}] = \mathbf{\mu} \\\\ 
+\mathbb{E} [\mathbf{x} \mathbf{x} ^ T] = \mathbf{\mu} \mathbf{\mu} ^ T + \mathbf{\Sigma}
+$$
+
+エントロピーは以下の通り。期待値の部分は$\mathbf{x} ^ T D \mathbf{x}$で対角行列Dなので、**実質的にはtraceそのもの**。
+
+$$
+-\mathbb{E} [\log p(\mathbf{x})] = \frac{1}{2} (\mathbb{E} [(\mathbf{x} - \mathbf{\mu}) ^ T \mathbf{\Sigma} ^ {-1} (\mathbf{x} - \mathbf{\mu})] + \log |\mathbf{\Sigma}| + D \log 2\pi) \\\\ 
+\mathbb{E} [(\mathbf{x} - \mathbf{\mu}) ^ T \mathbf{\Sigma} ^ {-1} (\mathbf{x} - \mathbf{\mu})]
+= \mathbb{E} [\mathrm{Tr}((\mathbf{x} - \mathbf{\mu}) ^ T \mathbf{\Sigma} ^ {-1} (\mathbf{x} - \mathbf{\mu}))]  \\\\ 
+= \mathbb{E} [\mathrm{Tr}((\mathbf{x} - \mathbf{\mu}) (\mathbf{x} - \mathbf{\mu}) ^ T) \mathbf{\Sigma} ^ {-1} ]
+= \mathbb{E} [\mathrm{Tr}(\mathbf{x} \mathbf{x} ^ T - \mathbf{x} \mathbf{\mu} ^ T - \mathbf{\mu} \mathbf{x} ^ T + \mathbf{\mu} \mathbf{\mu} ^ T) \mathbf{\Sigma} ^ {-1} ] \\\\ 
+=  \mathbb{E} [\mathrm{Tr}(\mathbf{\mu} \mathbf{\mu} ^ T + \mathbf{\Sigma} - 2\mathbf{\mu} \mathbf{\mu} ^ T + \mathbf{\mu} \mathbf{\mu} ^ T) \mathbf{\Sigma} ^ {-1} ] = \mathrm{Tr}(\mathbb{E} [I]) = D
+$$
+
+よって、
+
+$$
+-\mathbb{E} [\log p(\mathbf{x})] = \frac{1}{2} (\log |\mathbf{\Sigma}| + D(\log 2 \pi + 1))
+$$
+
+同様に、KLダイバージェンスは、
+
+$$
+\mathbb{E}_p [\log p(\mathbf{x})] - \mathbb{E}_p [\log q(\mathbf{x})] = \\\\ 
+\frac{1}{2} (\mathrm{Tr}[((\mathbf{\mu_1} - \mathbf{\mu_2}) (\mathbf{\mu_1} - \mathbf{\mu_2}) ^ T + \mathbf{\Sigma}_2) \mathbf{\Sigma}_1 ^ {-1}] + \log \frac{|\mathbf{\Sigma_1}|}{|\mathbf{\Sigma_2}|} - D)
+$$
+
+## ウィシャート分布
+
+$D \times D$の正定値行列を生成する分布。なので、先ほどの多次元ガウス分布の分散の逆行列(=**精度行列**)の生成に使える。$\nu$は自由度という量であり、$\nu > D - 1$。$\mathbf{W}$は$D \times D$の正定値行列であるパラメタ。
+
+$$
+\mathcal{W} (\mathbf{X} | \nu, \mathbf{W}) = (正則化項) |\mathbf{X}| ^ {\frac{\nu - D - 1}{2}} \exp(\frac{1}{2} \mathrm{Tr}(\mathbf{W} ^ {-1} \mathbf{X})) \\\\ 
+\log \mathcal{W} (\mathbf{X} | \nu, \mathbf{W}) = \frac{\nu - D - 1}{2} \log |\mathbf{X}| - \frac{1}{2} {Tr}(\mathbf{W} ^ {-1} \mathbf{X}) + \log (正則化項)
+$$
+
+期待値は以下の通り。
+
+$$
+\mathbb{E} [\mathbf{X}] = \nu \mathbf{W} 
+$$
+
