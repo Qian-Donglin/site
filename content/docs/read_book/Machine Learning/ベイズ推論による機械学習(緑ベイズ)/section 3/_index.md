@@ -137,12 +137,23 @@ $$
 先ほどは2択試行を1回だったベルヌーイ分布であったが、今回は3択以上1回の選択のカテゴリ分布を考える。パラメタ$\mathbf{\pi}$を使って、
 
 $$
-p(\mathbf{x} | \mathbf{\pi}) = \mathrm{Cat}(\mathbf{x} | \mathbf{\pi}) = \prod _{i = 1} ^ {N} \pi_i ^ {x_i}
+p(\mathbf{x} | \mathbf{\pi}) = \mathrm{Cat}(\mathbf{x} | \mathbf{\pi}) = \prod _{i = 1} ^ {N} \pi_i ^ {x_i} \\\\ 
+\log p(\mathbf{x} | \mathbf{\pi}) = \sum _{i = 1} ^ {N} x_i \log \pi_i
+$$
+パラメタ$\mathbf{\pi}$は、**カテゴリ分布の共役事前分布であるディリクレ分布に従う**。$\mathbf{\alpha}$はハイパーパラメタ。
+
+$$
+p(\mathbf{\pi}) = \mathrm{Dir} (\mathbf{\pi} | \mathbf{\alpha}) = \frac{\Gamma(\sum _{i = 1} ^ N \alpha_i)}{\prod _{i = 1} ^ N \Gamma(\alpha_i)} \prod _{i = 1} ^ {N} \pi_i ^ {\alpha_i - 1} \\\\ 
+\log p(\pi) = \sum _{i = 1} ^ N (\alpha _i - 1) \log \pi_i + \log \Gamma(\sum_{i = 1} ^ {N} \alpha_i) - \sum _{i = 1} ^ N \Gamma(\alpha_i)
 $$
 
-パラメタ$\mathbf{\mu}$は、**カテゴリ分布の共役事前分布であるディリクレ分布に従う**。$\mathbf{\alpha}$はハイパーパラメタ。
+累乗は扱いづらいので、ここでlogを取ったもので計算する。
+なお、概形を見るために、係数に関してはいつも通り無視しておく。
 
 $$
-p(\mu) = \mathrm{Dir} (\mathbf{\mu} | \mathbf{\alpha}) = \frac{\Gamma(\sum _{i = 1} ^ N \alpha_i)}{\prod _{i = 1} ^ N \Gamma(\alpha_i)} \prod _{i = 1} ^ {N} \mu_i ^ {\alpha_i - 1}
+\log p(\mathbf{\pi} | \mathbf{x}) \propto \log p(\mathbf{x}, \mathbf{\pi}) = \log p(\mathbf{x} | \mathbf{\pi}) p(\mathbf{\pi}) \\\\ 
+= \sum _{i = 1} ^ {N} x_i \log \pi_i + \sum _{i = 1}^{N} (\alpha_i - 1) \log \pi_i = \sum _{i = 1} ^ {N} (\alpha_i - 1 + x_i) \log \pi_i \\\\ 
+p(\mathbf{\pi} | \mathbf{x}) \propto \prod _{i = 1} ^ {N} \pi_i ^ {\alpha_i - 1 + x_i}
 $$
 
+このように事後分布も、ディリクレ分布。ハイパーパラメタは$\mathbf{\hat{\alpha}} = (\alpha_1 + x_1, \cdots, \alpha_N + x_N)$。
