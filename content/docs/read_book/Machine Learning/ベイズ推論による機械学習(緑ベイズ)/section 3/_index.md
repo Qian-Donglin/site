@@ -157,3 +157,50 @@ p(\mathbf{\pi} | \mathbf{x}) \propto \prod _{i = 1} ^ {N} \pi_i ^ {\alpha_i - 1 
 $$
 
 このように事後分布も、ディリクレ分布。ハイパーパラメタは$\mathbf{\hat{\alpha}} = (\alpha_1 + x_1, \cdots, \alpha_N + x_N)$。
+これも、事前分布が学習によって事後分布となって記憶されるということになる。
+
+また、予測を考えてみる。予測は
+
+$$
+\int p(\mathbf{x}_{new} | \mathbf{\pi}) p(\mathbf{\pi}) d\pi
+= \int \mathrm{Cat}(\mathbf{x}_{new} | \mathbf{\pi}) \mathrm{Dir}(\mathbf{\pi} | \mathbf{\alpha}) d \mathbf{\pi} \\\\ 
+\propto \int \prod _{i = 1} ^ {N} \pi_i ^ {x_{new} ^ {i}} \prod _{i = 1} ^ {N} \pi _{i} ^ {\alpha_i - 1} d \mathbf{\pi}
+= \int \prod _{i = 1} ^ {N} \pi_i ^ {x_{new} ^ {i} + \alpha_i - 1} d\pi \\\\ 
+$$
+
+これを積分するとどうなる？？？？？
+
+## ポアソン分布の学習と予測
+
+ポアソン分布の事後分布は、
+
+$$
+p(x | \lambda) = \mathrm{Poi}(x, \lambda) = \frac{\lambda ^ x}{x!} e ^ {-\lambda}
+$$
+
+共役事前分布はγ分布であると知られている。
+
+$$
+p(\lambda) = \mathrm{Gam}(\lambda | a, b) = \frac{b ^ a}{\Gamma(a)} \lambda ^ {a - 1} e^ {-b \lambda}
+$$
+
+よって、学習すると、
+
+$$
+p(x | \lambda) p(\lambda) = \frac{b ^ a}{\Gamma(a) \Gamma(x + 1)} \lambda ^ {x + a - 1} e ^ {-(b + 1)\lambda} \\\\ 
+= \frac{b ^ a}{\Gamma(a + x + 1)} \lambda ^ {x + a - 1} e ^ {-(b + 1)\lambda}
+$$
+
+これは、パラメタが$x + a, b + 1$のγ分布となる。$b$は回数、$a$は重みみたいな感じ。
+
+予測分布の計算もしてみる。
+
+$$
+\int p(x_{new} | \lambda) p(\lambda) d \lambda
+= \int \mathrm{Poi} (x_{new} | \lambda) \mathrm{Gam}(\lambda | a, b) d \lambda \\\\ 
+= \int \frac{b ^ a}{\Gamma(a + x + 1)} \lambda ^ {x_{new} + a - 1} e ^ {-(b + 1)\lambda} d \lambda
+$$
+
+これを計算すると、負の二項分布となるらしい。
+普通の二項分布は試行の回数を固定。負の二項分布は失敗回数を固定。
+
