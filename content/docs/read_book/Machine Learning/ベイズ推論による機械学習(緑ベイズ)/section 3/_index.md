@@ -143,8 +143,8 @@ $$
 パラメタ$\mathbf{\pi}$は、**カテゴリ分布の共役事前分布であるディリクレ分布に従う**。$\mathbf{\alpha}$はハイパーパラメタ。
 
 $$
-p(\mathbf{\pi}) = \mathrm{Dir} (\mathbf{\pi} | \mathbf{\alpha}) = \frac{\Gamma(\sum _{i = 1} ^ N \alpha_i)}{\prod _{i = 1} ^ N \Gamma(\alpha_i)} \prod _{i = 1} ^ {N} \pi_i ^ {\alpha_i - 1} \\\\ 
-\log p(\pi) = \sum _{i = 1} ^ N (\alpha _i - 1) \log \pi_i + \log \Gamma(\sum_{i = 1} ^ {N} \alpha_i) - \sum _{i = 1} ^ N \Gamma(\alpha_i)
+p(\mathbf{\pi}) = \mathrm{Dir} (\mathbf{\pi} | \mathbf{\alpha}) = \frac{\Gamma(\sum _{i = 1} ^ N \alpha_i)}{\prod _{i = 1} ^ N \Gamma(\alpha_i)} \prod _{i = 1} ^ {N} \pi _i ^ {\alpha _i - 1} \\\\ 
+\log p(\pi) = \sum _{i = 1} ^ N (\alpha _i - 1) \log \pi _i + \log \Gamma ( \sum _{i = 1} ^ {N} \alpha_i) - \sum _{i = 1} ^ N \Gamma(\alpha _i)
 $$
 
 累乗は扱いづらいので、ここでlogを取ったもので計算する。
@@ -162,10 +162,12 @@ $$
 また、予測を考えてみる。予測は
 
 $$
-\int p(\mathbf{x}_{new} | \mathbf{\pi}) p(\mathbf{\pi}) d\pi
-= \int \mathrm{Cat}(\mathbf{x}_{new} | \mathbf{\pi}) \mathrm{Dir}(\mathbf{\pi} | \mathbf{\alpha}) d \mathbf{\pi} \\\\ 
-\propto \int \prod _{i = 1} ^ {N} \pi_i ^ {x_{new} ^ {i}} \prod _{i = 1} ^ {N} \pi _{i} ^ {\alpha_i - 1} d \mathbf{\pi}
-= \int \prod _{i = 1} ^ {N} \pi_i ^ {x_{new} ^ {i} + \alpha_i - 1} d\pi \\\\ 
+\int p(\mathbf{x} _{new} | \mathbf{\pi}) p(\mathbf{\pi}) d\pi
+= \int \mathrm{Cat}(\mathbf{x} _{new} | \mathbf{\pi}) \mathrm{Dir}(\mathbf{\pi} | \mathbf{\alpha}) d \mathbf{\pi}
+$$
+$$
+\propto \int \prod _{i = 1} ^ {N} \pi_i ^ {x _{new} ^ {i}} \prod _{i = 1} ^ {N} \pi _{i} ^ {\alpha_i - 1} d \mathbf{\pi}
+= \int \prod _{i = 1} ^ {N} \pi_i ^ {x _{new} ^ {i} + \alpha_i - 1} d\pi
 $$
 
 これを積分するとどうなる？？？？？
