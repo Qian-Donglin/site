@@ -165,14 +165,15 @@ $$
 \int p(\mathbf{x} _{new} | \mathbf{\pi}) p(\mathbf{\pi}) d\pi
 = \int \mathrm{Cat}(\mathbf{x} _{new} | \mathbf{\pi}) \mathrm{Dir}(\mathbf{\pi} | \mathbf{\alpha}) d \mathbf{\pi}
 $$
+
 $$
 \propto \int \prod _{i = 1} ^ {N} \pi_i ^ {x _{new} ^ {i}} \prod _{i = 1} ^ {N} \pi _{i} ^ {\alpha_i - 1} d \mathbf{\pi}
 = \int \prod _{i = 1} ^ {N} \pi_i ^ {x _{new} ^ {i} + \alpha_i - 1} d\pi
 $$
 
-これを積分するとどうなる？？？？？
-
 ## ポアソン分布の学習と予測
+
+ポアソン分布の意味は、ある指定期間の間に$\lambda$回起きる、とわかっている事象が$x$回起こる確率の分布。
 
 ポアソン分布の事後分布は、
 
@@ -205,4 +206,72 @@ $$
 
 これを計算すると、負の二項分布となるらしい。
 普通の二項分布は試行の回数を固定。負の二項分布は失敗回数を固定。
+
+# 1次元ガウス分布
+
+ガウス分布はハイパーパラメタとして、平均値$\mu$、分散$\sigma ^ 2$の2つがあり、どれを学習するのかで話が変わる。なお、精度$\lambda = \frac{1}{\sigma ^ 2}$とする。
+
+## 平均の推定
+
+観測値$x$に対して、ガウス分布を考える。平均だけ推定するので、精度$\lambda$は既知だとする。
+
+$$
+p(x | \mu) = \mathcal{N} (x | \mu, \lambda ^ {-1})
+$$
+
+この平均値$\mu$自体の事前分布も、共役事前分布の別のガウス分布に従うとする。$m, \lambda _{\mu}$はハイパーパラメタ。
+
+$$
+p(\mu) = \mathcal{N}(\mu | m, \lambda _{\mu} ^ {-1})
+$$
+
+今回、一連の観測データ$\mathbf{x} = (x_1, \cdots, x_n)$を得たとする。ここから事後分布$p(\mu | \mathbf{x})$を学習する。
+
+$$
+p(\mu | \mathbf{x}) \propto p(\mathbf{x} | \mu) p(\mu)
+= \prod _{i = 1} ^ N (\mathcal{N} (x_i | \mu, \lambda ^ {-1})) \cdot \mathcal{N} (\mu | m, \lambda _{\mu} ^ {-1}) \\\\ 
+$$
+
+ここで、掛け算なので正規分布の再生性は使えない。対数を取って丁寧に計算していく。
+
+$$
+\log \mathcal{N} (x | \mu, \lambda ^ {-1}) = \frac{1}{4} \log \lambda - \frac{1}{2} \log 2 \pi + \frac{(x - \mu) ^ 2}{2} \lambda
+$$
+
+であるので、
+
+$$
+\log p(\mu | \mathbf{x}) \propto \frac{1}{4}(\log \lambda ^ {N} \lambda _{\mu}) - \frac{N + 1}{2} \log 2\pi + \frac{\lambda}{2} \sum _{i = 1} ^ {N} (x_i - \mu) ^ 2 + \frac{\lambda _{\mu}}{2} (\mu - m) ^ 2f \\\\ 
+= \frac{1}{2} \mu ^ 2 (\lambda N + \lambda _{\mu}) - \mu (\lambda _{\mu} m + \lambda \sum _{i = 1} ^ N x_i) + \mathrm{const}
+$$
+
+天下り的に計算するとこれは、$p(\mu | \mathbf{x}) = \mathcal{N} (\mu | \hat{m}, \hat{\lambda _{\mu}})$と分布を書くと、
+
+$$
+\hat{\lambda _{\mu}} = N \lambda + \lambda _{\mu} \\\\ 
+\hat{m} = \frac{1}{\hat{\lambda _{\mu}}} (\lambda \sum _{i = 1} ^ N x_i + \lambda _{\mu} m)
+$$
+
+これが意味するのは、
+
+- **$\hat{m}$は観測データを集めれば集めるほど、当初の事前分布の期待値$m$の影響が薄まり、代わりに学習した$x_i$が決定に寄与する**ようになるということ。
+- **$\hat{\lambda _{\mu}}$は観測データを集めれば集めるほど高くなる=分散は小さくなる**。つまり、観測データが集まるほど、$\mu$の事後分布のばらつきは小さくなる。
+
+次は同様に予測分布を計算する。
+
+$$
+p(x _{pred}) = \int p(x _{pred} | \mu) p(\mu) d\mu
+= \int \mathcal{N} (x _{pred} | \mu, \lambda ^ {-1}) \mathcal{N} (\mu | m, \lambda _{\mu} ^ {-1}) d\mu \\\\ 
+\log p(x _{pred} | \mu) p(\mu) = \frac{1}{4} (\log \lambda + \lambda _{\mu}) - \frac{1}{2} (\log 2 \pi) + \frac{1}{2}(\lambda(x _{pred} - \mu) ^ 2 + \lambda _{\mu} (\mu - m) ^ 2) \\\\ 
+= \frac{1}{2} \mu ^ 2 (\lambda + \lambda _{\mu}) - 2\mu (\lambda x _{pred} + \lambda _{\mu} m) + \mathrm{const}
+$$
+
+同様に、予測分布$p(x _{pred}) = \mathcal{N} (x _{pred} | \hat{m}, \hat{\lambda})$として、
+
+$$
+\frac{1}{\hat{\lambda}} = \frac{1}{\lambda} + \frac{1}{\lambda _{\mu}} \\\\ 
+\hat{m} = m
+$$
+
+となる。予測分布の期待値はまさに事前分布$p(\mu)$の期待値そのものであり、**予測分布の分散は事前分布と観測分布の分散の和であると言える**。
 
