@@ -232,7 +232,7 @@ $$
 エントロピーは以下の通り。
 
 $$
-- \mathbb{E} [\log p(x)] = \mathbb{E} \frac{1}{2} [\frac{x^2 - 2 \mu x + \mu^2}{\sigma ^ 2} + 2 \log \sigma + \log 2 \pi ]\\\\ 
+-\mathbb{E} [ \log p(x) ] = \frac{1}{2} \mathbb{E}  [ \frac{x^2 - 2 \mu x + \mu^2}{\sigma ^ 2} + 2 \log \sigma + \log 2 \pi ] \\\\ 
 = \frac{1}{2} \mathbb{E}[\frac{\mu ^ 2 + \sigma ^ 2 - 2\mu^2 + \mu^2}{\sigma ^ 2} + 2 \log \sigma + \log 2 \pi]
 = \frac{1}{2} (1 + 2 \log \sigma + \log 2 \pi)
 $$
@@ -240,7 +240,7 @@ $$
 2つのガウス分布$\mathcal{N} (\mu_1, \sigma_1 ^ 2)$と$\mathcal{N} (\mu_2, \sigma_2 ^ 2)$のKLダイバージェンスは、
 
 $$
-\mathbb{E}_{p} [\log p(x)] - \mathbb{E}_{p} [\log q(x)]
+\mathbb{E}_{p} \[ \log p(x) \] - \mathbb{E} _{p} [ \log q(x) ]
 = -\frac{1}{2} (\frac{(\mu_1 - \mu_2) ^ 2 + \sigma_2 ^ 2}{\sigma_1 ^ 2}) + 2\log \frac{\sigma_1}{\sigma_2} - 1
 $$
 
