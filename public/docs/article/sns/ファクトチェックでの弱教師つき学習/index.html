@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Weakly Supervised Learning for Fake News Detection on Twitter # 論文はこちら
+著者：Stefan Helmstetter, Heiko Paulheim
+4ページしかない(迫真)
+Introduction # 人の手でファクトチェックやるコストがあまりに高すぎる。汚れたデータのままで学習してみるよ。
+fake news自体のTweetを使うより、発信ユーザの信頼できるorできないを判断する野を目標にするよ。信頼できるユーザが少しfakeを流すとしてもそれは仕方ないと判断。
+手法は、**弱教師つき学習(Weakly Supervised Learning)**を使う。
+精度高かったよ。F1スコアで0.9にもなった。
+関連研究 # 今までの研究はみな
+データ量が少なさすぎる。 局限する分野が狭すぎる。 各タスクに限定したもので、人の手でアノテーションしたものしか訓練データにならない。 という欠点があった。この研究では、わずかの信頼できる、できないというアノテーションから、大きな未アノテーションのデータへ適用できる。
+データセット # 大きなデータセットと、小さな手動でラベル付けしたデータセットを用意したよ。
+大きなデータセット # まずは、信頼できる発信者と信頼できない発信者を集めることから始めた。
+ここで、ツイートごとにfake or not fakeでラベル付けする。fake newsの発信者であっても、虚実入り混じる発信をすることに注意。
+65のfake newsの発信者を集めた。信頼できるのは10人ほど集めた。当然これらは、積極的にTwitterに発信することが前提である。データセットのバランスを合わせるのも忘れずに。
+Twitterでそれらのアカウントの2月から6月分のTweetを集めた。合わせて401414件あり、110787件がfakeと、ラベル付けされた。 fake newsのアカウントは15%のfakeと40%の真実、残りはニュースじゃないTweetであった。
+重要な事実として、嘘つきも、真実の割合が嘘に比べて3倍ぐらい多いのである。なので普通に判断させるとfake newsのソースも信頼できる、と扱われる。
+でも仕方ないんだ。アノテーションに手間かけられないしガバガバなのは許せ。by me.
+小さなデータセット # 絶対的基準として、Politifactからの116ツイートを使った。これはプロの記者がつけたもの。fake newsに対して、絶対的な正答例として使うことに。
+これらのツイートしたアカウントと、大きなデータセットで追跡したアカウントは必ずしも一致しないことに注意。
+ネガティブな例を生成するとかなんとか。ようわからん。
+類似度判定自体は、cos類似度やTF-IDFだそうで。
+これトレーニングに使わなかったの&hellip;? by me.
+評価シナリオ # ツイートだけ見て評価する or ツイートとプロフィール両方見ての判断。
+手法 # まずは各ツイートをベクトルに変換。そしていろんな手法でそのベクトルから特徴量を抽出する。特徴量には5種類あると考えた。">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="ファクトチェックでの弱教師つき学習" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://Qian-Donglin.github.io/docs/article/sns/%E3%83%95%E3%82%A1%E3%82%AF%E3%83%88%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF%E3%81%A7%E3%81%AE%E5%BC%B1%E6%95%99%E5%B8%AB%E3%81%A4%E3%81%8D%E5%AD%A6%E7%BF%92/" />
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+	integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"
+	integrity="sha384-cpW21h6RZv/phavutF+AuVYrr+dA8xD9zs6FwLpaCct6O9ctzYFfFr4dgmgccOTx"
+	crossorigin="anonymous"></script>
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+	integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
+	onload="renderMathInElement(document.body);"></script>
+
+<script>
+	document.addEventListener("DOMContentLoaded", function () {
+		renderMathInElement(
+			document.body,
+			{
+				delimiters: [
+					{ left: "$$", right: "$$", display: true },
+					{ left: "\\[", right: "\\]", display: true },
+					{ left: "$", right: "$", display: false },
+					{ left: "\\(", right: "\\)", display: false }
+				]
+			});
+	});
+</script>
+
+<title>ファクトチェックでの弱教師つき学習 | Sen(Qian)のメモ</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/%20favicon.png">
+<link rel="stylesheet" href="/book.min.f8de3645fe00591b41524aee174e19edd98a22255a2930a0cdc82a94835ba387.css" integrity="sha256-&#43;N42Rf4AWRtBUkruF04Z7dmKIiVaKTCgzcgqlINbo4c=" crossorigin="anonymous">
+<script defer src="/%20flexsearch.min.js"></script>
+<script defer src="/en.search.min.43d9e1a27caa5999a7fee1bb577c631649e74ee5e89bedb7682f0f3f87c303eb.js" integrity="sha256-Q9nhonyqWZmn/uG7V3xjFknnTuXom&#43;23aC8PP4fDA&#43;s=" crossorigin="anonymous"></script>
+
+<link rel="alternate" type="application/rss+xml" href="https://Qian-Donglin.github.io/docs/article/sns/%E3%83%95%E3%82%A1%E3%82%AF%E3%83%88%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF%E3%81%A7%E3%81%AE%E5%BC%B1%E6%95%99%E5%B8%AB%E3%81%A4%E3%81%8D%E5%AD%A6%E7%BF%92/index.xml" title="Sen(Qian)のメモ" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><span>Sen(Qian)のメモ</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/" class="">競プロの問題解説</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Dp</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/DP/%E6%A1%81DP/" class="">桁 Dp</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/DP/%E6%A1%81DP/Y-abc317-F/" class="">(Y-) abc317 F</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0d2a02cd744e63233ebe57612bb12952" class="toggle"  />
+    <label for="section-0d2a02cd744e63233ebe57612bb12952" class="flex justify-between">
+      <a role="button" class="">Grid</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Grid/G-abc317-E/" class="">(G&#43;) abc317 E</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Implement</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Implement/G-abc315-E/" class="">(G) Abc315 E Index</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cea18f1d04185b9a1f879558d5aeddb2" class="toggle"  />
+    <label for="section-cea18f1d04185b9a1f879558d5aeddb2" class="flex justify-between">
+      <a role="button" class="">Square Divide</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/SquareDivide/CABC293-E%E5%B9%B3%E6%96%B9%E5%88%86%E5%89%B2/" class="">(C) abc293 E(平方分割)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-52d2a0ea11310952e77a5e1d9b1ee709" class="toggle"  />
+    <label for="section-52d2a0ea11310952e77a5e1d9b1ee709" class="flex justify-between">
+      <a role="button" class="">Graph</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Graph/BrABC292-D/" class="">(Br) abc292 D</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>読んだ本</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Machine Learning</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>ベイズ推論による機械学習(緑ベイズ)</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-1/" class="">第一章</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-2/" class="">第二章</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part1/" class="">第三章その1</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part2/" class="">第三章その2</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3c22cc3dba3e6e6de0eab46bcb97d14b" class="toggle" checked />
+    <label for="section-3c22cc3dba3e6e6de0eab46bcb97d14b" class="flex justify-between">
+      <a role="button" class="">読んだ論文たちのメモ</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d64fdaa8e46f50c67b163d98fad0ddb7" class="toggle"  />
+    <label for="section-d64fdaa8e46f50c67b163d98fad0ddb7" class="flex justify-between">
+      <a role="button" class="">Graphic Design</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/graphic_design_ML/Content-aware-Generative-Modeling-of-Graphic-Design-Layouts/" class="">Content Aware Generative Modeling of Graphic Design Layouts</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/graphic_design_ML/Learning-to-Generate-Posters-of-Scientific-Papers/" class="">Learning to Generate Posters of Scientific Papers</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Order Thing</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/order_thing/Learning-to-Order-Thing/" class="">Learning to Order Thing</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-749fb68fcedaafaff7bdd8e5931b0451" class="toggle" checked />
+    <label for="section-749fb68fcedaafaff7bdd8e5931b0451" class="flex justify-between">
+      <a role="button" class="">sns</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E7%82%8E%E4%B8%8A%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6/" class="">Twitterの炎上について</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E3%83%95%E3%82%A1%E3%82%AF%E3%83%88%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF%E3%81%A7%E3%81%AE%E5%BC%B1%E6%95%99%E5%B8%AB%E3%81%A4%E3%81%8D%E5%AD%A6%E7%BF%92/" class="active">ファクトチェックでの弱教師つき学習</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E5%BC%B1%E6%95%99%E5%B8%AB%E5%AD%A6%E7%BF%92%E3%81%A7%E3%83%AA%E3%83%97%E3%83%A9%E3%82%A4%E3%81%8B%E3%82%89%E7%82%8E%E4%B8%8A%E5%88%86%E6%9E%90/" class="">弱教師学習でリプライから炎上分析</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-de33daac55650926621e120a75049e4a" class="toggle"  />
+    <label for="section-de33daac55650926621e120a75049e4a" class="flex justify-between">
+      <a role="button" class="">Svm</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%82%AB%E3%83%BC%E3%83%8D%E3%83%AB%E6%B3%95/" class="">カーネル法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%82%BD%E3%83%95%E3%83%88%E3%83%9E%E3%83%BC%E3%82%B8%E3%83%B3/" class="">ソフトマージン</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%83%8F%E3%83%BC%E3%83%89%E3%83%9E%E3%83%BC%E3%82%B8%E3%83%B3/" class="">ハードマージン</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0465dfafe9cdc495ea2e5d9009d8922a" class="toggle"  />
+    <label for="section-0465dfafe9cdc495ea2e5d9009d8922a" class="flex justify-between">
+      <a role="button" class="">Weakly Supervised Learning</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/2017%E6%99%82%E7%82%B9%E3%81%AE%E5%90%84%E6%89%8B%E6%B3%95/" class="">2017時点の各手法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/PNU-Learning/" class="">PNU Learning(2017年)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive-Confidential-learning2017/" class="">Positive Confidential Learning(2017)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/" class="">Positiveでラベル有り無しで分布が違う時の PU学習(2019)</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/PU-Learning%E3%81%AE%E3%82%AF%E3%83%A9%E3%82%B9%E3%81%AE%E5%AE%9F%E8%A3%85/" class="">バイアスつきPU Learningクラスの実装</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E5%AE%9F%E9%A8%93%E3%81%AE%E3%82%B3%E3%83%BC%E3%83%89%E3%81%AE%E8%A7%A3%E6%9E%90/" class="">バイアスつきPU Learningクラスの実装</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E3%83%A1%E3%82%A4%E3%83%B3%E3%82%B3%E3%83%BC%E3%83%89/" class="">メインコード</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/PU-Learning/" class="">PU Learning(2007年)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/%E5%88%86%E5%B8%83%E4%BB%AE%E5%AE%9A%E4%B8%8D%E8%A6%81PU-Learning2014/" class="">PU LearningでなんでSVMのヒンジ関数は精度悪いか(2014)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/%E8%A3%9C%E3%83%A9%E3%83%99%E3%83%AB%E5%AD%A6%E7%BF%922017/" class="">補ラベル学習(2017)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>ファクトチェックでの弱教師つき学習</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#大きなデータセット">大きなデータセット</a></li>
+    <li><a href="#小さなデータセット">小さなデータセット</a></li>
+    <li><a href="#評価シナリオ">評価シナリオ</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#ユーザーレベルの特徴">ユーザーレベルの特徴</a></li>
+    <li><a href="#ツイートレベルの特徴">ツイートレベルの特徴</a></li>
+    <li><a href="#テキストの特徴">テキストの特徴</a></li>
+    <li><a href="#トピックの特徴">トピックの特徴</a></li>
+    <li><a href="#感情の特徴">感情の特徴</a></li>
+    <li><a href="#次元圧縮">次元圧縮</a></li>
+    <li><a href="#学習アルゴリズムとパラメタ最適化">学習アルゴリズムとパラメタ最適化</a></li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><h1 id="weakly-supervised-learning-for-fake-news-detection-on-twitter">
+  Weakly Supervised Learning for Fake News Detection on Twitter
+  <a class="anchor" href="#weakly-supervised-learning-for-fake-news-detection-on-twitter">#</a>
+</h1>
+<p>
+  <a href="https://data.dws.informatik.uni-mannheim.de/fakenews/asonam_short.pdf">論文はこちら</a></p>
+<p>著者：Stefan Helmstetter, Heiko Paulheim</p>
+<p>4ページしかない(迫真)</p>
+<h1 id="introduction">
+  Introduction
+  <a class="anchor" href="#introduction">#</a>
+</h1>
+<p>人の手でファクトチェックやるコストがあまりに高すぎる。汚れたデータのままで学習してみるよ。</p>
+<p>fake news自体の<strong>Tweetを使うより、発信ユーザの信頼できるorできないを判断する野を目標</strong>にするよ。信頼できるユーザが少しfakeを流すとしてもそれは仕方ないと判断。</p>
+<p>手法は、**弱教師つき学習(Weakly Supervised Learning)**を使う。</p>
+<p>精度高かったよ。F1スコアで0.9にもなった。</p>
+<h1 id="関連研究">
+  関連研究
+  <a class="anchor" href="#%e9%96%a2%e9%80%a3%e7%a0%94%e7%a9%b6">#</a>
+</h1>
+<p>今までの研究はみな</p>
+<ul>
+<li>データ量が少なさすぎる。</li>
+<li>局限する分野が狭すぎる。</li>
+<li>各タスクに限定したもので、人の手でアノテーションしたものしか訓練データにならない。</li>
+</ul>
+<p>という欠点があった。この研究では、わずかの信頼できる、できないというアノテーションから、大きな未アノテーションのデータへ適用できる。</p>
+<h1 id="データセット">
+  データセット
+  <a class="anchor" href="#%e3%83%87%e3%83%bc%e3%82%bf%e3%82%bb%e3%83%83%e3%83%88">#</a>
+</h1>
+<p>大きなデータセットと、小さな手動でラベル付けしたデータセットを用意したよ。</p>
+<h2 id="大きなデータセット">
+  大きなデータセット
+  <a class="anchor" href="#%e5%a4%a7%e3%81%8d%e3%81%aa%e3%83%87%e3%83%bc%e3%82%bf%e3%82%bb%e3%83%83%e3%83%88">#</a>
+</h2>
+<p>まずは、信頼できる発信者と信頼できない発信者を集めることから始めた。</p>
+<p>ここで、<strong>ツイートごとにfake or not fakeでラベル付けする</strong>。fake newsの発信者であっても、虚実入り混じる発信をすることに注意。</p>
+<p>65のfake newsの発信者を集めた。信頼できるのは10人ほど集めた。当然これらは、積極的にTwitterに発信することが前提である。データセットのバランスを合わせるのも忘れずに。</p>
+<p>Twitterでそれらのアカウントの2月から6月分のTweetを集めた。合わせて401414件あり、110787件がfakeと、ラベル付けされた。
+fake newsのアカウントは15%のfakeと40%の真実、残りはニュースじゃないTweetであった。</p>
+<p>重要な事実として、嘘つきも、真実の割合が嘘に比べて3倍ぐらい多いのである。なので普通に判断させるとfake newsのソースも信頼できる、と扱われる。</p>
+<p>でも仕方ないんだ。アノテーションに手間かけられないしガバガバなのは許せ。by me.</p>
+<h2 id="小さなデータセット">
+  小さなデータセット
+  <a class="anchor" href="#%e5%b0%8f%e3%81%95%e3%81%aa%e3%83%87%e3%83%bc%e3%82%bf%e3%82%bb%e3%83%83%e3%83%88">#</a>
+</h2>
+<p>絶対的基準として、Politifactからの116ツイートを使った。これはプロの記者がつけたもの。fake newsに対して、絶対的な正答例として使うことに。</p>
+<p>これらのツイートしたアカウントと、大きなデータセットで追跡したアカウントは<strong>必ずしも一致しない</strong>ことに注意。</p>
+<p>ネガティブな例を生成するとかなんとか。ようわからん。</p>
+<p>類似度判定自体は、cos類似度やTF-IDFだそうで。</p>
+<p>これトレーニングに使わなかったの&hellip;? by me.</p>
+<h2 id="評価シナリオ">
+  評価シナリオ
+  <a class="anchor" href="#%e8%a9%95%e4%be%a1%e3%82%b7%e3%83%8a%e3%83%aa%e3%82%aa">#</a>
+</h2>
+<p><strong>ツイートだけ見て評価する or ツイートとプロフィール両方</strong>見ての判断。</p>
+<h1 id="手法">
+  手法
+  <a class="anchor" href="#%e6%89%8b%e6%b3%95">#</a>
+</h1>
+<p>まずは各ツイートをベクトルに変換。そしていろんな手法でそのベクトルから特徴量を抽出する。特徴量には5種類あると考えた。</p>
+<h2 id="ユーザーレベルの特徴">
+  ユーザーレベルの特徴
+  <a class="anchor" href="#%e3%83%a6%e3%83%bc%e3%82%b6%e3%83%bc%e3%83%ac%e3%83%99%e3%83%ab%e3%81%ae%e7%89%b9%e5%be%b4">#</a>
+</h2>
+<p>ユーザーのフォロワー数などの、TwitterAPIで取得できる限りのものを集めた。ツイート頻度、Tweet/Retweetの割合など。計53個集めたよ。</p>
+<h2 id="ツイートレベルの特徴">
+  ツイートレベルの特徴
+  <a class="anchor" href="#%e3%83%84%e3%82%a4%e3%83%bc%e3%83%88%e3%83%ac%e3%83%99%e3%83%ab%e3%81%ae%e7%89%b9%e5%be%b4">#</a>
+</h2>
+<p>これもAPIで取得できる限りのもの。？と！の出現頻度、Tweetの日時、Tweet数、語数を使った。69の特徴量を使った。</p>
+<p><strong>ただし、経過した時間依存のfavとRT数は使用しなかった</strong>。</p>
+<h2 id="テキストの特徴">
+  テキストの特徴
+  <a class="anchor" href="#%e3%83%86%e3%82%ad%e3%82%b9%e3%83%88%e3%81%ae%e7%89%b9%e5%be%b4">#</a>
+</h2>
+<p>TF-IDFを使ったbag of wordモデルと、Doc2Vecのモデル両方を使った。(注：今BARDあるから後者でよくね？)gensimという埋め込み生成を使った。ラベルなし学習でできるし。</p>
+<h2 id="トピックの特徴">
+  トピックの特徴
+  <a class="anchor" href="#%e3%83%88%e3%83%94%e3%83%83%e3%82%af%e3%81%ae%e7%89%b9%e5%be%b4">#</a>
+</h2>
+<p>トピックはかなり重要なので、Tweet文から抽出させるようにして、別途やることにした。遅延ディリクレ配置LDAモデルを訓練した。トピック数を10から200まで10刻みで動かした。</p>
+<h2 id="感情の特徴">
+  感情の特徴
+  <a class="anchor" href="#%e6%84%9f%e6%83%85%e3%81%ae%e7%89%b9%e5%be%b4">#</a>
+</h2>
+<p>SentiWordNetで各ツイートのpositive, negative, neutral wordの数を測定した。さらにTextBlobでtweetの客観性を計算した。</p>
+<p>これらから8つの特徴量を追加した。</p>
+<h2 id="次元圧縮">
+  次元圧縮
+  <a class="anchor" href="#%e6%ac%a1%e5%85%83%e5%9c%a7%e7%b8%ae">#</a>
+</h2>
+<p>さすがにこれらは多すぎるので、落とします。各特徴量のジニ係数？を計算し、一定以下の者は全て消した。</p>
+<h2 id="学習アルゴリズムとパラメタ最適化">
+  学習アルゴリズムとパラメタ最適化
+  <a class="anchor" href="#%e5%ad%a6%e7%bf%92%e3%82%a2%e3%83%ab%e3%82%b4%e3%83%aa%e3%82%ba%e3%83%a0%e3%81%a8%e3%83%91%e3%83%a9%e3%83%a1%e3%82%bf%e6%9c%80%e9%81%a9%e5%8c%96">#</a>
+</h2>
+<p>Naive Bayes、Decision Tree, SVM, Nueral networkの4つを基本的な分類器とした。アンサンブルの手法のRandom ForestとXGBoostも行った。</p>
+<h1 id="実験結果">
+  実験結果
+  <a class="anchor" href="#%e5%ae%9f%e9%a8%93%e7%b5%90%e6%9e%9c">#</a>
+</h1>
+<p>まずは、<strong>偽ニュースのソースについての特定</strong>をやってみた。クロス評価を行った。<strong>ユーザー情報を追加したほうが、明らかにファクトチェックではいい成績を残す</strong>。一番よかったのは、XGBoostでF1値がツイートだけは0.78、ユーザとツイート合わせては0.94と高かった。</p>
+<p>次に、<strong>偽ニュースのツイートについての特定</strong>をやってみた。こっちの方がまあ、難しいわけです。こっちはニューラルネットワークの方が性能良かった！</p>
+<h1 id="結論">
+  結論
+  <a class="anchor" href="#%e7%b5%90%e8%ab%96">#</a>
+</h1>
+<p>大きな不正確なアノテーションのデータでもいい結果が残せるで。しかもかなり良い結果ちゃうか？</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#大きなデータセット">大きなデータセット</a></li>
+    <li><a href="#小さなデータセット">小さなデータセット</a></li>
+    <li><a href="#評価シナリオ">評価シナリオ</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#ユーザーレベルの特徴">ユーザーレベルの特徴</a></li>
+    <li><a href="#ツイートレベルの特徴">ツイートレベルの特徴</a></li>
+    <li><a href="#テキストの特徴">テキストの特徴</a></li>
+    <li><a href="#トピックの特徴">トピックの特徴</a></li>
+    <li><a href="#感情の特徴">感情の特徴</a></li>
+    <li><a href="#次元圧縮">次元圧縮</a></li>
+    <li><a href="#学習アルゴリズムとパラメタ最適化">学習アルゴリズムとパラメタ最適化</a></li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

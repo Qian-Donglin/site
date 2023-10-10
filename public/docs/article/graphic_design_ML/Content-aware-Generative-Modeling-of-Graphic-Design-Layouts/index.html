@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="基本情報 # 著者 Xinru Zheng, Xiaotian Qiao, Ying Cao, Rynson W. H. Lau 題 一般的な文章に対するレイアウトの分析器 詳細 # Introduction # いい感じのレイアウトを提案するには写真、中身をちゃんと理解しないとだめやね。
+先行研究では、高レベルの意味論(semantic)だけで、レイアウトを構成していた。画像や文章の中身には踏み込んでなかった。(画像の知覚的重要度や、画像とテキスト要素の間の注意の遷移　についてだけらしい)
+この研究では、文章や画像の中身に踏み込んで、レイアウトを構成する手法を提案する。ただし、雑誌に集中。
+確率的な生成フレームを作る。学習データは、画像文章付きの記事のレイアウトと、高レベルデザインの条件付き分布からなるらしい。 複雑なレイアウト分布をモデリングするGANも、デザインの構造的/カテゴリ的属性を符号化する意味 埋め込みネットワークを導入。
+特に人の手で訓練データ以外を与えずに学習させるよ、つまりデザインの規則とかに従って人が雛型の設計はいらないよ。研究のために雑誌のレイアウトのDBまで作ったよ。
+結果として、画像、デザインのカテゴリ、内容の要約を教えてくれれば、デザイン案を提示するようにしたよ。 それに加えて、事前にデザインのラフ案も入れることができて、それも考慮されるよ。
+深層生成モデルとは # 深層学習モデルを使って画像とかを生成するモデル。
+形状の生成では、Deep Belief NetworkやDeep Boltzmann Machinesがよく使われていた。だが、収束遅いし計算も大変。 最近は variational auto encoderや敵対的生成ネットワークGANがもっといいという結果に。ただ、VAEはぼやけた画像になりがちだが、GANではその課題はない。だが、GANには潜在的なパラメタを推定する力はないらしい。
+先行研究では2D/3D画像の生成で深層生成モデルを使ってたが、今回はGANのフレームワークで、レイアウトを深層生成モデルで出す。
+ほぼ同時期の研究として、**LayoutGANという、GANベースのランダムな2Dのオブジェクトをいい感じに配置する研究(Layout-GAN: Generating Graphic Layouts with Wireframe Discriminator)**もある。ただこれはコンテンツの中身に踏み込んでるわけじゃない。
+Dataset # 今回の研究のためにわざわざDB作ったよ。ground-truth(実物データ)のデータでがんばってやったよ。 既存のものは小さくて使いもんにあんまならなかった。3919ページ集めたよ。 カテゴリは、ファッション、食事、ニュース、科学、旅行、結婚。
+各ページについて、以下の6点について特徴量を出したよ。
+文章 画像 見出し 画像の上にある文章 画像の上の見出し 背景 文章には5つにははいらないが、文章でもないなぁってものも入れる。これを各ピクセルごとに、6つのうちのどれかと分類した。
+ラベル付けの補助 # 手動だとさすがに大変なんで、一部だけ手動でやって、それをもってして自動的にラベル付けをするFully Convolutional Networkのモデルを1つ作って任せた。その結果を人の手で微修正した。
+キーワードの抽出 # 中身を見るには画像や文字の中身を見る必要がある。 画像はそのまま見るにしても、文字データは全ては冗長過ぎる。 ここでは、Googleの Rapid Automatic Keyword Extractionを利用した。このキーワードを使って、カテゴリ分けを行った。recipe, tasteならfoodのように。">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="Content Aware Generative Modeling of Graphic Design Layouts" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://Qian-Donglin.github.io/docs/article/graphic_design_ML/Content-aware-Generative-Modeling-of-Graphic-Design-Layouts/" />
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+	integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"
+	integrity="sha384-cpW21h6RZv/phavutF+AuVYrr+dA8xD9zs6FwLpaCct6O9ctzYFfFr4dgmgccOTx"
+	crossorigin="anonymous"></script>
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+	integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
+	onload="renderMathInElement(document.body);"></script>
+
+<script>
+	document.addEventListener("DOMContentLoaded", function () {
+		renderMathInElement(
+			document.body,
+			{
+				delimiters: [
+					{ left: "$$", right: "$$", display: true },
+					{ left: "\\[", right: "\\]", display: true },
+					{ left: "$", right: "$", display: false },
+					{ left: "\\(", right: "\\)", display: false }
+				]
+			});
+	});
+</script>
+
+<title>Content Aware Generative Modeling of Graphic Design Layouts | Sen(Qian)のメモ</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/%20favicon.png">
+<link rel="stylesheet" href="/book.min.f8de3645fe00591b41524aee174e19edd98a22255a2930a0cdc82a94835ba387.css" integrity="sha256-&#43;N42Rf4AWRtBUkruF04Z7dmKIiVaKTCgzcgqlINbo4c=" crossorigin="anonymous">
+<script defer src="/%20flexsearch.min.js"></script>
+<script defer src="/en.search.min.43d9e1a27caa5999a7fee1bb577c631649e74ee5e89bedb7682f0f3f87c303eb.js" integrity="sha256-Q9nhonyqWZmn/uG7V3xjFknnTuXom&#43;23aC8PP4fDA&#43;s=" crossorigin="anonymous"></script>
+
+<link rel="alternate" type="application/rss+xml" href="https://Qian-Donglin.github.io/docs/article/graphic_design_ML/Content-aware-Generative-Modeling-of-Graphic-Design-Layouts/index.xml" title="Sen(Qian)のメモ" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><span>Sen(Qian)のメモ</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/" class="">競プロの問題解説</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Dp</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/DP/%E6%A1%81DP/" class="">桁 Dp</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/DP/%E6%A1%81DP/Y-abc317-F/" class="">(Y-) abc317 F</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0d2a02cd744e63233ebe57612bb12952" class="toggle"  />
+    <label for="section-0d2a02cd744e63233ebe57612bb12952" class="flex justify-between">
+      <a role="button" class="">Grid</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Grid/G-abc317-E/" class="">(G&#43;) abc317 E</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Implement</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Implement/G-abc315-E/" class="">(G) Abc315 E Index</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cea18f1d04185b9a1f879558d5aeddb2" class="toggle"  />
+    <label for="section-cea18f1d04185b9a1f879558d5aeddb2" class="flex justify-between">
+      <a role="button" class="">Square Divide</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/SquareDivide/CABC293-E%E5%B9%B3%E6%96%B9%E5%88%86%E5%89%B2/" class="">(C) abc293 E(平方分割)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-52d2a0ea11310952e77a5e1d9b1ee709" class="toggle"  />
+    <label for="section-52d2a0ea11310952e77a5e1d9b1ee709" class="flex justify-between">
+      <a role="button" class="">Graph</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Graph/BrABC292-D/" class="">(Br) abc292 D</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>読んだ本</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Machine Learning</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>ベイズ推論による機械学習(緑ベイズ)</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-1/" class="">第一章</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-2/" class="">第二章</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part1/" class="">第三章その1</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part2/" class="">第三章その2</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3c22cc3dba3e6e6de0eab46bcb97d14b" class="toggle" checked />
+    <label for="section-3c22cc3dba3e6e6de0eab46bcb97d14b" class="flex justify-between">
+      <a role="button" class="">読んだ論文たちのメモ</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d64fdaa8e46f50c67b163d98fad0ddb7" class="toggle" checked />
+    <label for="section-d64fdaa8e46f50c67b163d98fad0ddb7" class="flex justify-between">
+      <a role="button" class="">Graphic Design</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/graphic_design_ML/Content-aware-Generative-Modeling-of-Graphic-Design-Layouts/" class="active">Content Aware Generative Modeling of Graphic Design Layouts</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/graphic_design_ML/Learning-to-Generate-Posters-of-Scientific-Papers/" class="">Learning to Generate Posters of Scientific Papers</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Order Thing</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/order_thing/Learning-to-Order-Thing/" class="">Learning to Order Thing</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-749fb68fcedaafaff7bdd8e5931b0451" class="toggle"  />
+    <label for="section-749fb68fcedaafaff7bdd8e5931b0451" class="flex justify-between">
+      <a role="button" class="">sns</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E7%82%8E%E4%B8%8A%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6/" class="">Twitterの炎上について</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E3%83%95%E3%82%A1%E3%82%AF%E3%83%88%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF%E3%81%A7%E3%81%AE%E5%BC%B1%E6%95%99%E5%B8%AB%E3%81%A4%E3%81%8D%E5%AD%A6%E7%BF%92/" class="">ファクトチェックでの弱教師つき学習</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E5%BC%B1%E6%95%99%E5%B8%AB%E5%AD%A6%E7%BF%92%E3%81%A7%E3%83%AA%E3%83%97%E3%83%A9%E3%82%A4%E3%81%8B%E3%82%89%E7%82%8E%E4%B8%8A%E5%88%86%E6%9E%90/" class="">弱教師学習でリプライから炎上分析</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-de33daac55650926621e120a75049e4a" class="toggle"  />
+    <label for="section-de33daac55650926621e120a75049e4a" class="flex justify-between">
+      <a role="button" class="">Svm</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%82%AB%E3%83%BC%E3%83%8D%E3%83%AB%E6%B3%95/" class="">カーネル法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%82%BD%E3%83%95%E3%83%88%E3%83%9E%E3%83%BC%E3%82%B8%E3%83%B3/" class="">ソフトマージン</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%83%8F%E3%83%BC%E3%83%89%E3%83%9E%E3%83%BC%E3%82%B8%E3%83%B3/" class="">ハードマージン</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0465dfafe9cdc495ea2e5d9009d8922a" class="toggle"  />
+    <label for="section-0465dfafe9cdc495ea2e5d9009d8922a" class="flex justify-between">
+      <a role="button" class="">Weakly Supervised Learning</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/2017%E6%99%82%E7%82%B9%E3%81%AE%E5%90%84%E6%89%8B%E6%B3%95/" class="">2017時点の各手法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/PNU-Learning/" class="">PNU Learning(2017年)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive-Confidential-learning2017/" class="">Positive Confidential Learning(2017)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/" class="">Positiveでラベル有り無しで分布が違う時の PU学習(2019)</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/PU-Learning%E3%81%AE%E3%82%AF%E3%83%A9%E3%82%B9%E3%81%AE%E5%AE%9F%E8%A3%85/" class="">バイアスつきPU Learningクラスの実装</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E5%AE%9F%E9%A8%93%E3%81%AE%E3%82%B3%E3%83%BC%E3%83%89%E3%81%AE%E8%A7%A3%E6%9E%90/" class="">バイアスつきPU Learningクラスの実装</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E3%83%A1%E3%82%A4%E3%83%B3%E3%82%B3%E3%83%BC%E3%83%89/" class="">メインコード</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/PU-Learning/" class="">PU Learning(2007年)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/%E5%88%86%E5%B8%83%E4%BB%AE%E5%AE%9A%E4%B8%8D%E8%A6%81PU-Learning2014/" class="">PU LearningでなんでSVMのヒンジ関数は精度悪いか(2014)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/%E8%A3%9C%E3%83%A9%E3%83%99%E3%83%AB%E5%AD%A6%E7%BF%922017/" class="">補ラベル学習(2017)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>Content Aware Generative Modeling of Graphic Design Layouts</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#深層生成モデルとは">深層生成モデルとは</a></li>
+    <li><a href="#dataset">Dataset</a>
+      <ul>
+        <li><a href="#ラベル付けの補助">ラベル付けの補助</a></li>
+        <li><a href="#キーワードの抽出">キーワードの抽出</a></li>
+        <li><a href="#レイアウトの表現">レイアウトの表現</a></li>
+      </ul>
+    </li>
+    <li><a href="#モデルの設計">モデルの設計</a></li>
+    <li><a href="#future-work">Future Work</a></li>
+    <li><a href="#気になった参考文献とか先行研究とか">気になった参考文献とか先行研究とか</a>
+      <ul>
+        <li><a href="#ガイドに従った色々考えたレイアウトの自動生成の先行研究">ガイドに従った色々考えたレイアウトの自動生成の先行研究</a></li>
+        <li><a href="#テンプレートベースのレイアウトの自動生成">テンプレートベースのレイアウトの自動生成</a></li>
+        <li><a href="#webページの内容を別のレイアウトに変換する">Webページの内容を別のレイアウトに変換する。</a></li>
+        <li><a href="#漫画のレイアウトを統計的に学習して自動生成する">漫画のレイアウトを統計的に学習して、自動生成する</a></li>
+        <li><a href="#視覚的原理によって定義したenergy-functionの最適化によってページのレイアウトの最適化の研究">視覚的原理によって定義したenergy functionの最適化によって、ページのレイアウトの最適化の研究</a></li>
+        <li><a href="#事前に見てほしいルートに沿うようなレイアウトの自動生成">事前に見てほしいルートに沿うようなレイアウトの自動生成</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><h1 id="基本情報">
+  基本情報
+  <a class="anchor" href="#%e5%9f%ba%e6%9c%ac%e6%83%85%e5%a0%b1">#</a>
+</h1>
+<table>
+<thead>
+<tr>
+<th>著者</th>
+<th>Xinru Zheng, Xiaotian Qiao, Ying Cao, Rynson W. H. Lau</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>題</td>
+<td>一般的な文章に対するレイアウトの分析器</td>
+</tr>
+</tbody>
+</table>
+<h1 id="詳細">
+  詳細
+  <a class="anchor" href="#%e8%a9%b3%e7%b4%b0">#</a>
+</h1>
+<h2 id="introduction">
+  Introduction
+  <a class="anchor" href="#introduction">#</a>
+</h2>
+<p>いい感じのレイアウトを提案するには写真、中身をちゃんと理解しないとだめやね。</p>
+<p>先行研究では、<strong>高レベルの意味論(semantic)だけで、レイアウトを構成していた</strong>。画像や文章の中身には踏み込んでなかった。(画像の知覚的重要度や、画像とテキスト要素の間の注意の遷移　についてだけらしい)</p>
+<p>この研究では、<strong>文章や画像の中身に踏み込んで、レイアウトを構成する手法を提案する</strong>。ただし、<strong>雑誌に集中</strong>。</p>
+<p>確率的な生成フレームを作る。<strong>学習データは、画像文章付きの記事のレイアウトと、高レベルデザインの条件付き分布</strong>からなるらしい。
+複雑なレイアウト分布をモデリングするGANも、デザインの構造的/カテゴリ的属性を符号化する意味
+  <a href="https://qiita.com/sakabe/items/5f14999ded1de087c9b5">埋め込みネットワーク</a>を導入。</p>
+<p>特に人の手で訓練データ以外を与えずに学習させるよ、つまりデザインの規則とかに従って人が雛型の設計はいらないよ。研究のために雑誌のレイアウトのDBまで作ったよ。</p>
+<p>結果として、<strong>画像、デザインのカテゴリ、内容の要約</strong>を教えてくれれば、デザイン案を提示するようにしたよ。
+それに加えて、<strong>事前にデザインのラフ案も入れることができて、それも考慮されるよ</strong>。</p>
+<h2 id="深層生成モデルとは">
+  深層生成モデルとは
+  <a class="anchor" href="#%e6%b7%b1%e5%b1%a4%e7%94%9f%e6%88%90%e3%83%a2%e3%83%87%e3%83%ab%e3%81%a8%e3%81%af">#</a>
+</h2>
+<p>深層学習モデルを使って画像とかを生成するモデル。</p>
+<p>形状の生成では、Deep Belief NetworkやDeep Boltzmann Machinesがよく使われていた。だが、収束遅いし計算も大変。
+最近は
+  <a href="https://qiita.com/kenmatsu4/items/b029d697e9995d93aa24">variational auto encoder</a>や敵対的生成ネットワークGANがもっといいという結果に。ただ、VAEはぼやけた画像になりがちだが、GANではその課題はない。だが、GANには潜在的なパラメタを推定する力はないらしい。</p>
+<p>先行研究では2D/3D画像の生成で深層生成モデルを使ってたが、今回はGANのフレームワークで、レイアウトを深層生成モデルで出す。</p>
+<p>ほぼ同時期の研究として、**LayoutGANという、GANベースのランダムな2Dのオブジェクトをいい感じに配置する研究(Layout-GAN: Generating Graphic Layouts with Wireframe Discriminator)**もある。ただこれはコンテンツの中身に踏み込んでるわけじゃない。</p>
+<h2 id="dataset">
+  Dataset
+  <a class="anchor" href="#dataset">#</a>
+</h2>
+<p>今回の研究のためにわざわざDB作ったよ。ground-truth(実物データ)のデータでがんばってやったよ。
+既存のものは小さくて使いもんにあんまならなかった。3919ページ集めたよ。
+カテゴリは、ファッション、食事、ニュース、科学、旅行、結婚。</p>
+<p>各ページについて、以下の6点について特徴量を出したよ。</p>
+<ul>
+<li>文章</li>
+<li>画像</li>
+<li>見出し</li>
+<li>画像の上にある文章</li>
+<li>画像の上の見出し</li>
+<li>背景</li>
+</ul>
+<p>文章には5つにははいらないが、文章でもないなぁってものも入れる。これを各ピクセルごとに、6つのうちのどれかと分類した。</p>
+<h3 id="ラベル付けの補助">
+  ラベル付けの補助
+  <a class="anchor" href="#%e3%83%a9%e3%83%99%e3%83%ab%e4%bb%98%e3%81%91%e3%81%ae%e8%a3%9c%e5%8a%a9">#</a>
+</h3>
+<p>手動だとさすがに大変なんで、一部だけ手動でやって、それをもってして自動的にラベル付けをするFully Convolutional Networkのモデルを1つ作って任せた。その結果を人の手で微修正した。</p>
+<h3 id="キーワードの抽出">
+  キーワードの抽出
+  <a class="anchor" href="#%e3%82%ad%e3%83%bc%e3%83%af%e3%83%bc%e3%83%89%e3%81%ae%e6%8a%bd%e5%87%ba">#</a>
+</h3>
+<p>中身を見るには画像や文字の中身を見る必要がある。
+画像はそのまま見るにしても、文字データは全ては冗長過ぎる。
+ここでは、Googleの
+  <a href="https://medium.datadriveninvestor.com/rake-rapid-automatic-keyword-extraction-algorithm-f4ec17b2886c">Rapid Automatic Keyword Extraction</a>を利用した。このキーワードを使って、カテゴリ分けを行った。recipe, tasteならfoodのように。</p>
+<p>このままだと混じりけが多いので、学習データのうち、上位100個を抽出してそこから類義語などを手動で消す、</p>
+<p>実際の入力では、RAKEでキーワードを抽出して、それらがどのジャンルなのか、によって判断する。</p>
+<h3 id="レイアウトの表現">
+  レイアウトの表現
+  <a class="anchor" href="#%e3%83%ac%e3%82%a4%e3%82%a2%e3%82%a6%e3%83%88%e3%81%ae%e8%a1%a8%e7%8f%be">#</a>
+</h3>
+<p>先行研究ではパラメタだったが、この研究では思い切って<strong>画像に</strong>。各ピクセルに上の6種類のラベルのいずれかをつける形に。
+この画像ベースのものは、CNNで扱いやすいらしい。</p>
+<p>ピクセル自体は細かくすれば結果はよくなるが、ここでは計算コストとの兼ね合いもあって $60 \times 45$に。だいたいの雑誌ページは4:3だし。</p>
+<h2 id="モデルの設計">
+  モデルの設計
+  <a class="anchor" href="#%e3%83%a2%e3%83%87%e3%83%ab%e3%81%ae%e8%a8%ad%e8%a8%88">#</a>
+</h2>
+<h2 id="future-work">
+  Future Work
+  <a class="anchor" href="#future-work">#</a>
+</h2>
+<h2 id="気になった参考文献とか先行研究とか">
+  気になった参考文献とか先行研究とか
+  <a class="anchor" href="#%e6%b0%97%e3%81%ab%e3%81%aa%e3%81%a3%e3%81%9f%e5%8f%82%e8%80%83%e6%96%87%e7%8c%ae%e3%81%a8%e3%81%8b%e5%85%88%e8%a1%8c%e7%a0%94%e7%a9%b6%e3%81%a8%e3%81%8b">#</a>
+</h2>
+<h3 id="ガイドに従った色々考えたレイアウトの自動生成の先行研究">
+  ガイドに従った色々考えたレイアウトの自動生成の先行研究
+  <a class="anchor" href="#%e3%82%ac%e3%82%a4%e3%83%89%e3%81%ab%e5%be%93%e3%81%a3%e3%81%9f%e8%89%b2%e3%80%85%e8%80%83%e3%81%88%e3%81%9f%e3%83%ac%e3%82%a4%e3%82%a2%e3%82%a6%e3%83%88%e3%81%ae%e8%87%aa%e5%8b%95%e7%94%9f%e6%88%90%e3%81%ae%e5%85%88%e8%a1%8c%e7%a0%94%e7%a9%b6">#</a>
+</h3>
+<p>Automatic Stylistic manga layout, 2012, ACM</p>
+<p>Attention-Directing Composition of Manga Elements, 2014, ACM</p>
+<h3 id="テンプレートベースのレイアウトの自動生成">
+  テンプレートベースのレイアウトの自動生成
+  <a class="anchor" href="#%e3%83%86%e3%83%b3%e3%83%97%e3%83%ac%e3%83%bc%e3%83%88%e3%83%99%e3%83%bc%e3%82%b9%e3%81%ae%e3%83%ac%e3%82%a4%e3%82%a2%e3%82%a6%e3%83%88%e3%81%ae%e8%87%aa%e5%8b%95%e7%94%9f%e6%88%90">#</a>
+</h3>
+<p>手動で作ったいくつかのデザインパターンへの誘導。</p>
+<h3 id="webページの内容を別のレイアウトに変換する">
+  Webページの内容を別のレイアウトに変換する。
+  <a class="anchor" href="#web%e3%83%9a%e3%83%bc%e3%82%b8%e3%81%ae%e5%86%85%e5%ae%b9%e3%82%92%e5%88%a5%e3%81%ae%e3%83%ac%e3%82%a4%e3%82%a2%e3%82%a6%e3%83%88%e3%81%ab%e5%a4%89%e6%8f%9b%e3%81%99%e3%82%8b">#</a>
+</h3>
+<p>example-based retargeting for Web design, ACM</p>
+<h3 id="漫画のレイアウトを統計的に学習して自動生成する">
+  漫画のレイアウトを統計的に学習して、自動生成する
+  <a class="anchor" href="#%e6%bc%ab%e7%94%bb%e3%81%ae%e3%83%ac%e3%82%a4%e3%82%a2%e3%82%a6%e3%83%88%e3%82%92%e7%b5%b1%e8%a8%88%e7%9a%84%e3%81%ab%e5%ad%a6%e7%bf%92%e3%81%97%e3%81%a6%e8%87%aa%e5%8b%95%e7%94%9f%e6%88%90%e3%81%99%e3%82%8b">#</a>
+</h3>
+<h3 id="視覚的原理によって定義したenergy-functionの最適化によってページのレイアウトの最適化の研究">
+  視覚的原理によって定義したenergy functionの最適化によって、ページのレイアウトの最適化の研究
+  <a class="anchor" href="#%e8%a6%96%e8%a6%9a%e7%9a%84%e5%8e%9f%e7%90%86%e3%81%ab%e3%82%88%e3%81%a3%e3%81%a6%e5%ae%9a%e7%be%a9%e3%81%97%e3%81%9fenergy-function%e3%81%ae%e6%9c%80%e9%81%a9%e5%8c%96%e3%81%ab%e3%82%88%e3%81%a3%e3%81%a6%e3%83%9a%e3%83%bc%e3%82%b8%e3%81%ae%e3%83%ac%e3%82%a4%e3%82%a2%e3%82%a6%e3%83%88%e3%81%ae%e6%9c%80%e9%81%a9%e5%8c%96%e3%81%ae%e7%a0%94%e7%a9%b6">#</a>
+</h3>
+<h3 id="事前に見てほしいルートに沿うようなレイアウトの自動生成">
+  事前に見てほしいルートに沿うようなレイアウトの自動生成
+  <a class="anchor" href="#%e4%ba%8b%e5%89%8d%e3%81%ab%e8%a6%8b%e3%81%a6%e3%81%bb%e3%81%97%e3%81%84%e3%83%ab%e3%83%bc%e3%83%88%e3%81%ab%e6%b2%bf%e3%81%86%e3%82%88%e3%81%86%e3%81%aa%e3%83%ac%e3%82%a4%e3%82%a2%e3%82%a6%e3%83%88%e3%81%ae%e8%87%aa%e5%8b%95%e7%94%9f%e6%88%90">#</a>
+</h3>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+  <div><a class="flex align-center" href="https://github.com/Qian-Donglin/site/commit/5384cd1a3ee076cecc31d316ca856eb301c31a34" title='Last modified by Donglin Qian | August 28, 2023' target="_blank" rel="noopener">
+      <img src="/svg/calendar.svg" class="book-icon" alt="Calendar" />
+      <span>August 28, 2023</span>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#深層生成モデルとは">深層生成モデルとは</a></li>
+    <li><a href="#dataset">Dataset</a>
+      <ul>
+        <li><a href="#ラベル付けの補助">ラベル付けの補助</a></li>
+        <li><a href="#キーワードの抽出">キーワードの抽出</a></li>
+        <li><a href="#レイアウトの表現">レイアウトの表現</a></li>
+      </ul>
+    </li>
+    <li><a href="#モデルの設計">モデルの設計</a></li>
+    <li><a href="#future-work">Future Work</a></li>
+    <li><a href="#気になった参考文献とか先行研究とか">気になった参考文献とか先行研究とか</a>
+      <ul>
+        <li><a href="#ガイドに従った色々考えたレイアウトの自動生成の先行研究">ガイドに従った色々考えたレイアウトの自動生成の先行研究</a></li>
+        <li><a href="#テンプレートベースのレイアウトの自動生成">テンプレートベースのレイアウトの自動生成</a></li>
+        <li><a href="#webページの内容を別のレイアウトに変換する">Webページの内容を別のレイアウトに変換する。</a></li>
+        <li><a href="#漫画のレイアウトを統計的に学習して自動生成する">漫画のレイアウトを統計的に学習して、自動生成する</a></li>
+        <li><a href="#視覚的原理によって定義したenergy-functionの最適化によってページのレイアウトの最適化の研究">視覚的原理によって定義したenergy functionの最適化によって、ページのレイアウトの最適化の研究</a></li>
+        <li><a href="#事前に見てほしいルートに沿うようなレイアウトの自動生成">事前に見てほしいルートに沿うようなレイアウトの自動生成</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

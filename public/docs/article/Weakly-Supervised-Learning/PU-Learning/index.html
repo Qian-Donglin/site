@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="元論文
+参考にしたサイトたち
+https://mamo3gr.hatenablog.com/entry/2020/11/29/123147
+https://speakerdeck.com/hellorusk/pu-positive-unlabeled-learning?slide=3
+何なの？ # ラベルはいっぱいあるけどつけるの間に合わん。普通はPositiveとNegativeにつけられたデータで行うが、PU LearningはPositiveとUnknownで区分したデータで学習させる。
+生成モデルに基づく半教師付きの手法と違って、分布を仮定する必要はない。
+手法 # 仮定、説明 # サンプル$x \in \mathbb{R}$について、
+正答$y \in 0, 1$があり、1ならPositive、0ならNegativeである。 ラベル$s \in 0, 1$があり、1ならラベルあり、0ならラベルなし そして、未知だが$(x, y, s)$に対する不変の分布があるとする。
+仮定として、Positiveなものしかラベル付けされてない、しかも一部。つまりNegativeはUnknownである。$p(s = 1| x, y = 0) = 0$
+もう1つ仮定として、ラベル付けされるPositiveは、Positiveの全体からランダムに選ばれると仮定する。$p(s = 1 | x, y = 1) = p(s = 1 | y = 1) = 一定値c$。$x$に関係なく、取るという意味。
+理論的なおはなし # 条件付確率の分解をやる。「xであるときにy=1」$p(y = 1 | x)$と「xであって、y=1であるときにs=1」$p(s = | x, y = 1)$の積。依存関係はあるが関係はない。
+$$ p(s = 1 | x) = p((y = 1 \And s = 1) | x) = p(y = 1 | x) p (s = 1 | x, y = 1) = p(y = 1 | x) \cdot c $$">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="PU Learning(2007年)" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://Qian-Donglin.github.io/docs/article/Weakly-Supervised-Learning/PU-Learning/" />
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+	integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"
+	integrity="sha384-cpW21h6RZv/phavutF+AuVYrr+dA8xD9zs6FwLpaCct6O9ctzYFfFr4dgmgccOTx"
+	crossorigin="anonymous"></script>
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+	integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
+	onload="renderMathInElement(document.body);"></script>
+
+<script>
+	document.addEventListener("DOMContentLoaded", function () {
+		renderMathInElement(
+			document.body,
+			{
+				delimiters: [
+					{ left: "$$", right: "$$", display: true },
+					{ left: "\\[", right: "\\]", display: true },
+					{ left: "$", right: "$", display: false },
+					{ left: "\\(", right: "\\)", display: false }
+				]
+			});
+	});
+</script>
+
+<title>PU Learning(2007年) | Sen(Qian)のメモ</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/%20favicon.png">
+<link rel="stylesheet" href="/book.min.f8de3645fe00591b41524aee174e19edd98a22255a2930a0cdc82a94835ba387.css" integrity="sha256-&#43;N42Rf4AWRtBUkruF04Z7dmKIiVaKTCgzcgqlINbo4c=" crossorigin="anonymous">
+<script defer src="/%20flexsearch.min.js"></script>
+<script defer src="/en.search.min.43d9e1a27caa5999a7fee1bb577c631649e74ee5e89bedb7682f0f3f87c303eb.js" integrity="sha256-Q9nhonyqWZmn/uG7V3xjFknnTuXom&#43;23aC8PP4fDA&#43;s=" crossorigin="anonymous"></script>
+
+<link rel="alternate" type="application/rss+xml" href="https://Qian-Donglin.github.io/docs/article/Weakly-Supervised-Learning/PU-Learning/index.xml" title="Sen(Qian)のメモ" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><span>Sen(Qian)のメモ</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/" class="">競プロの問題解説</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Dp</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/DP/%E6%A1%81DP/" class="">桁 Dp</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/DP/%E6%A1%81DP/Y-abc317-F/" class="">(Y-) abc317 F</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0d2a02cd744e63233ebe57612bb12952" class="toggle"  />
+    <label for="section-0d2a02cd744e63233ebe57612bb12952" class="flex justify-between">
+      <a role="button" class="">Grid</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Grid/G-abc317-E/" class="">(G&#43;) abc317 E</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Implement</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Implement/G-abc315-E/" class="">(G) Abc315 E Index</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cea18f1d04185b9a1f879558d5aeddb2" class="toggle"  />
+    <label for="section-cea18f1d04185b9a1f879558d5aeddb2" class="flex justify-between">
+      <a role="button" class="">Square Divide</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/SquareDivide/CABC293-E%E5%B9%B3%E6%96%B9%E5%88%86%E5%89%B2/" class="">(C) abc293 E(平方分割)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-52d2a0ea11310952e77a5e1d9b1ee709" class="toggle"  />
+    <label for="section-52d2a0ea11310952e77a5e1d9b1ee709" class="flex justify-between">
+      <a role="button" class="">Graph</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Graph/BrABC292-D/" class="">(Br) abc292 D</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>読んだ本</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Machine Learning</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>ベイズ推論による機械学習(緑ベイズ)</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-1/" class="">第一章</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-2/" class="">第二章</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part1/" class="">第三章その1</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part2/" class="">第三章その2</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3c22cc3dba3e6e6de0eab46bcb97d14b" class="toggle" checked />
+    <label for="section-3c22cc3dba3e6e6de0eab46bcb97d14b" class="flex justify-between">
+      <a role="button" class="">読んだ論文たちのメモ</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d64fdaa8e46f50c67b163d98fad0ddb7" class="toggle"  />
+    <label for="section-d64fdaa8e46f50c67b163d98fad0ddb7" class="flex justify-between">
+      <a role="button" class="">Graphic Design</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/graphic_design_ML/Content-aware-Generative-Modeling-of-Graphic-Design-Layouts/" class="">Content Aware Generative Modeling of Graphic Design Layouts</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/graphic_design_ML/Learning-to-Generate-Posters-of-Scientific-Papers/" class="">Learning to Generate Posters of Scientific Papers</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Order Thing</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/order_thing/Learning-to-Order-Thing/" class="">Learning to Order Thing</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-749fb68fcedaafaff7bdd8e5931b0451" class="toggle"  />
+    <label for="section-749fb68fcedaafaff7bdd8e5931b0451" class="flex justify-between">
+      <a role="button" class="">sns</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E7%82%8E%E4%B8%8A%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6/" class="">Twitterの炎上について</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E3%83%95%E3%82%A1%E3%82%AF%E3%83%88%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF%E3%81%A7%E3%81%AE%E5%BC%B1%E6%95%99%E5%B8%AB%E3%81%A4%E3%81%8D%E5%AD%A6%E7%BF%92/" class="">ファクトチェックでの弱教師つき学習</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E5%BC%B1%E6%95%99%E5%B8%AB%E5%AD%A6%E7%BF%92%E3%81%A7%E3%83%AA%E3%83%97%E3%83%A9%E3%82%A4%E3%81%8B%E3%82%89%E7%82%8E%E4%B8%8A%E5%88%86%E6%9E%90/" class="">弱教師学習でリプライから炎上分析</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-de33daac55650926621e120a75049e4a" class="toggle"  />
+    <label for="section-de33daac55650926621e120a75049e4a" class="flex justify-between">
+      <a role="button" class="">Svm</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%82%AB%E3%83%BC%E3%83%8D%E3%83%AB%E6%B3%95/" class="">カーネル法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%82%BD%E3%83%95%E3%83%88%E3%83%9E%E3%83%BC%E3%82%B8%E3%83%B3/" class="">ソフトマージン</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%83%8F%E3%83%BC%E3%83%89%E3%83%9E%E3%83%BC%E3%82%B8%E3%83%B3/" class="">ハードマージン</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0465dfafe9cdc495ea2e5d9009d8922a" class="toggle" checked />
+    <label for="section-0465dfafe9cdc495ea2e5d9009d8922a" class="flex justify-between">
+      <a role="button" class="">Weakly Supervised Learning</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/2017%E6%99%82%E7%82%B9%E3%81%AE%E5%90%84%E6%89%8B%E6%B3%95/" class="">2017時点の各手法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/PNU-Learning/" class="">PNU Learning(2017年)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive-Confidential-learning2017/" class="">Positive Confidential Learning(2017)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/" class="">Positiveでラベル有り無しで分布が違う時の PU学習(2019)</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/PU-Learning%E3%81%AE%E3%82%AF%E3%83%A9%E3%82%B9%E3%81%AE%E5%AE%9F%E8%A3%85/" class="">バイアスつきPU Learningクラスの実装</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E5%AE%9F%E9%A8%93%E3%81%AE%E3%82%B3%E3%83%BC%E3%83%89%E3%81%AE%E8%A7%A3%E6%9E%90/" class="">バイアスつきPU Learningクラスの実装</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E3%83%A1%E3%82%A4%E3%83%B3%E3%82%B3%E3%83%BC%E3%83%89/" class="">メインコード</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/PU-Learning/" class="active">PU Learning(2007年)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/%E5%88%86%E5%B8%83%E4%BB%AE%E5%AE%9A%E4%B8%8D%E8%A6%81PU-Learning2014/" class="">PU LearningでなんでSVMのヒンジ関数は精度悪いか(2014)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/%E8%A3%9C%E3%83%A9%E3%83%99%E3%83%AB%E5%AD%A6%E7%BF%922017/" class="">補ラベル学習(2017)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>PU Learning(2007年)</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#仮定説明">仮定、説明</a></li>
+    <li><a href="#理論的なおはなし">理論的なおはなし</a></li>
+    <li><a href="#定数cの推定方法">定数$c$の推定方法</a>
+      <ul>
+        <li><a href="#手法1">手法1</a></li>
+        <li><a href="#手法2">手法2</a></li>
+        <li><a href="#実際の学習のフェーズ">実際の学習のフェーズ</a></li>
+        <li><a href="#評価">評価</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><p>
+  <a href="https://cseweb.ucsd.edu/~elkan/posonly.pdf">元論文</a></p>
+<p>参考にしたサイトたち</p>
+<p>
+  <a href="https://mamo3gr.hatenablog.com/entry/2020/11/29/123147">https://mamo3gr.hatenablog.com/entry/2020/11/29/123147</a></p>
+<p>
+  <a href="https://speakerdeck.com/hellorusk/pu-positive-unlabeled-learning?slide=3">https://speakerdeck.com/hellorusk/pu-positive-unlabeled-learning?slide=3</a></p>
+<h1 id="何なの">
+  何なの？
+  <a class="anchor" href="#%e4%bd%95%e3%81%aa%e3%81%ae">#</a>
+</h1>
+<p>ラベルはいっぱいあるけどつけるの間に合わん。普通はPositiveとNegativeにつけられたデータで行うが、PU Learningは<strong>PositiveとUnknownで区分したデータで学習させる</strong>。</p>
+<p>生成モデルに基づく半教師付きの手法と違って、分布を仮定する必要はない。</p>
+<h1 id="手法">
+  手法
+  <a class="anchor" href="#%e6%89%8b%e6%b3%95">#</a>
+</h1>
+<h2 id="仮定説明">
+  仮定、説明
+  <a class="anchor" href="#%e4%bb%ae%e5%ae%9a%e8%aa%ac%e6%98%8e">#</a>
+</h2>
+<p>サンプル$x \in \mathbb{R}$について、</p>
+<ul>
+<li>正答$y \in 0, 1$があり、<strong>1ならPositive、0ならNegative</strong>である。</li>
+<li>ラベル$s \in 0, 1$があり、<strong>1ならラベルあり、0ならラベルなし</strong></li>
+</ul>
+<p>そして、未知だが$(x, y, s)$に<strong>対する不変の分布がある</strong>とする。</p>
+<p>仮定として、Positiveなものしかラベル付けされてない、しかも一部。つまり<strong>NegativeはUnknownである</strong>。$p(s = 1| x, y = 0) = 0$</p>
+<p>もう1つ仮定として、ラベル付けされるPositiveは、<strong>Positiveの全体からランダムに選ばれると仮定する</strong>。$p(s = 1 | x, y = 1) = p(s = 1 | y = 1) = 一定値c$。$x$に関係なく、取るという意味。</p>
+<h2 id="理論的なおはなし">
+  理論的なおはなし
+  <a class="anchor" href="#%e7%90%86%e8%ab%96%e7%9a%84%e3%81%aa%e3%81%8a%e3%81%af%e3%81%aa%e3%81%97">#</a>
+</h2>
+<p>条件付確率の分解をやる。「xであるときにy=1」$p(y = 1 | x)$と「xであって、y=1であるときにs=1」$p(s = | x, y = 1)$の積。依存関係はあるが関係はない。</p>
+<p>$$
+p(s = 1 | x) = p((y = 1 \And s = 1) | x) = p(y = 1 | x) p (s = 1 | x, y = 1) = p(y = 1 | x) \cdot c
+$$</p>
+<p>つまり、</p>
+<p>$$
+p(y = 1 | x) = \frac{p(s = 1 | x)}{c}
+$$</p>
+<p>つまり、データに対してPositiveである確率は、</p>
+<ol>
+<li>$p(s = 1 | x)$　　データ$x$に対して、それがラベル付きかどうか。<strong>これは通常の分類器で推定できるので問題なし</strong>。
+<ol>
+<li>全部のデータと実際のラベル付きデータはあるんで、その分布を仮定する手法ならなんでも。深層学習でもいい。</li>
+</ol>
+</li>
+<li>$c = p(s = 1 | y = 1)$　　Positiveなラベルなら、印がつく確率。</li>
+</ol>
+<p>がわかる or 推定できるなら、一番欲しい$p(y = 1 | x)$推定できる。</p>
+<h2 id="定数cの推定方法">
+  定数$c$の推定方法
+  <a class="anchor" href="#%e5%ae%9a%e6%95%b0c%e3%81%ae%e6%8e%a8%e5%ae%9a%e6%96%b9%e6%b3%95">#</a>
+</h2>
+<p>というわけで、<strong>$c = p(s = 1 | y = 1)$を推定することができれば、勝ちです</strong>。</p>
+<h3 id="手法1">
+  手法1
+  <a class="anchor" href="#%e6%89%8b%e6%b3%951">#</a>
+</h3>
+<p>前述のとおり、$p(s = 1 | x)$「<strong>データ$x$に対して、それがラベル付きかどうか</strong>」。これは学習器で学習できる。その学習器に入れた時の結果を$g(x)$と置く。</p>
+<p>$c = p(s = 1 | y = 1)$<strong>Positiveなラベルなら、印がつく確率</strong>。</p>
+<p>ここで、訓練データと同じように抽出したテストデータ集合$V$を考える。<strong>その中で、ラベルの付いてる集合</strong>を$P$とする。</p>
+<p>$$
+c = \frac{1}{n} \sum \limits_{x \in P} g(x)
+$$</p>
+<p>つまり、$V$<strong>のなかで実際にラベル付きのデータに対して、分類器でラベル付き=1か否か=0</strong>を**、$|P|=n$<strong>で割った平均</strong>。$|V|$<strong>ではない！</strong>。これは<strong>実際にラベル付きのデータに対してどれぐらい正確に予測できてるか</strong>、ということを示す。</p>
+<p>そして、分類器が正しく<strong>訓練データについて</strong>$p(s = 1 | x)$を学習できてるなら、これは<strong>テストデータ(そしては訓練データ以外の全体のデータ)に対して、真のPositiveのデータのうち、ラベル付けされてるサンプルの割合</strong>になる。</p>
+<p>つまり、ちゃんと訓練データに対して学習をさせたから(もちろんその訓練データの中でまた訓練とテストに分けるけど)、同じ分布(未知だけど)に従ってPositiveのものにラベルがつくと仮定してる以上、<strong>すでにラベルついてるデータに対して予測器でラベルつく割合を見つけられれば、それは全体のPositiveの者に対して、ラベル付きであるの割合だと</strong>なる。</p>
+<p>実際はだいたいそうならない。ちゃんと同じ分布に従うかな？でもこの手法はそれなりに正しいんですよこれ。</p>
+<h3 id="手法2">
+  手法2
+  <a class="anchor" href="#%e6%89%8b%e6%b3%952">#</a>
+</h3>
+<p>先ほどは、$p(y = 1 | x) = \frac{p(s = 1 | x)}{c}$で$p(y = 1 | x)$を求めた。</p>
+<p>今度は、まず$p(s = 1 | x)$を学習してみる。次に</p>
+<ul>
+<li><strong>ラベル付きはそのまま</strong>。</li>
+<li><strong>ラベルなしは、ラベルあり=重み</strong>$w(x)$と<strong>ラベルなし=重み</strong>$1 - w(x)$<strong>という2つの点に複製する。そして、もう一度、$p(s = 1 | x)$を重みつきで学習する。</strong></li>
+</ul>
+<p>なお、重みは、$w(x) = p(y = 1 | x, s = 0)$とする。</p>
+<p>
+  <img src="image0.jpg" alt="" /></p>
+<p>こんな風に、<strong>一度方法1から予測した</strong>$c$から計算できる。</p>
+<p>そして、これらの重みをそれぞれつけなおしたものから、もう一度$p(s = 1 | x)$を学習させるのだ。</p>
+<h3 id="実際の学習のフェーズ">
+  実際の学習のフェーズ
+  <a class="anchor" href="#%e5%ae%9f%e9%9a%9b%e3%81%ae%e5%ad%a6%e7%bf%92%e3%81%ae%e3%83%95%e3%82%a7%e3%83%bc%e3%82%ba">#</a>
+</h3>
+<p>実際、識別器はSVMのソフトマージンで実装される。だが、SVMのソフトマージンでの定式化での損失関数はヒンジ損失$z$を用いると、</p>
+<p>$$
+\frac{1}{2} || \mathbf{w} || + C_p \sum _{i \in P} z_i + C_U \sum _{j \in U} z_j
+$$</p>
+<p>この$C_P, C_U$は<strong>経験則で決めるしかない</strong>らしい。この手法をこの論文が<strong>biased-SVM</strong>と提案している。</p>
+<ul>
+<li>$C_U = 0.01, 0.03, 0.05, \cdots, 0.61$</li>
+<li>$\frac{C_P}{C_U} = 10, 20, \cdots, 200$</li>
+<li><strong>$C_P$に大きく重みを寄せる</strong>。</li>
+</ul>
+<h3 id="評価">
+  評価
+  <a class="anchor" href="#%e8%a9%95%e4%be%a1">#</a>
+</h3>
+<p><strong>手法2の方が実験的に精度が良い</strong>。</p>
+<p>どっちも、(論文は2だけ離散の分類器は無理らしいけど、全部離散は無理では？？？)分類器が離散だとNGらしい。</p>
+<p>また、理論的に正しく境界を決めるには、誤差関数をnon-convex loss(SVMのhinge lossはNG)にしないとならないという難点がある。</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+  <div><a class="flex align-center" href="https://github.com/Qian-Donglin/site/commit/5384cd1a3ee076cecc31d316ca856eb301c31a34" title='Last modified by Donglin Qian | August 28, 2023' target="_blank" rel="noopener">
+      <img src="/svg/calendar.svg" class="book-icon" alt="Calendar" />
+      <span>August 28, 2023</span>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#仮定説明">仮定、説明</a></li>
+    <li><a href="#理論的なおはなし">理論的なおはなし</a></li>
+    <li><a href="#定数cの推定方法">定数$c$の推定方法</a>
+      <ul>
+        <li><a href="#手法1">手法1</a></li>
+        <li><a href="#手法2">手法2</a></li>
+        <li><a href="#実際の学習のフェーズ">実際の学習のフェーズ</a></li>
+        <li><a href="#評価">評価</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

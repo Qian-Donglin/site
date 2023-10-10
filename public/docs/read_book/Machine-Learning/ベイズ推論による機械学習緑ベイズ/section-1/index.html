@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="機械学習とは # 機械学習とは、いい感じに予測する学習器を作ること。代表的なタスクは以下の通り。
+回帰 # いい感じのデータ点を当てはめる式を作る。線形回帰ならば$y_n = \mathbf{w} ^ \mathbf{x}_n &#43; \epsilon_n$ (1.1)。$\epsilon_n$はノイズで、ある分布に従う。
+線形回帰のうち、$\mathbf{x}_n = (1, x_n, x_n^2, \cdots ) ^ T $のものを多項式回帰という。
+回帰のグラフィカルモデル # 回帰の同時分布$p(\mathbf{y}, \mathbf{w}, \mathbf{X})$は以下のように考えられる。 すべての$y_i$は独立なので、$\mathbf{y}$の場合はそれらの総乗に。また、明らかに$\mathbf{y}$がないとき、$\mathbf{X}$と$\mathbf{w}$はお互いに独立なので、$p(\mathbf{w}, \mathbf{X}) = p(\mathbf{w}) p(\mathbf{X})$が成り立つ。
+$$ p(\mathbf{y}, \mathbf{w}, \mathbf{X}) = p(\mathbf{w}) \prod _{i = 1}^{N} p(y_n | \mathbf{w}, \mathbf{x}_i) p(\mathbf{x}_i) $$
+したがって、回帰のグラフィカルモデルは(x_n) -&gt; y_n &lt;- (w)である。 また、$\mathbf{w}$についての事後分布、$p(\mathbf{w} | \mathbf{X}, \mathbf{y})$は$\mathbf{w}$の変数以外は定数とみなせば、
+$$ p(\mathbf{w} | \mathbf{X}, \mathbf{y}) \propto p(\mathbf{w}) \prod _{i = 1}^{N} p(y_n | \mathbf{w}, \mathbf{x}_i) $$">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="第一章" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://Qian-Donglin.github.io/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-1/" />
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+	integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"
+	integrity="sha384-cpW21h6RZv/phavutF+AuVYrr+dA8xD9zs6FwLpaCct6O9ctzYFfFr4dgmgccOTx"
+	crossorigin="anonymous"></script>
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+	integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
+	onload="renderMathInElement(document.body);"></script>
+
+<script>
+	document.addEventListener("DOMContentLoaded", function () {
+		renderMathInElement(
+			document.body,
+			{
+				delimiters: [
+					{ left: "$$", right: "$$", display: true },
+					{ left: "\\[", right: "\\]", display: true },
+					{ left: "$", right: "$", display: false },
+					{ left: "\\(", right: "\\)", display: false }
+				]
+			});
+	});
+</script>
+
+<title>第一章 | Sen(Qian)のメモ</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/%20favicon.png">
+<link rel="stylesheet" href="/book.min.f8de3645fe00591b41524aee174e19edd98a22255a2930a0cdc82a94835ba387.css" integrity="sha256-&#43;N42Rf4AWRtBUkruF04Z7dmKIiVaKTCgzcgqlINbo4c=" crossorigin="anonymous">
+<script defer src="/%20flexsearch.min.js"></script>
+<script defer src="/en.search.min.43d9e1a27caa5999a7fee1bb577c631649e74ee5e89bedb7682f0f3f87c303eb.js" integrity="sha256-Q9nhonyqWZmn/uG7V3xjFknnTuXom&#43;23aC8PP4fDA&#43;s=" crossorigin="anonymous"></script>
+
+<link rel="alternate" type="application/rss+xml" href="https://Qian-Donglin.github.io/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-1/index.xml" title="Sen(Qian)のメモ" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><span>Sen(Qian)のメモ</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/" class="">競プロの問題解説</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Dp</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/DP/%E6%A1%81DP/" class="">桁 Dp</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/DP/%E6%A1%81DP/Y-abc317-F/" class="">(Y-) abc317 F</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0d2a02cd744e63233ebe57612bb12952" class="toggle"  />
+    <label for="section-0d2a02cd744e63233ebe57612bb12952" class="flex justify-between">
+      <a role="button" class="">Grid</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Grid/G-abc317-E/" class="">(G&#43;) abc317 E</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Implement</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Implement/G-abc315-E/" class="">(G) Abc315 E Index</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cea18f1d04185b9a1f879558d5aeddb2" class="toggle"  />
+    <label for="section-cea18f1d04185b9a1f879558d5aeddb2" class="flex justify-between">
+      <a role="button" class="">Square Divide</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/SquareDivide/CABC293-E%E5%B9%B3%E6%96%B9%E5%88%86%E5%89%B2/" class="">(C) abc293 E(平方分割)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-52d2a0ea11310952e77a5e1d9b1ee709" class="toggle"  />
+    <label for="section-52d2a0ea11310952e77a5e1d9b1ee709" class="flex justify-between">
+      <a role="button" class="">Graph</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Graph/BrABC292-D/" class="">(Br) abc292 D</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>読んだ本</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Machine Learning</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>ベイズ推論による機械学習(緑ベイズ)</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-1/" class="active">第一章</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-2/" class="">第二章</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part1/" class="">第三章その1</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part2/" class="">第三章その2</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3c22cc3dba3e6e6de0eab46bcb97d14b" class="toggle"  />
+    <label for="section-3c22cc3dba3e6e6de0eab46bcb97d14b" class="flex justify-between">
+      <a role="button" class="">読んだ論文たちのメモ</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d64fdaa8e46f50c67b163d98fad0ddb7" class="toggle"  />
+    <label for="section-d64fdaa8e46f50c67b163d98fad0ddb7" class="flex justify-between">
+      <a role="button" class="">Graphic Design</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/graphic_design_ML/Content-aware-Generative-Modeling-of-Graphic-Design-Layouts/" class="">Content Aware Generative Modeling of Graphic Design Layouts</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/graphic_design_ML/Learning-to-Generate-Posters-of-Scientific-Papers/" class="">Learning to Generate Posters of Scientific Papers</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Order Thing</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/order_thing/Learning-to-Order-Thing/" class="">Learning to Order Thing</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-749fb68fcedaafaff7bdd8e5931b0451" class="toggle"  />
+    <label for="section-749fb68fcedaafaff7bdd8e5931b0451" class="flex justify-between">
+      <a role="button" class="">sns</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E7%82%8E%E4%B8%8A%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6/" class="">Twitterの炎上について</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E3%83%95%E3%82%A1%E3%82%AF%E3%83%88%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF%E3%81%A7%E3%81%AE%E5%BC%B1%E6%95%99%E5%B8%AB%E3%81%A4%E3%81%8D%E5%AD%A6%E7%BF%92/" class="">ファクトチェックでの弱教師つき学習</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E5%BC%B1%E6%95%99%E5%B8%AB%E5%AD%A6%E7%BF%92%E3%81%A7%E3%83%AA%E3%83%97%E3%83%A9%E3%82%A4%E3%81%8B%E3%82%89%E7%82%8E%E4%B8%8A%E5%88%86%E6%9E%90/" class="">弱教師学習でリプライから炎上分析</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-de33daac55650926621e120a75049e4a" class="toggle"  />
+    <label for="section-de33daac55650926621e120a75049e4a" class="flex justify-between">
+      <a role="button" class="">Svm</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%82%AB%E3%83%BC%E3%83%8D%E3%83%AB%E6%B3%95/" class="">カーネル法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%82%BD%E3%83%95%E3%83%88%E3%83%9E%E3%83%BC%E3%82%B8%E3%83%B3/" class="">ソフトマージン</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%83%8F%E3%83%BC%E3%83%89%E3%83%9E%E3%83%BC%E3%82%B8%E3%83%B3/" class="">ハードマージン</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0465dfafe9cdc495ea2e5d9009d8922a" class="toggle"  />
+    <label for="section-0465dfafe9cdc495ea2e5d9009d8922a" class="flex justify-between">
+      <a role="button" class="">Weakly Supervised Learning</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/2017%E6%99%82%E7%82%B9%E3%81%AE%E5%90%84%E6%89%8B%E6%B3%95/" class="">2017時点の各手法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/PNU-Learning/" class="">PNU Learning(2017年)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive-Confidential-learning2017/" class="">Positive Confidential Learning(2017)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/" class="">Positiveでラベル有り無しで分布が違う時の PU学習(2019)</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/PU-Learning%E3%81%AE%E3%82%AF%E3%83%A9%E3%82%B9%E3%81%AE%E5%AE%9F%E8%A3%85/" class="">バイアスつきPU Learningクラスの実装</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E5%AE%9F%E9%A8%93%E3%81%AE%E3%82%B3%E3%83%BC%E3%83%89%E3%81%AE%E8%A7%A3%E6%9E%90/" class="">バイアスつきPU Learningクラスの実装</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E3%83%A1%E3%82%A4%E3%83%B3%E3%82%B3%E3%83%BC%E3%83%89/" class="">メインコード</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/PU-Learning/" class="">PU Learning(2007年)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/%E5%88%86%E5%B8%83%E4%BB%AE%E5%AE%9A%E4%B8%8D%E8%A6%81PU-Learning2014/" class="">PU LearningでなんでSVMのヒンジ関数は精度悪いか(2014)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/%E8%A3%9C%E3%83%A9%E3%83%99%E3%83%AB%E5%AD%A6%E7%BF%922017/" class="">補ラベル学習(2017)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>第一章</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#回帰">回帰</a>
+      <ul>
+        <li><a href="#回帰のグラフィカルモデル">回帰のグラフィカルモデル</a></li>
+        <li><a href="#予測分布">予測分布</a></li>
+        <li><a href="#識別的モデル">識別的モデル</a></li>
+      </ul>
+    </li>
+    <li><a href="#分類">分類</a></li>
+    <li><a href="#クラスタリング">クラスタリング</a>
+      <ul>
+        <li><a href="#クラスタリングのグラフィカルモデル">クラスタリングのグラフィカルモデル</a></li>
+      </ul>
+    </li>
+    <li><a href="#次元削減">次元削減</a>
+      <ul>
+        <li><a href="#次元削減のグラフィカルモデル">次元削減のグラフィカルモデル</a></li>
+        <li><a href="#生成モデル">生成モデル</a></li>
+      </ul>
+    </li>
+  </ul>
+
+  <ul>
+    <li><a href="#ツールボックス">ツールボックス</a></li>
+    <li><a href="#モデリング">モデリング</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#head-to-tail型">head to tail型</a></li>
+    <li><a href="#tail-to-tail型">tail to tail型</a></li>
+    <li><a href="#head-to-head型">head to head型</a></li>
+    <li><a href="#マルコフブランケット">マルコフブランケット</a></li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><h1 id="機械学習とは">
+  機械学習とは
+  <a class="anchor" href="#%e6%a9%9f%e6%a2%b0%e5%ad%a6%e7%bf%92%e3%81%a8%e3%81%af">#</a>
+</h1>
+<p>機械学習とは、<strong>いい感じに予測する学習器を作る</strong>こと。代表的なタスクは以下の通り。</p>
+<h2 id="回帰">
+  回帰
+  <a class="anchor" href="#%e5%9b%9e%e5%b8%b0">#</a>
+</h2>
+<p>いい感じのデータ点を当てはめる式を作る。線形回帰ならば$y_n = \mathbf{w} ^ \mathbf{x}_n + \epsilon_n$ (1.1)。$\epsilon_n$はノイズで、ある分布に従う。</p>
+<p>線形回帰のうち、$\mathbf{x}_n = (1, x_n, x_n^2, \cdots ) ^ T $のものを<strong>多項式回帰</strong>という。</p>
+<h3 id="回帰のグラフィカルモデル">
+  回帰のグラフィカルモデル
+  <a class="anchor" href="#%e5%9b%9e%e5%b8%b0%e3%81%ae%e3%82%b0%e3%83%a9%e3%83%95%e3%82%a3%e3%82%ab%e3%83%ab%e3%83%a2%e3%83%87%e3%83%ab">#</a>
+</h3>
+<p>回帰の同時分布$p(\mathbf{y}, \mathbf{w}, \mathbf{X})$は以下のように考えられる。
+すべての$y_i$は独立なので、$\mathbf{y}$の場合はそれらの総乗に。また、明らかに$\mathbf{y}$がないとき、$\mathbf{X}$と$\mathbf{w}$はお互いに独立なので、$p(\mathbf{w}, \mathbf{X}) = p(\mathbf{w}) p(\mathbf{X})$が成り立つ。</p>
+<p>$$
+p(\mathbf{y}, \mathbf{w}, \mathbf{X}) = p(\mathbf{w}) \prod _{i = 1}^{N} p(y_n | \mathbf{w}, \mathbf{x}_i) p(\mathbf{x}_i)
+$$</p>
+<p>したがって、回帰のグラフィカルモデルは<code>(x_n) -&gt; y_n &lt;- (w)</code>である。
+また、$\mathbf{w}$についての事後分布、$p(\mathbf{w} | \mathbf{X}, \mathbf{y})$は$\mathbf{w}$の変数以外は定数とみなせば、</p>
+<p>$$
+p(\mathbf{w} | \mathbf{X}, \mathbf{y}) \propto p(\mathbf{w}) \prod _{i = 1}^{N} p(y_n | \mathbf{w}, \mathbf{x}_i)
+$$</p>
+<p>この式になる。<strong>この事後分布を計算することを学習と指す</strong>。
+<strong>実際の計算では、右辺を計算したのち、これが$p(\mathbf{w} | \mathbf{X}, \mathbf{y})$であると意味を持てるように、$\mathbf{w}$で積分したら1になるような比例定数を乗じることになる</strong>。</p>
+<h3 id="予測分布">
+  予測分布
+  <a class="anchor" href="#%e4%ba%88%e6%b8%ac%e5%88%86%e5%b8%83">#</a>
+</h3>
+<p>$p(\mathbf{w} | \mathbf{X}, \mathbf{y})$を計算することが、非ベイズ統計での$\mathbf{w}$を直接求めることに当たる。$\mathbf{w}$も不確定だから分布で表す感じ。</p>
+<p>この$p(\mathbf{w} | \mathbf{X}, \mathbf{y})$を用いることで、新たな入力値$\mathbf{x}_l$に対する出力の予測$y_l$の分布を計算できる(というかこれが学習の目的)。$\mathbf{w}$の同時確率まで拡張して式変形してみると以下のようになる。</p>
+<p>$$
+p(y_l | \mathbf{x}_l, \mathbf{X}, \mathbf{y}) = \int p(y_l | \mathbf{x}_l, \mathbf{w}, \mathbf{X}, \mathbf{y}) d \mathbf{w}
+= \int p(y_l | \mathbf{x}_l, \mathbf{w}) p(\mathbf{w} | \mathbf{Y}, \mathbf{X}) d \mathbf{w}
+$$</p>
+<h3 id="識別的モデル">
+  識別的モデル
+  <a class="anchor" href="#%e8%ad%98%e5%88%a5%e7%9a%84%e3%83%a2%e3%83%87%e3%83%ab">#</a>
+</h3>
+<p>
+  <a href="https://ja.wikipedia.org/wiki/%E8%AD%98%E5%88%A5%E7%9A%84%E3%83%A2%E3%83%87%E3%83%AB">参考文献(wiki)</a></p>
+<p>この回帰と次の分類は、データ$\mathbf{x}$にたいする予測$y$についての尤もらしさに着目している。つまり、$p(y | \mathbf{x})$に着目。</p>
+<h2 id="分類">
+  分類
+  <a class="anchor" href="#%e5%88%86%e9%a1%9e">#</a>
+</h2>
+<p>二値分類など。連続値から離散値にする。よく使われるのは、</p>
+<p>$$
+\mathrm{Sig}(x) = \frac{1}{1 + e^{-x}}
+$$</p>
+<p>これを使うことで、$(-\infty, +\infty)$を$(0, 1)$に変換できる。これが確率らしきものなので、確率と考えてもいい。</p>
+<p>これを<strong>多クラス分類に拡張</strong>すると、<strong>ソフトマックス関数を使えばいい</strong>。
+入力は$\mathbf{a} = (a_1, a_2, \cdots, a_K) ^ T$という$K$次元のベクトルで、それぞれが<strong>各クラスを代表する値</strong>。クラス$k$である確率は</p>
+<p>$$
+\mathrm{SM}_k(\mathbf{a}) = \frac{e^{- a_k}}{\sum _{i = 1}^{K} e^ {- a_i}}
+$$</p>
+<p>こうすることで、$\sum _{i = 1} ^ K \mathrm{SM}_i (\mathbf{a}) = 1$を満たす確率らしきものに変換できる。</p>
+<h2 id="クラスタリング">
+  クラスタリング
+  <a class="anchor" href="#%e3%82%af%e3%83%a9%e3%82%b9%e3%82%bf%e3%83%aa%e3%83%b3%e3%82%b0">#</a>
+</h2>
+<p>与えられたデータの近くのグループをまとめる感じ。</p>
+<h3 id="クラスタリングのグラフィカルモデル">
+  クラスタリングのグラフィカルモデル
+  <a class="anchor" href="#%e3%82%af%e3%83%a9%e3%82%b9%e3%82%bf%e3%83%aa%e3%83%b3%e3%82%b0%e3%81%ae%e3%82%b0%e3%83%a9%e3%83%95%e3%82%a3%e3%82%ab%e3%83%ab%e3%83%a2%e3%83%87%e3%83%ab">#</a>
+</h3>
+<p>観測データ$\mathbf{X}$と、それらに対するクラスの割り当て$\mathbf{S} = (\mathbf{s}_1, \cdots, \mathbf{s}_N)$($\mathbf{s}_i$はそれぞれone-hotベクトルと想定)があるとする。各クラスターごとのパラメタを$\mathbf{\Theta} = (\mathbf{\theta}_1, \cdots, \mathbf{\theta}_N)$とする。
+この時、$p(\mathbf{X}, \mathbf{S}, \mathbf{\Theta})$は、</p>
+<p>$$
+p(\mathbf{X}, \mathbf{S}, \mathbf{\Theta}) = p(\mathbf{\Theta}) p(\mathbf{X} | \mathbf{S}, \mathbf{\Theta}) p(\mathbf{S})
+= p(\mathbf{\Theta}) \prod_{i = 1}^{N}  p(\mathbf{x}_i | \mathbf{s}_i, \mathbf{\Theta}) p(\mathbf{s}_i)
+$$</p>
+<p>これが対応するグラフィカルモデルは<code>(x) -&gt; (y) &lt;- (W)</code>。</p>
+<p><strong>ある事前分布$p(\mathbf{\Theta})$に従って$\mathbf{\Theta}$を決めて、そこから各データの$\mathbf{x}_n$の所属$\mathbf{s}_n$を元に、$p(\mathbf{x}_n | \mathbf{s}_n, \mathbf{\Theta})$で各データが生成されるという前提を取っている</strong>。</p>
+<p>ここで、$\mathbf{s}_n$は分類したカテゴリを示すが、$\mathbf{x}_n$を生成する時にこれは未観測の変数であると考えられる=<strong>隠れ変数</strong>。</p>
+<h2 id="次元削減">
+  次元削減
+  <a class="anchor" href="#%e6%ac%a1%e5%85%83%e5%89%8a%e6%b8%9b">#</a>
+</h2>
+<p>$D \times N$の行列$\mathbf{Y}$を、$M \times D$の行列$\mathbf{W}$と$M \times N$の行列$\mathbf{X}$で近似する分解手法。</p>
+<p>$$
+\mathbf{Y} \approx \mathbf{W} ^ T \mathbf{X}
+$$</p>
+<p>ここで、$D, N &raquo; M$となると、本来$O(DN)$必要なメモリが$O(M(D + N))$に圧縮できる。<strong>完全な復元は無理であるが、近似できればいいと考えれば有効な削減方法</strong>。</p>
+<h3 id="次元削減のグラフィカルモデル">
+  次元削減のグラフィカルモデル
+  <a class="anchor" href="#%e6%ac%a1%e5%85%83%e5%89%8a%e6%b8%9b%e3%81%ae%e3%82%b0%e3%83%a9%e3%83%95%e3%82%a3%e3%82%ab%e3%83%ab%e3%83%a2%e3%83%87%e3%83%ab">#</a>
+</h3>
+<p>基本的に回帰と同じ。</p>
+<p>$$
+p(\mathbf{Y}, \mathbf{X}, \mathbf{W}) = p(\mathbf{Y} | \mathbf{X}, \mathbf{W}) p(\mathbf{X}) p(\mathbf{W})
+= p(\mathbf{W}) \prod _{i = 1} ^ {N} p(\mathbf{y}_i | \mathbf{x}_i, \mathbf{W}) p(\mathbf{x}_i)
+$$</p>
+<p>グラフィカルモデルは<code>(X) -&gt; (Y) &lt;- W</code>。</p>
+<p>この式から、$p(\mathbf{W} | \mathbf{Y})$と$p(\mathbf{X} | \mathbf{X})$を計算したりする。</p>
+<h3 id="生成モデル">
+  生成モデル
+  <a class="anchor" href="#%e7%94%9f%e6%88%90%e3%83%a2%e3%83%87%e3%83%ab">#</a>
+</h3>
+<p>
+  <a href="https://ja.wikipedia.org/wiki/%E7%94%9F%E6%88%90%E7%9A%84%E3%83%A2%E3%83%87%E3%83%AB">参考文献(wiki)</a></p>
+<p>
+  <a href="https://www.hellocybernetics.tech/entry/2017/06/08/010513">わかりやすい参考文献</a></p>
+<p>先ほどのクラスタリングもそうだが、これらは<strong>全ての観測データ$\mathbf{X}$の背後にある生成仮定を記述している＝生成モデル</strong>。
+全ての変数に関しての同時分布を作ってる。</p>
+<p>回帰や分類における$p(y | \mathbf{x})$だけ求めればいいのと違い、同時分布も考えるので$p(\mathbf{x})$まで求められるようになる。次式のように</p>
+<p>$$
+p(y | \mathbf{x}) = \frac{p(y) p(y | \mathbf{x})}{p(\mathbf{x})}
+$$</p>
+<h1 id="機械学習のアプローチ">
+  機械学習のアプローチ
+  <a class="anchor" href="#%e6%a9%9f%e6%a2%b0%e5%ad%a6%e7%bf%92%e3%81%ae%e3%82%a2%e3%83%97%e3%83%ad%e3%83%bc%e3%83%81">#</a>
+</h1>
+<h2 id="ツールボックス">
+  ツールボックス
+  <a class="anchor" href="#%e3%83%84%e3%83%bc%e3%83%ab%e3%83%9c%e3%83%83%e3%82%af%e3%82%b9">#</a>
+</h2>
+<p>既知の機械学習の手法について、何かしらの基準に従って性能が良い手法を選んで識別器を作るという考え。教師データでラベル付きのものを使うので、教師アリ学習となる。</p>
+<p>複雑な数学の知識無くても使えるが、本当に上手くfitする手法があるとは限らない。</p>
+<h2 id="モデリング">
+  モデリング
+  <a class="anchor" href="#%e3%83%a2%e3%83%87%e3%83%aa%e3%83%b3%e3%82%b0">#</a>
+</h2>
+<p><strong>データに関するモデルがあると仮定して、事前にそれを構築する</strong>。そのパラメタを学習データから訓練する。数学バリバリ使う。</p>
+<p>柔軟性は高いが訓練は大変で数学も大変。</p>
+<h1 id="独立と条件付確率">
+  独立と条件付確率
+  <a class="anchor" href="#%e7%8b%ac%e7%ab%8b%e3%81%a8%e6%9d%a1%e4%bb%b6%e4%bb%98%e7%a2%ba%e7%8e%87">#</a>
+</h1>
+<p>$y_1, y_2$が独立なら、同じ前提条件の下(条件なしでも、条件が何でも)、必ずこれが成り立つ。</p>
+<p>$$
+p(y_1 | x) p(y_2 | x) = p(y_1, y_2 | x)
+$$</p>
+<h1 id="ベイズの定理">
+  ベイズの定理
+  <a class="anchor" href="#%e3%83%99%e3%82%a4%e3%82%ba%e3%81%ae%e5%ae%9a%e7%90%86">#</a>
+</h1>
+<p>$$
+p(x | y) = \frac{p(y | x) p(x)}{p(y)} = \frac{p(y | x) p(x)}{\int p(x, y) dx}
+$$</p>
+<h1 id="事前分布事後分布">
+  事前分布、事後分布
+  <a class="anchor" href="#%e4%ba%8b%e5%89%8d%e5%88%86%e5%b8%83%e4%ba%8b%e5%be%8c%e5%88%86%e5%b8%83">#</a>
+</h1>
+<p>事前分布は、<strong>条件$x$の分布</strong>→$p(x)$</p>
+<p>事後分布とは、<strong>結果$y$がわかっているときの、前提条件$x$の分布</strong>→$p(x | y)$。</p>
+<p>事後で情報がわかることによって、この2つは全然違う分布によくなったりする。</p>
+<h1 id="逐次推論">
+  逐次推論
+  <a class="anchor" href="#%e9%80%90%e6%ac%a1%e6%8e%a8%e8%ab%96">#</a>
+</h1>
+<p><strong>毎回の観測が独立であるとする</strong>。</p>
+<p>$y_1$が得られた時の$x$の事後分布$p(x | y_1)$は、ベイズの定理によって、$p(y_1)$を定数と考えると、$p(y_1 | x) p(x)$に比例する。</p>
+<p>ここで、新たに観測した$y_2$が得られたとして、$p(x | y_1)$から、アップデートした事後分布の$p(x | y_1, y_2)$を得たい。</p>
+<p>$$
+p(x | y_1, y_2) \propto p(x, y_1, y_2) = p(y_1 | x) p(y_2 | x) p(x) \propto p(y_2 | x) p(x | y_1)
+$$</p>
+<p>毎回の観測が独立なので、$p(x, y_1, y_2) = p(x, y_1) p(x, y_2) = p(y_1 | x) p(y_2 | x) p(x)$が成り立つ。</p>
+<p>このように、既知の事後分布$p(y_1 | x)$から<strong>分布のアップデートできる</strong>。これは追加学習、逐次学習、オンライン学習という。</p>
+<p>これを一般化する。観測データが$N$個で<strong>それぞれ独立ならば</strong>、$\mathbf{y} = (y_1, \cdots, y_N)$だとすると、同時分布は</p>
+<p>$$
+p(x ,\mathbf{y}) = p(x) \Pi _{i = 1}^{N} p(y_i | x)
+$$</p>
+<p>によって、</p>
+<p>$$
+p(x | \mathbf{y}) \propto p(x , \mathbf{y}) = p(x) \Pi_ {i = 1}^{N} p(y_i | x) = p(y_N | x) p(x | y_1, \cdots, y_{N - 1})
+$$</p>
+<p>となる。</p>
+<h1 id="グラフィカルモデル">
+  グラフィカルモデル
+  <a class="anchor" href="#%e3%82%b0%e3%83%a9%e3%83%95%e3%82%a3%e3%82%ab%e3%83%ab%e3%83%a2%e3%83%87%e3%83%ab">#</a>
+</h1>
+<p>DAGを用いて表現。$p(x, y) = p(y | x) p(x)$という関係性だとする。つまり、<strong>xについての事前分布と、yを知った後のxの事後分布である</strong>。</p>
+<p>この時、グラフに$x \to y$という辺を加える。</p>
+<p>もっとの複雑な例として、</p>
+<p>$$
+p(x_1, x_2, x_3, x_4, x_5, x_6) =
+p(x_1) p(x_2 | x_1) p(x_3 | x_1) p(x_4 | x_2, x_3) p(x_5 | x_2, x_3) p(x_6 | x_4, x_5)
+$$</p>
+<p>同様に、p(終点, 始点)のルールでグラフを描くと</p>
+<p>
+  <img src="fig.1.11.png" alt="" /></p>
+<p>このようにDAGにすることで独立なものを簡単に判別できる。この例は全て$x_1$から来ているので独立はないが。</p>
+<h2 id="head-to-tail型">
+  head to tail型
+  <a class="anchor" href="#head-to-tail%e5%9e%8b">#</a>
+</h2>
+<p>$$
+p(x, y, z) = p(x)p(y | x)p(z | y)
+$$</p>
+<p>
+  <img src="fig.1.13.png" alt="" /></p>
+<p><strong>普通の条件付確率のこの連鎖のような展開は、グラフィカルモデルでは一本のパスとなる</strong>。</p>
+<p>更に式変形してみる。</p>
+<p>$$
+p(x, z | y) = \frac{p(x, y, z)}{p(y)} = \frac{p(x) p(y|x) p(z|y)}{p(y)} = p(x | y) p(z | y)
+$$</p>
+<p>これが意味するのは、$y$という条件の下で、<strong>$x, z$が独立=条件付独立</strong>。
+グラフに換算すると、<strong>一本のパスの上で、任意の距離2の2点$a, b$があって、間に挟んでいるもの$c$があるなら$c$という条件下では、$a, b$は条件付独立</strong>。</p>
+<h2 id="tail-to-tail型">
+  tail to tail型
+  <a class="anchor" href="#tail-to-tail%e5%9e%8b">#</a>
+</h2>
+<p>$$
+p(x, y, z) = p(y)p(x | y) p(z | y)
+$$</p>
+<p>
+  <img src="fig.1.14.png" alt="" /></p>
+<p>このような依存関係の時、満たすべき条件は明らかに$y$という前提で条件付独立である。</p>
+<p>面白いことに、<strong>前のhead to tail型とは構成が違う中、いずれも$y$という前提条件があるなら$x, z$が独立している</strong>。
+どっちのグラフとしても、<strong>$y$を取り除けば$x, z$には関係がないという</strong>ことからどっちも同じとわかるだろう。</p>
+<h2 id="head-to-head型">
+  head to head型
+  <a class="anchor" href="#head-to-head%e5%9e%8b">#</a>
+</h2>
+<p>$p(x, y, z) = p(y | x, z) p(x) p(z)$</p>
+<p>
+  <img src="fig.1.15.png" alt="" /></p>
+<p>明らかに、これは<strong>グラフで見ても$y$が有ろうがなかろうが$x, z$は独立している</strong>。</p>
+<p>逆に、$p(x, z | y)$という$y$を観測した前提においては、</p>
+<p>$$
+p(x, z | y) = \frac{p(x, y, z)}{p(y)} = \frac{p(x) p(z) p(y | x, z)}{p(y)}
+$$</p>
+<p>ここまでしか変形できずに、独立ではないとわかる。つまり、<strong>本来$x, z$は独立だが、$y$という条件を付けてしまうとお互いに関係が生じて独立じゃなくなるということである</strong>。</p>
+<h2 id="マルコフブランケット">
+  マルコフブランケット
+  <a class="anchor" href="#%e3%83%9e%e3%83%ab%e3%82%b3%e3%83%95%e3%83%96%e3%83%a9%e3%83%b3%e3%82%b1%e3%83%83%e3%83%88">#</a>
+</h2>
+<p>
+  <img src="fig.1.16.png" alt="" /></p>
+<p>$x$について着目し、その確率を求めたいとする。</p>
+<p>$a \to x$なので、$a$の向こうがどんな形で繋がろうが、head to tailかtail to tailなので、$a$に対して、$x$とその向こうはお互いに独立である。つまり、確率計算では$a$だけ見ればよい。</p>
+<p>$x \to e, c \to e$のような形では、head to headになるので、$e$という条件では$c$と$x$が関係を持つ。</p>
+<p>逆に言えば、上のグラフより外の依存関係は不要である。この周辺を<strong>マルコフブランケット</strong>という。つまり、<strong>$x$の親、子とその親である</strong>。</p>
+<h1 id="ベイズ学習のアプローチ">
+  ベイズ学習のアプローチ
+  <a class="anchor" href="#%e3%83%99%e3%82%a4%e3%82%ba%e5%ad%a6%e7%bf%92%e3%81%ae%e3%82%a2%e3%83%97%e3%83%ad%e3%83%bc%e3%83%81">#</a>
+</h1>
+<ol>
+<li>モデルの構築。観測データの$\mathbf{d}$と、観測されてない変数$\mathbf{x}$に関して、同時分布$p(\mathbf{d}, \mathbf{x})$を構築する。
+<ol>
+<li>よさげな分布(ガウス分布、各種離散分布とかを天下り的に<strong>これだ！と思って決めておく</strong>)</li>
+</ol>
+</li>
+<li>事後分布$p(\mathbf{x} | \mathbf{d}) = \frac{p(\mathbf{x}, \mathbf{d})}{p(\mathbf{d})}$を解析的または近似的に得る。
+<ol>
+<li>$p(\mathbf{d})$はモデルの中で観測データが出現する確率であり、<strong>周辺尤度</strong>という。これもあらかじめ計算しておく。</li>
+<li>結果として、$p(\mathbf{x} | \mathbf{d})$が求められる。</li>
+</ol>
+</li>
+</ol>
+<p>ガウス分布、β分布等には再生性があり、$p(\mathbf{x} | \mathbf{d})$も同様なタイプの分布になるが、<strong>一般的にはそもそも$p(\mathbf{x} | \mathbf{d})$はキレイな分布にならない、解析的に計算できない場合も多い</strong>。</p>
+<p>解決策の1つとして、<strong>サンプリング</strong>がある。もう1つは<strong>厳密な$p(\mathbf{x} | \mathbf{C})$は計算できないなら、似てるような形が簡単な式を代わりに使う</strong>というもの。</p>
+<h1 id="不確実性に基づく意思決定">
+  不確実性に基づく意思決定
+  <a class="anchor" href="#%e4%b8%8d%e7%a2%ba%e5%ae%9f%e6%80%a7%e3%81%ab%e5%9f%ba%e3%81%a5%e3%81%8f%e6%84%8f%e6%80%9d%e6%b1%ba%e5%ae%9a">#</a>
+</h1>
+<p>確率推論はあくまで<strong>確率だけ</strong>を出している。それを元に意思決定するのはまた別の仕事(確率的に大差ないなら意思決定して本当にいいの？？？)</p>
+<h1 id="ベイズ学習のメリットとデメリット">
+  ベイズ学習のメリットとデメリット
+  <a class="anchor" href="#%e3%83%99%e3%82%a4%e3%82%ba%e5%ad%a6%e7%bf%92%e3%81%ae%e3%83%a1%e3%83%aa%e3%83%83%e3%83%88%e3%81%a8%e3%83%87%e3%83%a1%e3%83%aa%e3%83%83%e3%83%88">#</a>
+</h1>
+<p>メリット</p>
+<ol>
+<li>一貫して事後分布の推論問題に帰着できる。</li>
+<li>不確かさを含んだ推論ができる。</li>
+<li>利用可能な知識を取り入れやすい。</li>
+<li>過学習しづらい。</li>
+</ol>
+<p>欠点</p>
+<ol>
+<li>数理的な知識を結構要求する。</li>
+<li>計算コストが高い。</li>
+</ol>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#回帰">回帰</a>
+      <ul>
+        <li><a href="#回帰のグラフィカルモデル">回帰のグラフィカルモデル</a></li>
+        <li><a href="#予測分布">予測分布</a></li>
+        <li><a href="#識別的モデル">識別的モデル</a></li>
+      </ul>
+    </li>
+    <li><a href="#分類">分類</a></li>
+    <li><a href="#クラスタリング">クラスタリング</a>
+      <ul>
+        <li><a href="#クラスタリングのグラフィカルモデル">クラスタリングのグラフィカルモデル</a></li>
+      </ul>
+    </li>
+    <li><a href="#次元削減">次元削減</a>
+      <ul>
+        <li><a href="#次元削減のグラフィカルモデル">次元削減のグラフィカルモデル</a></li>
+        <li><a href="#生成モデル">生成モデル</a></li>
+      </ul>
+    </li>
+  </ul>
+
+  <ul>
+    <li><a href="#ツールボックス">ツールボックス</a></li>
+    <li><a href="#モデリング">モデリング</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#head-to-tail型">head to tail型</a></li>
+    <li><a href="#tail-to-tail型">tail to tail型</a></li>
+    <li><a href="#head-to-head型">head to head型</a></li>
+    <li><a href="#マルコフブランケット">マルコフブランケット</a></li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

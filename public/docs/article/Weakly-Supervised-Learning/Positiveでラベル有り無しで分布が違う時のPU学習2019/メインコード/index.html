@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="こちらのソースコード。
+import # import numpy as np import pandas as pd import matplotlib.pyplot as plt from sklearn.linear_model import LogisticRegression from dataset_linear import make_data from pusb_linear_kernel import PU from densratio import densratio 色々import
+experiment # def experiment(datatype, udata): # priors = [0.2, 0.4, 0.6, 0.8] ite = 100 pdata = 400 num_basis = 300 seed = 2018 est_error_pu = np.zeros((len(udata), len(priors), ite)) est_error_pubp = np.zeros((len(udata), len(priors), ite)) est_error_dr = np.zeros((len(udata), len(priors), ite)) # for i in range(len(udata)): u = udata[i] for j in range(len(priors)): pi = priors[j] for k in range(ite): np.">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="メインコード" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://Qian-Donglin.github.io/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E3%83%A1%E3%82%A4%E3%83%B3%E3%82%B3%E3%83%BC%E3%83%89/" />
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+	integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"
+	integrity="sha384-cpW21h6RZv/phavutF+AuVYrr+dA8xD9zs6FwLpaCct6O9ctzYFfFr4dgmgccOTx"
+	crossorigin="anonymous"></script>
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+	integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
+	onload="renderMathInElement(document.body);"></script>
+
+<script>
+	document.addEventListener("DOMContentLoaded", function () {
+		renderMathInElement(
+			document.body,
+			{
+				delimiters: [
+					{ left: "$$", right: "$$", display: true },
+					{ left: "\\[", right: "\\]", display: true },
+					{ left: "$", right: "$", display: false },
+					{ left: "\\(", right: "\\)", display: false }
+				]
+			});
+	});
+</script>
+
+<title>メインコード | Sen(Qian)のメモ</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/%20favicon.png">
+<link rel="stylesheet" href="/book.min.f8de3645fe00591b41524aee174e19edd98a22255a2930a0cdc82a94835ba387.css" integrity="sha256-&#43;N42Rf4AWRtBUkruF04Z7dmKIiVaKTCgzcgqlINbo4c=" crossorigin="anonymous">
+<script defer src="/%20flexsearch.min.js"></script>
+<script defer src="/en.search.min.43d9e1a27caa5999a7fee1bb577c631649e74ee5e89bedb7682f0f3f87c303eb.js" integrity="sha256-Q9nhonyqWZmn/uG7V3xjFknnTuXom&#43;23aC8PP4fDA&#43;s=" crossorigin="anonymous"></script>
+
+<link rel="alternate" type="application/rss+xml" href="https://Qian-Donglin.github.io/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E3%83%A1%E3%82%A4%E3%83%B3%E3%82%B3%E3%83%BC%E3%83%89/index.xml" title="Sen(Qian)のメモ" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><span>Sen(Qian)のメモ</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/" class="">競プロの問題解説</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Dp</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/DP/%E6%A1%81DP/" class="">桁 Dp</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/DP/%E6%A1%81DP/Y-abc317-F/" class="">(Y-) abc317 F</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0d2a02cd744e63233ebe57612bb12952" class="toggle"  />
+    <label for="section-0d2a02cd744e63233ebe57612bb12952" class="flex justify-between">
+      <a role="button" class="">Grid</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Grid/G-abc317-E/" class="">(G&#43;) abc317 E</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Implement</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Implement/G-abc315-E/" class="">(G) Abc315 E Index</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cea18f1d04185b9a1f879558d5aeddb2" class="toggle"  />
+    <label for="section-cea18f1d04185b9a1f879558d5aeddb2" class="flex justify-between">
+      <a role="button" class="">Square Divide</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/SquareDivide/CABC293-E%E5%B9%B3%E6%96%B9%E5%88%86%E5%89%B2/" class="">(C) abc293 E(平方分割)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-52d2a0ea11310952e77a5e1d9b1ee709" class="toggle"  />
+    <label for="section-52d2a0ea11310952e77a5e1d9b1ee709" class="flex justify-between">
+      <a role="button" class="">Graph</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Graph/BrABC292-D/" class="">(Br) abc292 D</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>読んだ本</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Machine Learning</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>ベイズ推論による機械学習(緑ベイズ)</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-1/" class="">第一章</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-2/" class="">第二章</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part1/" class="">第三章その1</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part2/" class="">第三章その2</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3c22cc3dba3e6e6de0eab46bcb97d14b" class="toggle" checked />
+    <label for="section-3c22cc3dba3e6e6de0eab46bcb97d14b" class="flex justify-between">
+      <a role="button" class="">読んだ論文たちのメモ</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d64fdaa8e46f50c67b163d98fad0ddb7" class="toggle"  />
+    <label for="section-d64fdaa8e46f50c67b163d98fad0ddb7" class="flex justify-between">
+      <a role="button" class="">Graphic Design</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/graphic_design_ML/Content-aware-Generative-Modeling-of-Graphic-Design-Layouts/" class="">Content Aware Generative Modeling of Graphic Design Layouts</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/graphic_design_ML/Learning-to-Generate-Posters-of-Scientific-Papers/" class="">Learning to Generate Posters of Scientific Papers</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Order Thing</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/order_thing/Learning-to-Order-Thing/" class="">Learning to Order Thing</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-749fb68fcedaafaff7bdd8e5931b0451" class="toggle"  />
+    <label for="section-749fb68fcedaafaff7bdd8e5931b0451" class="flex justify-between">
+      <a role="button" class="">sns</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E7%82%8E%E4%B8%8A%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6/" class="">Twitterの炎上について</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E3%83%95%E3%82%A1%E3%82%AF%E3%83%88%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF%E3%81%A7%E3%81%AE%E5%BC%B1%E6%95%99%E5%B8%AB%E3%81%A4%E3%81%8D%E5%AD%A6%E7%BF%92/" class="">ファクトチェックでの弱教師つき学習</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E5%BC%B1%E6%95%99%E5%B8%AB%E5%AD%A6%E7%BF%92%E3%81%A7%E3%83%AA%E3%83%97%E3%83%A9%E3%82%A4%E3%81%8B%E3%82%89%E7%82%8E%E4%B8%8A%E5%88%86%E6%9E%90/" class="">弱教師学習でリプライから炎上分析</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-de33daac55650926621e120a75049e4a" class="toggle"  />
+    <label for="section-de33daac55650926621e120a75049e4a" class="flex justify-between">
+      <a role="button" class="">Svm</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%82%AB%E3%83%BC%E3%83%8D%E3%83%AB%E6%B3%95/" class="">カーネル法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%82%BD%E3%83%95%E3%83%88%E3%83%9E%E3%83%BC%E3%82%B8%E3%83%B3/" class="">ソフトマージン</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%83%8F%E3%83%BC%E3%83%89%E3%83%9E%E3%83%BC%E3%82%B8%E3%83%B3/" class="">ハードマージン</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0465dfafe9cdc495ea2e5d9009d8922a" class="toggle" checked />
+    <label for="section-0465dfafe9cdc495ea2e5d9009d8922a" class="flex justify-between">
+      <a role="button" class="">Weakly Supervised Learning</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/2017%E6%99%82%E7%82%B9%E3%81%AE%E5%90%84%E6%89%8B%E6%B3%95/" class="">2017時点の各手法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/PNU-Learning/" class="">PNU Learning(2017年)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive-Confidential-learning2017/" class="">Positive Confidential Learning(2017)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/" class="">Positiveでラベル有り無しで分布が違う時の PU学習(2019)</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/PU-Learning%E3%81%AE%E3%82%AF%E3%83%A9%E3%82%B9%E3%81%AE%E5%AE%9F%E8%A3%85/" class="">バイアスつきPU Learningクラスの実装</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E5%AE%9F%E9%A8%93%E3%81%AE%E3%82%B3%E3%83%BC%E3%83%89%E3%81%AE%E8%A7%A3%E6%9E%90/" class="">バイアスつきPU Learningクラスの実装</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E3%83%A1%E3%82%A4%E3%83%B3%E3%82%B3%E3%83%BC%E3%83%89/" class="active">メインコード</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/PU-Learning/" class="">PU Learning(2007年)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/%E5%88%86%E5%B8%83%E4%BB%AE%E5%AE%9A%E4%B8%8D%E8%A6%81PU-Learning2014/" class="">PU LearningでなんでSVMのヒンジ関数は精度悪いか(2014)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/%E8%A3%9C%E3%83%A9%E3%83%99%E3%83%AB%E5%AD%A6%E7%BF%922017/" class="">補ラベル学習(2017)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>メインコード</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents"></nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><p>
+  <a href="https://github.com/MasaKat0/PUlearning/tree/master/BiasedPUlearning/PUSB">こちら</a>のソースコード。</p>
+<h1 id="import">
+  import
+  <a class="anchor" href="#import">#</a>
+</h1>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> numpy <span style="color:#66d9ef">as</span> np
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> pandas <span style="color:#66d9ef">as</span> pd
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> matplotlib.pyplot <span style="color:#66d9ef">as</span> plt
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> sklearn.linear_model <span style="color:#f92672">import</span> LogisticRegression
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> dataset_linear <span style="color:#f92672">import</span> make_data
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> pusb_linear_kernel <span style="color:#f92672">import</span> PU
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> densratio <span style="color:#f92672">import</span> densratio
+</span></span></code></pre></div><p>色々import</p>
+<h1 id="experiment">
+  experiment
+  <a class="anchor" href="#experiment">#</a>
+</h1>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">experiment</span>(datatype, udata):
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e"># </span>
+</span></span><span style="display:flex;"><span>    priors <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0.2</span>, <span style="color:#ae81ff">0.4</span>, <span style="color:#ae81ff">0.6</span>, <span style="color:#ae81ff">0.8</span>]
+</span></span><span style="display:flex;"><span>    ite <span style="color:#f92672">=</span> <span style="color:#ae81ff">100</span>
+</span></span><span style="display:flex;"><span>    pdata <span style="color:#f92672">=</span> <span style="color:#ae81ff">400</span>
+</span></span><span style="display:flex;"><span>    num_basis <span style="color:#f92672">=</span> <span style="color:#ae81ff">300</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    seed <span style="color:#f92672">=</span> <span style="color:#ae81ff">2018</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    est_error_pu <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>zeros((len(udata), len(priors), ite))
+</span></span><span style="display:flex;"><span>    est_error_pubp <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>zeros((len(udata), len(priors), ite))
+</span></span><span style="display:flex;"><span>    est_error_dr <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>zeros((len(udata), len(priors), ite))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e"># </span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(len(udata)):
+</span></span><span style="display:flex;"><span>        u <span style="color:#f92672">=</span> udata[i]
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(len(priors)):
+</span></span><span style="display:flex;"><span>            pi <span style="color:#f92672">=</span> priors[j]
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> k <span style="color:#f92672">in</span> range(ite):
+</span></span><span style="display:flex;"><span>                np<span style="color:#f92672">.</span>random<span style="color:#f92672">.</span>seed(seed)
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e">#PN classification</span>
+</span></span><span style="display:flex;"><span>                x, t <span style="color:#f92672">=</span> make_data(datatype<span style="color:#f92672">=</span>datatype)
+</span></span><span style="display:flex;"><span>                x <span style="color:#f92672">=</span> x<span style="color:#f92672">/</span>np<span style="color:#f92672">.</span>max(x, axis<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>                one <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>ones((len(x),<span style="color:#ae81ff">1</span>))
+</span></span><span style="display:flex;"><span>                x_pn <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>concatenate([x, one], axis<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>                classifier <span style="color:#f92672">=</span> LogisticRegression(C<span style="color:#f92672">=</span><span style="color:#ae81ff">0.01</span>, penalty<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;l2&#39;</span>)
+</span></span><span style="display:flex;"><span>                classifier<span style="color:#f92672">.</span>fit(x_pn, t) 
+</span></span><span style="display:flex;"><span>                                
+</span></span><span style="display:flex;"><span>                perm <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>random<span style="color:#f92672">.</span>permutation(len(x))
+</span></span><span style="display:flex;"><span>                x_train <span style="color:#f92672">=</span> x[perm[:<span style="color:#f92672">-</span><span style="color:#ae81ff">3000</span>]]
+</span></span><span style="display:flex;"><span>                t_train <span style="color:#f92672">=</span> t[perm[:<span style="color:#f92672">-</span><span style="color:#ae81ff">3000</span>]]
+</span></span><span style="display:flex;"><span>                x_test <span style="color:#f92672">=</span> x[perm[<span style="color:#f92672">-</span><span style="color:#ae81ff">3000</span>:]]
+</span></span><span style="display:flex;"><span>                t_test <span style="color:#f92672">=</span> t[perm[<span style="color:#f92672">-</span><span style="color:#ae81ff">3000</span>:]]
+</span></span><span style="display:flex;"><span>                
+</span></span><span style="display:flex;"><span>                xp <span style="color:#f92672">=</span> x_train[t_train<span style="color:#f92672">==</span><span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>                one <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>ones((len(xp),<span style="color:#ae81ff">1</span>))
+</span></span><span style="display:flex;"><span>                xp_temp <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>concatenate([xp, one], axis<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>                xp_prob <span style="color:#f92672">=</span> classifier<span style="color:#f92672">.</span>predict_proba(xp_temp)[:,<span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e">#xp_prob /= np.mean(xp_prob)</span>
+</span></span><span style="display:flex;"><span>                xp_prob <span style="color:#f92672">=</span> xp_prob<span style="color:#f92672">**</span><span style="color:#ae81ff">20</span>
+</span></span><span style="display:flex;"><span>                xp_prob <span style="color:#f92672">/=</span> np<span style="color:#f92672">.</span>max(xp_prob)
+</span></span><span style="display:flex;"><span>                rand <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>random<span style="color:#f92672">.</span>uniform(size<span style="color:#f92672">=</span>len(xp))
+</span></span><span style="display:flex;"><span>                temp <span style="color:#f92672">=</span> xp[xp_prob <span style="color:#f92672">&gt;</span> rand]
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">while</span> (len(temp) <span style="color:#f92672">&lt;</span> pdata):
+</span></span><span style="display:flex;"><span>                    rand <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>random<span style="color:#f92672">.</span>uniform(size<span style="color:#f92672">=</span>len(xp))
+</span></span><span style="display:flex;"><span>                    temp <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>concatenate([temp, xp[xp_prob <span style="color:#f92672">&gt;</span> rand]], axis<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>                xp <span style="color:#f92672">=</span> temp
+</span></span><span style="display:flex;"><span>                perm <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>random<span style="color:#f92672">.</span>permutation(len(xp))
+</span></span><span style="display:flex;"><span>                xp <span style="color:#f92672">=</span> xp[perm[:pdata]]
+</span></span><span style="display:flex;"><span>                updata <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>int(u<span style="color:#f92672">*</span>pi)
+</span></span><span style="display:flex;"><span>                undata <span style="color:#f92672">=</span> u <span style="color:#f92672">-</span> updata
+</span></span><span style="display:flex;"><span>                
+</span></span><span style="display:flex;"><span>                xp_temp <span style="color:#f92672">=</span> x_train[t_train<span style="color:#f92672">==</span><span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>                xn_temp <span style="color:#f92672">=</span> x_train[t_train<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span>                perm <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>random<span style="color:#f92672">.</span>permutation(len(xp_temp))
+</span></span><span style="display:flex;"><span>                xp_temp <span style="color:#f92672">=</span> xp_temp[perm[:updata]]
+</span></span><span style="display:flex;"><span>                
+</span></span><span style="display:flex;"><span>                perm <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>random<span style="color:#f92672">.</span>permutation(len(xn_temp))
+</span></span><span style="display:flex;"><span>                xn_temp <span style="color:#f92672">=</span> xn_temp[perm[:undata]]
+</span></span><span style="display:flex;"><span>                xu <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>concatenate([xp_temp, xn_temp], axis<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>                
+</span></span><span style="display:flex;"><span>                x <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>concatenate([xp, xu], axis<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                tp <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>ones(len(xp))
+</span></span><span style="display:flex;"><span>                tu <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>zeros(len(xu))
+</span></span><span style="display:flex;"><span>                t <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>concatenate([tp, tu], axis<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>                
+</span></span><span style="display:flex;"><span>                updata <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>int(<span style="color:#ae81ff">1000</span><span style="color:#f92672">*</span>pi)
+</span></span><span style="display:flex;"><span>                undata <span style="color:#f92672">=</span> <span style="color:#ae81ff">1000</span> <span style="color:#f92672">-</span> updata
+</span></span><span style="display:flex;"><span>                
+</span></span><span style="display:flex;"><span>                xp_test <span style="color:#f92672">=</span> x_test[t_test <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>                perm <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>random<span style="color:#f92672">.</span>permutation(len(xp_test))
+</span></span><span style="display:flex;"><span>                xp_test <span style="color:#f92672">=</span> xp_test[perm[:updata]]
+</span></span><span style="display:flex;"><span>                xn_test <span style="color:#f92672">=</span> x_test[t_test <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span>                perm <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>random<span style="color:#f92672">.</span>permutation(len(xn_test))
+</span></span><span style="display:flex;"><span>                xn_test <span style="color:#f92672">=</span> xn_test[perm[:undata]]
+</span></span><span style="display:flex;"><span>                
+</span></span><span style="display:flex;"><span>                x_test <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>concatenate([xp_test, xn_test], axis<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>                tp <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>ones(len(xp_test))
+</span></span><span style="display:flex;"><span>                tu <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>zeros(len(xn_test))
+</span></span><span style="display:flex;"><span>                t_test <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>concatenate([tp, tu], axis<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>                
+</span></span><span style="display:flex;"><span>                pu <span style="color:#f92672">=</span> PU(pi<span style="color:#f92672">=</span>pi)
+</span></span><span style="display:flex;"><span>                x_train <span style="color:#f92672">=</span> x
+</span></span><span style="display:flex;"><span>                res, x_test_kernel <span style="color:#f92672">=</span> pu<span style="color:#f92672">.</span>optimize(x, t, x_test)
+</span></span><span style="display:flex;"><span>                acc1 <span style="color:#f92672">=</span> pu<span style="color:#f92672">.</span>test(x_test_kernel, res, t_test, quant<span style="color:#f92672">=</span><span style="color:#66d9ef">False</span>)
+</span></span><span style="display:flex;"><span>                acc2 <span style="color:#f92672">=</span> pu<span style="color:#f92672">.</span>test(x_test_kernel, res, t_test, quant<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>, pi<span style="color:#f92672">=</span>pi)
+</span></span><span style="display:flex;"><span>                
+</span></span><span style="display:flex;"><span>                result <span style="color:#f92672">=</span> densratio(x_train[t<span style="color:#f92672">==</span><span style="color:#ae81ff">1</span>], x_train[t<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>])
+</span></span><span style="display:flex;"><span>                r <span style="color:#f92672">=</span> result<span style="color:#f92672">.</span>compute_density_ratio(x_test)
+</span></span><span style="display:flex;"><span>                temp <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>copy(r)
+</span></span><span style="display:flex;"><span>                temp <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>sort(temp)
+</span></span><span style="display:flex;"><span>                theta <span style="color:#f92672">=</span> temp[np<span style="color:#f92672">.</span>int(np<span style="color:#f92672">.</span>floor(len(x_test)<span style="color:#f92672">*</span>(<span style="color:#ae81ff">1</span><span style="color:#f92672">-</span>pi)))]
+</span></span><span style="display:flex;"><span>                pred <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>zeros(len(x_test))
+</span></span><span style="display:flex;"><span>                pred[r <span style="color:#f92672">&gt;</span> theta] <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>                acc3 <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>mean(pred <span style="color:#f92672">==</span> t_test)
+</span></span><span style="display:flex;"><span>                
+</span></span><span style="display:flex;"><span>                est_error_pu[i, j, k] <span style="color:#f92672">=</span> acc1
+</span></span><span style="display:flex;"><span>                est_error_pubp[i, j, k] <span style="color:#f92672">=</span> acc2
+</span></span><span style="display:flex;"><span>                est_error_dr[i, j, k] <span style="color:#f92672">=</span> acc3
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                seed <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>                
+</span></span><span style="display:flex;"><span>                print(acc1)
+</span></span><span style="display:flex;"><span>                print(acc2)
+</span></span><span style="display:flex;"><span>                print(acc3)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    est_error_pu_mean <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>mean(est_error_pu, axis<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>)
+</span></span><span style="display:flex;"><span>    est_error_pubp_mean <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>mean(est_error_pubp, axis<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>)
+</span></span><span style="display:flex;"><span>    est_error_dr_mean <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>mean(est_error_dr, axis<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>)
+</span></span><span style="display:flex;"><span>    est_error_pu_std <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>std(est_error_pu, axis<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>)
+</span></span><span style="display:flex;"><span>    est_error_pubp_std <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>std(est_error_pubp, axis<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>)
+</span></span><span style="display:flex;"><span>    est_error_dr_std <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>std(est_error_dr, axis<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> est_error_pu_mean, est_error_pubp_mean, est_error_pu_std, est_error_pubp_std, est_error_dr_mean, est_error_dr_std
+</span></span></code></pre></div></article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents"></nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="期待値 # $$ \mathbb{E} [f(\mathbf{x})] = \int f(\mathbf{x}) p(\mathbf{x}) d\mathbf{x} $$
+と定義される。純粋に$p(\mathbf{x})$の取る平均は$\mathbb{E} [\mathbf{x}] = \int \mathbf{x} p(\mathbf{x}) d\mathbf{x}$
+期待値は独立かそうじゃないか関わらず、線形性を持つ。
+分散は、 $$ \mathbb{E} [(\mathbf{x} - \hat{\mathbf{x}}) ^ T (\mathbf{x} - \hat{\mathbf{x}})] = \mathbb{E} [\mathbf{x} ^ T \mathbf{x}] - \mathbb{E} [\mathbf{x} ^ T] \mathbb{E} [\mathbb{x}] $$
+2変数以上の期待値 # $$ \mathbb{E} _{p(\mathbf{x}, \mathbf{y})} [\mathbf{x} ^ T \mathbf{y}] $$
+を計算する。もし$\mathbf{x}, \mathbf{y}$がお互いに独立であるなら、$p(\mathbf{x}, \mathbf{y}) = p(\mathbf{x}) p(\mathbf{y})$であり、
+$$ \int \int \mathbf{x} ^ T \mathbf{y} p(\mathbf{x, y})d\mathbf{x} d\mathbf{y} = \int \mathbf{x} ^ T p(\mathbf{x}) d\mathbf{x} &#43; \int \mathbf{y} p(\mathbf{y}) d \mathbf{y} = \mathbb{E} [\mathbf{x} ^ T] \mathbb{E} [\mathbf{y}] $$">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="第二章" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://Qian-Donglin.github.io/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-2/" />
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+	integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"
+	integrity="sha384-cpW21h6RZv/phavutF+AuVYrr+dA8xD9zs6FwLpaCct6O9ctzYFfFr4dgmgccOTx"
+	crossorigin="anonymous"></script>
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+	integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
+	onload="renderMathInElement(document.body);"></script>
+
+<script>
+	document.addEventListener("DOMContentLoaded", function () {
+		renderMathInElement(
+			document.body,
+			{
+				delimiters: [
+					{ left: "$$", right: "$$", display: true },
+					{ left: "\\[", right: "\\]", display: true },
+					{ left: "$", right: "$", display: false },
+					{ left: "\\(", right: "\\)", display: false }
+				]
+			});
+	});
+</script>
+
+<title>第二章 | Sen(Qian)のメモ</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/%20favicon.png">
+<link rel="stylesheet" href="/book.min.f8de3645fe00591b41524aee174e19edd98a22255a2930a0cdc82a94835ba387.css" integrity="sha256-&#43;N42Rf4AWRtBUkruF04Z7dmKIiVaKTCgzcgqlINbo4c=" crossorigin="anonymous">
+<script defer src="/%20flexsearch.min.js"></script>
+<script defer src="/en.search.min.43d9e1a27caa5999a7fee1bb577c631649e74ee5e89bedb7682f0f3f87c303eb.js" integrity="sha256-Q9nhonyqWZmn/uG7V3xjFknnTuXom&#43;23aC8PP4fDA&#43;s=" crossorigin="anonymous"></script>
+
+<link rel="alternate" type="application/rss+xml" href="https://Qian-Donglin.github.io/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-2/index.xml" title="Sen(Qian)のメモ" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><span>Sen(Qian)のメモ</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/" class="">競プロの問題解説</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Dp</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/DP/%E6%A1%81DP/" class="">桁 Dp</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/DP/%E6%A1%81DP/Y-abc317-F/" class="">(Y-) abc317 F</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0d2a02cd744e63233ebe57612bb12952" class="toggle"  />
+    <label for="section-0d2a02cd744e63233ebe57612bb12952" class="flex justify-between">
+      <a role="button" class="">Grid</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Grid/G-abc317-E/" class="">(G&#43;) abc317 E</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Implement</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Implement/G-abc315-E/" class="">(G) Abc315 E Index</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cea18f1d04185b9a1f879558d5aeddb2" class="toggle"  />
+    <label for="section-cea18f1d04185b9a1f879558d5aeddb2" class="flex justify-between">
+      <a role="button" class="">Square Divide</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/SquareDivide/CABC293-E%E5%B9%B3%E6%96%B9%E5%88%86%E5%89%B2/" class="">(C) abc293 E(平方分割)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-52d2a0ea11310952e77a5e1d9b1ee709" class="toggle"  />
+    <label for="section-52d2a0ea11310952e77a5e1d9b1ee709" class="flex justify-between">
+      <a role="button" class="">Graph</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Graph/BrABC292-D/" class="">(Br) abc292 D</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>読んだ本</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Machine Learning</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>ベイズ推論による機械学習(緑ベイズ)</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-1/" class="">第一章</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-2/" class="active">第二章</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part1/" class="">第三章その1</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part2/" class="">第三章その2</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3c22cc3dba3e6e6de0eab46bcb97d14b" class="toggle"  />
+    <label for="section-3c22cc3dba3e6e6de0eab46bcb97d14b" class="flex justify-between">
+      <a role="button" class="">読んだ論文たちのメモ</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d64fdaa8e46f50c67b163d98fad0ddb7" class="toggle"  />
+    <label for="section-d64fdaa8e46f50c67b163d98fad0ddb7" class="flex justify-between">
+      <a role="button" class="">Graphic Design</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/graphic_design_ML/Content-aware-Generative-Modeling-of-Graphic-Design-Layouts/" class="">Content Aware Generative Modeling of Graphic Design Layouts</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/graphic_design_ML/Learning-to-Generate-Posters-of-Scientific-Papers/" class="">Learning to Generate Posters of Scientific Papers</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Order Thing</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/order_thing/Learning-to-Order-Thing/" class="">Learning to Order Thing</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-749fb68fcedaafaff7bdd8e5931b0451" class="toggle"  />
+    <label for="section-749fb68fcedaafaff7bdd8e5931b0451" class="flex justify-between">
+      <a role="button" class="">sns</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E7%82%8E%E4%B8%8A%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6/" class="">Twitterの炎上について</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E3%83%95%E3%82%A1%E3%82%AF%E3%83%88%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF%E3%81%A7%E3%81%AE%E5%BC%B1%E6%95%99%E5%B8%AB%E3%81%A4%E3%81%8D%E5%AD%A6%E7%BF%92/" class="">ファクトチェックでの弱教師つき学習</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E5%BC%B1%E6%95%99%E5%B8%AB%E5%AD%A6%E7%BF%92%E3%81%A7%E3%83%AA%E3%83%97%E3%83%A9%E3%82%A4%E3%81%8B%E3%82%89%E7%82%8E%E4%B8%8A%E5%88%86%E6%9E%90/" class="">弱教師学習でリプライから炎上分析</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-de33daac55650926621e120a75049e4a" class="toggle"  />
+    <label for="section-de33daac55650926621e120a75049e4a" class="flex justify-between">
+      <a role="button" class="">Svm</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%82%AB%E3%83%BC%E3%83%8D%E3%83%AB%E6%B3%95/" class="">カーネル法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%82%BD%E3%83%95%E3%83%88%E3%83%9E%E3%83%BC%E3%82%B8%E3%83%B3/" class="">ソフトマージン</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%83%8F%E3%83%BC%E3%83%89%E3%83%9E%E3%83%BC%E3%82%B8%E3%83%B3/" class="">ハードマージン</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0465dfafe9cdc495ea2e5d9009d8922a" class="toggle"  />
+    <label for="section-0465dfafe9cdc495ea2e5d9009d8922a" class="flex justify-between">
+      <a role="button" class="">Weakly Supervised Learning</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/2017%E6%99%82%E7%82%B9%E3%81%AE%E5%90%84%E6%89%8B%E6%B3%95/" class="">2017時点の各手法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/PNU-Learning/" class="">PNU Learning(2017年)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive-Confidential-learning2017/" class="">Positive Confidential Learning(2017)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/" class="">Positiveでラベル有り無しで分布が違う時の PU学習(2019)</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/PU-Learning%E3%81%AE%E3%82%AF%E3%83%A9%E3%82%B9%E3%81%AE%E5%AE%9F%E8%A3%85/" class="">バイアスつきPU Learningクラスの実装</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E5%AE%9F%E9%A8%93%E3%81%AE%E3%82%B3%E3%83%BC%E3%83%89%E3%81%AE%E8%A7%A3%E6%9E%90/" class="">バイアスつきPU Learningクラスの実装</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E3%83%A1%E3%82%A4%E3%83%B3%E3%82%B3%E3%83%BC%E3%83%89/" class="">メインコード</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/PU-Learning/" class="">PU Learning(2007年)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/%E5%88%86%E5%B8%83%E4%BB%AE%E5%AE%9A%E4%B8%8D%E8%A6%81PU-Learning2014/" class="">PU LearningでなんでSVMのヒンジ関数は精度悪いか(2014)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/%E8%A3%9C%E3%83%A9%E3%83%99%E3%83%AB%E5%AD%A6%E7%BF%922017/" class="">補ラベル学習(2017)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>第二章</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#2変数以上の期待値">2変数以上の期待値</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#ベルヌーイ分布">ベルヌーイ分布</a></li>
+    <li><a href="#二項分布">二項分布</a></li>
+    <li><a href="#カテゴリ分布">カテゴリ分布</a></li>
+    <li><a href="#多項分布">多項分布</a></li>
+    <li><a href="#ポアソン分布">ポアソン分布</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#β分布">β分布</a></li>
+    <li><a href="#ディリクレ分布">ディリクレ分布</a></li>
+    <li><a href="#γ分布">γ分布</a></li>
+    <li><a href="#ガウス分布">ガウス分布</a></li>
+    <li><a href="#多次元ガウス分布">多次元ガウス分布</a></li>
+    <li><a href="#ウィシャート分布">ウィシャート分布</a></li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><h1 id="期待値">
+  期待値
+  <a class="anchor" href="#%e6%9c%9f%e5%be%85%e5%80%a4">#</a>
+</h1>
+<p>$$
+\mathbb{E} [f(\mathbf{x})] = \int f(\mathbf{x}) p(\mathbf{x}) d\mathbf{x}
+$$</p>
+<p>と定義される。純粋に$p(\mathbf{x})$の取る平均は$\mathbb{E} [\mathbf{x}] = \int \mathbf{x} p(\mathbf{x}) d\mathbf{x}$</p>
+<p>期待値は独立かそうじゃないか関わらず、線形性を持つ。</p>
+<p>分散は、
+$$
+\mathbb{E} [(\mathbf{x} - \hat{\mathbf{x}}) ^ T (\mathbf{x} - \hat{\mathbf{x}})]
+= \mathbb{E} [\mathbf{x} ^ T \mathbf{x}] - \mathbb{E} [\mathbf{x} ^ T] \mathbb{E} [\mathbb{x}]
+$$</p>
+<h2 id="2変数以上の期待値">
+  2変数以上の期待値
+  <a class="anchor" href="#2%e5%a4%89%e6%95%b0%e4%bb%a5%e4%b8%8a%e3%81%ae%e6%9c%9f%e5%be%85%e5%80%a4">#</a>
+</h2>
+<p>$$
+\mathbb{E} _{p(\mathbf{x}, \mathbf{y})} [\mathbf{x} ^ T \mathbf{y}]
+$$</p>
+<p>を計算する。もし$\mathbf{x}, \mathbf{y}$が<strong>お互いに独立</strong>であるなら、$p(\mathbf{x}, \mathbf{y}) = p(\mathbf{x}) p(\mathbf{y})$であり、</p>
+<p>$$
+\int \int \mathbf{x} ^ T \mathbf{y} p(\mathbf{x, y})d\mathbf{x} d\mathbf{y}
+= \int \mathbf{x} ^ T p(\mathbf{x}) d\mathbf{x} + \int \mathbf{y} p(\mathbf{y}) d \mathbf{y}
+= \mathbb{E} [\mathbf{x} ^ T] \mathbb{E} [\mathbf{y}]
+$$</p>
+<p>が成り立つ。
+しかし、独立ではない場合は、上の積分を丁寧に行うしかない。これは条件付期待値。</p>
+<p>$$
+\int \int \mathbf{x} ^ T \mathbf{y} p(\mathbf{x, y})d\mathbf{x} d\mathbf{y}
+= \mathbb{E}_{\mathbf{y}} [ \mathbb{E} _{\mathbf{x | y}} [\mathbf{x} ^ T \mathbf{y}] ]
+$$</p>
+<h1 id="エントロピー">
+  エントロピー
+  <a class="anchor" href="#%e3%82%a8%e3%83%b3%e3%83%88%e3%83%ad%e3%83%94%e3%83%bc">#</a>
+</h1>
+<p>エントロピー$H(\mathbf{x})$を定める。大きいほど乱雑で、0が一番整っている。ここで$\log 0 = 0$と定義。</p>
+<p>$$
+H(\mathbf{x}) = -\mathbb{E} [\log p(\mathbf{x})] = -\int p(\mathbf{x}) \log p(\mathbf{x}) d \mathbf{x}
+$$</p>
+<h1 id="klダイバージェンス">
+  KLダイバージェンス
+  <a class="anchor" href="#kl%e3%83%80%e3%82%a4%e3%83%90%e3%83%bc%e3%82%b8%e3%82%a7%e3%83%b3%e3%82%b9">#</a>
+</h1>
+<p>2つの分布$p(\mathbf{x}), q(\mathbf{x})$について、<strong>疑似的に分布の距離っぽいなにか(距離の公理は満たさない！！厳密にやるなら最適輸送)</strong>。これをKLダイバージェンス。</p>
+<p>$$
+\mathrm{KL} [p(\mathbf{x}) || q(\mathbf{x})] = \mathbb{E}_{p(\mathbb{x})} [\log p(\mathbf{x})] - \mathbb{E} _{p(\mathbb{x})} [\log q(\mathbf{x})]
+= -\int q(\mathbf{x}) \log \frac{q(\mathbf{x})}{p(\mathbf{x})} d\mathbf{x}
+$$</p>
+<h1 id="サンプリングによる期待値の推定">
+  サンプリングによる期待値の推定
+  <a class="anchor" href="#%e3%82%b5%e3%83%b3%e3%83%97%e3%83%aa%e3%83%b3%e3%82%b0%e3%81%ab%e3%82%88%e3%82%8b%e6%9c%9f%e5%be%85%e5%80%a4%e3%81%ae%e6%8e%a8%e5%ae%9a">#</a>
+</h1>
+<p>分散はそうでもないけど期待値はサンプリングの平均は不偏推定量なんで、$\frac{1}{n} \sum _{i = 1} ^ {n} f(\mathbf{x}_i)$</p>
+<h1 id="離散確率分布">
+  離散確率分布
+  <a class="anchor" href="#%e9%9b%a2%e6%95%a3%e7%a2%ba%e7%8e%87%e5%88%86%e5%b8%83">#</a>
+</h1>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>事象2つ</th>
+<th>事象3つ以上</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1回試行</td>
+<td>ベルヌーイ</td>
+<td>カテゴリ</td>
+</tr>
+<tr>
+<td>複数回試行</td>
+<td>二項</td>
+<td>多項</td>
+</tr>
+</tbody>
+</table>
+<h2 id="ベルヌーイ分布">
+  ベルヌーイ分布
+  <a class="anchor" href="#%e3%83%99%e3%83%ab%e3%83%8c%e3%83%bc%e3%82%a4%e5%88%86%e5%b8%83">#</a>
+</h2>
+<p>1回のコイン投げで、表の確率が$\mu$、裏が$1 - \mu$の時、$x$を取る確率は以下のようにまとめられる。
+$x = 0$なら$1 - \mu$, $x = 1$なら$\mu$になるのをまとめている。</p>
+<p>$$
+\mathrm{Bern}(x | \mu) = \mu ^ x (1 - \mu) ^ {1 - x}, x \in {0, 1}
+$$</p>
+<p>なお、エントロピーは$- \mathbb{E} [\log p(\mathbf{x})] = -(1 - \mu)\log (1 - \mu) - \mu \log \mu$となり、この形は明らかに$\mu = 0.5$で最大値を取る。</p>
+<h2 id="二項分布">
+  二項分布
+  <a class="anchor" href="#%e4%ba%8c%e9%a0%85%e5%88%86%e5%b8%83">#</a>
+</h2>
+<p>複数回のベルヌーイ分布をやる。$M$回の試行を繰り返し、表が出るのは$\mu$の確率である。
+この時、<strong>$x$回表が出る確率</strong>は以下のようになる。</p>
+<p>$$
+\mathrm{Bin}(x | M, \mu) = _M C _x \mu ^ x (1 - \mu) ^ {M - x}
+$$</p>
+<p>明らかに上式は$M = 1$において、ベルヌーイ分布と同じようになる。$x = 0$ならば表が出ない、$x = 1$ならば表が出る。$M &gt; 1$だと$x$は回数という意味だが、$x = 1$である限りベルヌーイ分布と同じ。</p>
+<p>主な期待値は以下のようになる。</p>
+<p>$$
+\mathbb{E} [x] = M \mu \\
+\mathbb{E} [x ^ 2] = M \mu ((M - 1) \mu + 1)
+$$</p>
+<h2 id="カテゴリ分布">
+  カテゴリ分布
+  <a class="anchor" href="#%e3%82%ab%e3%83%86%e3%82%b4%e3%83%aa%e5%88%86%e5%b8%83">#</a>
+</h2>
+<p>ベルヌーイ分布は表と裏の2通りしかないが、これを3通り以上の状態に拡張する。
+$\mathbf{s}$はカテゴリを示すone-hotベクトル。$\mathbf{\pi}$は各カテゴリにおける出現確率。
+以下の式では総乗であるが、$s_i = 1$は一つだけなので、そこの$\pi_i$だけ出てそれ以外は$1$となる。掛け合わせると$\pi_i$が出てくる。</p>
+<p>$$
+\mathrm{Cat} (\mathbf{s}, \mathbf{\pi}) = \prod_{i = 1} ^ {N} \pi_i ^ {s_i}
+$$</p>
+<p>同様にエントロピーを計算すると、</p>
+<p>$$
+-\mathbb{E} [\log \prod_{i = 1} ^ {N} \pi _i ^ {s_i}] = - \sum _{i = 1} ^ {N} \pi _i \log \pi _i
+$$</p>
+<h2 id="多項分布">
+  多項分布
+  <a class="anchor" href="#%e5%a4%9a%e9%a0%85%e5%88%86%e5%b8%83">#</a>
+</h2>
+<p>二項分布においてカテゴリを3つ以上にも拡張したもの。3つ以上の種類の$N$個の球を1列に並べる並び方が$\frac{N!}{a!b!c!\cdots}, a + b + c + \cdots = N$であるので、同様に分布の式も以下のようになる。$\mathbf{x}$は各カテゴリにおける出現数。</p>
+<p>$$
+\mathrm{Mult}(\mathbf{x} | \mathbf{\pi}, M) = M! \prod _{i = 1} ^ {N} \frac{\pi_i ^ {x_i}}{x_i !}
+$$</p>
+<p>これの期待値は、</p>
+<p>$$
+\mathbb{E} [ x_i ] = M \pi_i \\
+\mathbb{E} [ x_i x_j ] = M \pi_i ((M - 1)\pi_i + 1) \:\: \mathrm{if} j = k \\
+= M(M - 1) \pi_i \pi_j \: \: \mathrm{otherwise}
+$$</p>
+<h2 id="ポアソン分布">
+  ポアソン分布
+  <a class="anchor" href="#%e3%83%9d%e3%82%a2%e3%82%bd%e3%83%b3%e5%88%86%e5%b8%83">#</a>
+</h2>
+<p>非負の整数$x$について、以下の確率で生成する。</p>
+<p>$$
+\mathrm{Poi} (x | \lambda) = \frac{\lambda ^ x}{x!} e^ {-\lambda} \\
+\log \mathrm{Poi} (x | \lambda) = x \log \lambda - \log x! - \lambda
+$$</p>
+<p>$x$が大きくなると明らかに確率は下がるが、<strong>完全には0にならない</strong>のが二項分布とかとの違い。</p>
+<p>$$
+\mathbb{E} [x] = \lambda \\
+\mathbb{E} [x^2] = \lambda (\lambda + 1)
+$$</p>
+<h1 id="連続確率分布">
+  連続確率分布
+  <a class="anchor" href="#%e9%80%a3%e7%b6%9a%e7%a2%ba%e7%8e%87%e5%88%86%e5%b8%83">#</a>
+</h1>
+<h2 id="β分布">
+  β分布
+  <a class="anchor" href="#%ce%b2%e5%88%86%e5%b8%83">#</a>
+</h2>
+<p><strong>$x \in (0, 1)$の値を生成する分布</strong>。$\Gamma(a) = (a - 1)!$のガンマ関数(非自然数も定義しているが)　下のガンマ関数部は<strong>正規化項</strong>。
+意味していることは<strong>表の確率が$x$コインを投げて表$a - 1$回、裏$b - 1$回が出る分布</strong>。</p>
+<p>$$
+\mathrm{Beta}(x | a, b) = \frac{\Gamma(a + b)}{\Gamma(a) \Gamma(b)} x ^ {a - 1} (1 - x) ^ {b - 1} \\
+\log \mathrm{Beta}(x | a, b) = (a - 1) \log x + (b - 1) \log (1 - x) + \log \frac{\Gamma(a + b)}{\Gamma(a) \Gamma(b)}
+$$</p>
+<p>期待値は以下の通り。$\psi(x) = \frac{d}{dx} \log \Gamma(x) = \frac{\Gamma ^ {\prime}(x)}{\Gamma(x)}$
+というdigamma関数だとすると、</p>
+<p>$$
+\mathbb{E} [x] = \frac{a}{a + b} \\
+\mathbb{E} [\log x] = \psi(a) - \psi(a + b) = \mathbb{E} [\log (1 - x)] \\
+$$</p>
+<p>なお、同じ$a = 1, b = 2$と$a = 3, b = 9$でも、期待値は同じだけど、後者の方がとがっている分布になる。<strong>試行回数が増えてより自信をもって確実に言える</strong>みたいなもの。</p>
+<p>β分布は、<strong>ベルヌーイ分布と二項分布の共役事前分布</strong>である。</p>
+<h2 id="ディリクレ分布">
+  ディリクレ分布
+  <a class="anchor" href="#%e3%83%87%e3%82%a3%e3%83%aa%e3%82%af%e3%83%ac%e5%88%86%e5%b8%83">#</a>
+</h2>
+<p>β分布は連続かつ、$x$か$1 - x$の二択であったが、これを三択以上に拡張したもの。
+同様に**$x \in (0, 1)$の値を生成する分布**である。</p>
+<p>$$
+\mathrm{Dir}(\mathbf{x} | \mathbf{\alpha}) = \frac{\Gamma(\sum _{i = 1}^{K} \alpha_i)}{\prod _{i = 1}^{K} \Gamma(\alpha_i)} \prod _{i = 1}^{N} c_i ^ {\alpha_i - 1} \\
+\log \mathrm{Dir}(\mathbf{x} | \mathbf{\alpha}) = \sum _{i = 1} ^ K (\alpha_i - 1) \log x_i + \log \frac{\Gamma(\sum _{i = 1}^{K} \alpha_i)}{\prod _{i = 1}^{K} \Gamma(\alpha_i)}
+$$</p>
+<p>期待値関連はβ分布と似ている。</p>
+<p>$$
+\mathbb{E} [x_k] = \frac{\alpha_k}{\sum _{i = 1} ^ {K} \alpha_i } \\
+\mathbb{E} [\log x_k] = \psi(\alpha_k) - \psi(\sum _{i = 1}^{K} \alpha_i)
+$$</p>
+<p><strong>ディリクレ分布は、β分布からして、カテゴリ分布と多項分布の共役事前分布</strong>。</p>
+<h2 id="γ分布">
+  γ分布
+  <a class="anchor" href="#%ce%b3%e5%88%86%e5%b8%83">#</a>
+</h2>
+<p>正の実数$x$を生成する。</p>
+<p>$$
+\mathrm{Gam}(x | a, b) = \frac{b ^ a}{\Gamma(a)} x ^ {a - 1} e ^ {-b \lambda} \\
+\log \mathrm{Gam}(x | a, b) = \log (a - 1)x - b \lambda + \log \frac{b ^ a}{\Gamma(a)}
+$$</p>
+<p>期待値は以下の通り。</p>
+<p>$$
+\mathrm{E} [x] = \frac{a}{b} \\
+\mathrm{E} [\log x] = \psi(a) - \log b
+$$</p>
+<p><strong>ガンマ分布はポアソン分布と1次元ガウス分布の分散の逆数の共役事前分布である</strong>。</p>
+<h2 id="ガウス分布">
+  ガウス分布
+  <a class="anchor" href="#%e3%82%ac%e3%82%a6%e3%82%b9%e5%88%86%e5%b8%83">#</a>
+</h2>
+<p>期待値$mu$, 分散$\sigma$のパラメタを持つ。</p>
+<p>$$
+\mathcal{N} (x | \mu, \sigma^2) = \frac{1}{\sqrt{2 \pi} \sigma} \exp( - \frac{(x - \mu) ^ 2}{2 \sigma^2}) \\
+\log \mathcal{N} (x | \mu, \sigma^2) = -\frac{1}{2} (\frac{(x - \mu) ^ 2}{2 \sigma^2} + 2\log \sigma + \log 2 \pi)
+$$</p>
+<p>期待値として、</p>
+<p>$$
+\mathbb{E} [x] = \mu \\
+\mathbb{E} [x^2] = \mu^2 + \sigma^2
+$$</p>
+<p>エントロピーは以下の通り。</p>
+<p>$$
+-\mathbb{E} [ \log p(x) ] = \frac{1}{2} \mathbb{E}  [ \frac{x^2 - 2 \mu x + \mu^2}{\sigma ^ 2} + 2 \log \sigma + \log 2 \pi ] \\
+= \frac{1}{2} \mathbb{E}[\frac{\mu ^ 2 + \sigma ^ 2 - 2\mu^2 + \mu^2}{\sigma ^ 2} + 2 \log \sigma + \log 2 \pi]
+= \frac{1}{2} (1 + 2 \log \sigma + \log 2 \pi)
+$$</p>
+<p>2つのガウス分布$\mathcal{N} (\mu_1, \sigma_1 ^ 2)$と$\mathcal{N} (\mu_2, \sigma_2 ^ 2)$のKLダイバージェンスは、</p>
+<p>$$
+\mathbb{E}_{p} [ \log p(x) ] - \mathbb{E} _{p} [ \log q(x) ]
+= -\frac{1}{2} (\frac{(\mu_1 - \mu_2) ^ 2 + \sigma_2 ^ 2}{\sigma_1 ^ 2}) + 2\log \frac{\sigma_1}{\sigma_2} - 1
+$$</p>
+<h2 id="多次元ガウス分布">
+  多次元ガウス分布
+  <a class="anchor" href="#%e5%a4%9a%e6%ac%a1%e5%85%83%e3%82%ac%e3%82%a6%e3%82%b9%e5%88%86%e5%b8%83">#</a>
+</h2>
+<p>先ほどのは1変数であったが、これを多次元にしたもの。$\mathbf{\mu}$は期待値のベクトル、$\mathbf{\Sigma}$は今日分散行列。まあ正定値で対称ですね。
+$D$は次元数。</p>
+<p>$$
+\mathcal{N} (\mathbf{x} | \mathbf{\mu}, \mathbf{\Sigma})
+= \frac{1}{\sqrt{2\pi} ^ D |\Sigma|} \exp(-\frac{1}{2} (\mathbf{x} - \mathbf{\mu}) ^ T \mathbf{\Sigma} ^ {-1} (\mathbf{x} - \mathbf{\mu})) \\
+\log \mathcal{N} (\mathbf{x} | \mathbf{\mu}, \mathbf{\Sigma})
+= -\frac{1}{2} ((\mathbf{x} - \mathbf{\mu}) ^ T \mathbf{\Sigma} ^ {-1} (\mathbf{x} - \mathbf{\mu}) + \log |\mathbf{\Sigma}| + D \log 2 \pi)
+$$</p>
+<p>上式において、$\mathbf{\Sigma}$は対角行列ならば、お互いの共分散が0なので$D$個の独立したガウス分布に分けられる。
+共分散が0でなくても、シルベスター標準形に直すことで$D$この独立したガウス分布、ともやはりみなせる。</p>
+<p>期待値は以下の通り。二次元の$x x ^ T$は行列を作る。</p>
+<p>$$
+\mathbb{E} [\mathbf{x}] = \mathbf{\mu} \\
+\mathbb{E} [\mathbf{x} \mathbf{x} ^ T] = \mathbf{\mu} \mathbf{\mu} ^ T + \mathbf{\Sigma}
+$$</p>
+<p>エントロピーは以下の通り。期待値の部分は$\mathbf{x} ^ T D \mathbf{x}$で対角行列Dなので、<strong>実質的にはtraceそのもの</strong>。</p>
+<p>$$
+-\mathbb{E} [\log p(\mathbf{x})] = \frac{1}{2} (\mathbb{E} [(\mathbf{x} - \mathbf{\mu}) ^ T \mathbf{\Sigma} ^ {-1} (\mathbf{x} - \mathbf{\mu})] + \log |\mathbf{\Sigma}| + D \log 2\pi) \\
+\mathbb{E} [(\mathbf{x} - \mathbf{\mu}) ^ T \mathbf{\Sigma} ^ {-1} (\mathbf{x} - \mathbf{\mu})]
+= \mathbb{E} [\mathrm{Tr}((\mathbf{x} - \mathbf{\mu}) ^ T \mathbf{\Sigma} ^ {-1} (\mathbf{x} - \mathbf{\mu}))]  \\
+= \mathbb{E} [\mathrm{Tr}((\mathbf{x} - \mathbf{\mu}) (\mathbf{x} - \mathbf{\mu}) ^ T) \mathbf{\Sigma} ^ {-1} ]
+= \mathbb{E} [\mathrm{Tr}(\mathbf{x} \mathbf{x} ^ T - \mathbf{x} \mathbf{\mu} ^ T - \mathbf{\mu} \mathbf{x} ^ T + \mathbf{\mu} \mathbf{\mu} ^ T) \mathbf{\Sigma} ^ {-1} ] \\
+=  \mathbb{E} [\mathrm{Tr}(\mathbf{\mu} \mathbf{\mu} ^ T + \mathbf{\Sigma} - 2\mathbf{\mu} \mathbf{\mu} ^ T + \mathbf{\mu} \mathbf{\mu} ^ T) \mathbf{\Sigma} ^ {-1} ] = \mathrm{Tr}(\mathbb{E} [I]) = D
+$$</p>
+<p>よって、</p>
+<p>$$
+-\mathbb{E} [\log p(\mathbf{x})] = \frac{1}{2} (\log |\mathbf{\Sigma}| + D(\log 2 \pi + 1))
+$$</p>
+<p>同様に、KLダイバージェンスは、</p>
+<p>$$
+\mathbb{E}_p [\log p(\mathbf{x})] - \mathbb{E}_p [\log q(\mathbf{x})] = \\
+\frac{1}{2} (\mathrm{Tr}[((\mathbf{\mu_1} - \mathbf{\mu_2}) (\mathbf{\mu_1} - \mathbf{\mu_2}) ^ T + \mathbf{\Sigma}_2) \mathbf{\Sigma}_1 ^ {-1}] + \log \frac{|\mathbf{\Sigma_1}|}{|\mathbf{\Sigma_2}|} - D)
+$$</p>
+<h2 id="ウィシャート分布">
+  ウィシャート分布
+  <a class="anchor" href="#%e3%82%a6%e3%82%a3%e3%82%b7%e3%83%a3%e3%83%bc%e3%83%88%e5%88%86%e5%b8%83">#</a>
+</h2>
+<p>$D \times D$の正定値行列を生成する分布。なので、先ほどの多次元ガウス分布の分散の逆行列(=<strong>精度行列</strong>)の生成に使える。$\nu$は自由度という量であり、$\nu &gt; D - 1$。$\mathbf{W}$は$D \times D$の正定値行列であるパラメタ。</p>
+<p>$$
+\mathcal{W} (\mathbf{X} | \nu, \mathbf{W}) = (正則化項) |\mathbf{X}| ^ {\frac{\nu - D - 1}{2}} \exp(\frac{1}{2} \mathrm{Tr}(\mathbf{W} ^ {-1} \mathbf{X})) \\
+\log \mathcal{W} (\mathbf{X} | \nu, \mathbf{W}) = \frac{\nu - D - 1}{2} \log |\mathbf{X}| - \frac{1}{2} {Tr}(\mathbf{W} ^ {-1} \mathbf{X}) + \log (正則化項)
+$$</p>
+<p>期待値は以下の通り。</p>
+<p>$$
+\mathbb{E} [\mathbf{X}] = \nu \mathbf{W}
+$$</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#2変数以上の期待値">2変数以上の期待値</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#ベルヌーイ分布">ベルヌーイ分布</a></li>
+    <li><a href="#二項分布">二項分布</a></li>
+    <li><a href="#カテゴリ分布">カテゴリ分布</a></li>
+    <li><a href="#多項分布">多項分布</a></li>
+    <li><a href="#ポアソン分布">ポアソン分布</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#β分布">β分布</a></li>
+    <li><a href="#ディリクレ分布">ディリクレ分布</a></li>
+    <li><a href="#γ分布">γ分布</a></li>
+    <li><a href="#ガウス分布">ガウス分布</a></li>
+    <li><a href="#多次元ガウス分布">多次元ガウス分布</a></li>
+    <li><a href="#ウィシャート分布">ウィシャート分布</a></li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="元論文
+Introduction # case controlシナリオという状況。
+ラベルありPositiveはラベルなしとは別に抽出される。 ラベルなしは、全データの中から一部だけサンプリング この状況では、先行研究によれば、Positiveがどのようにラベル付けされるのかの仮定なくして、分類器を特定できない。なので、今までは完全にランダムに一様に選んだ＝Positiveのラベル付きとラベルなしは皆同じ分布に従うとしている。
+だが、現実ではそうはならんやろ、の例がどんどん多い。selection bias=選択バイアスが存在する。
+今までも対策があったが他の謎制約をつけることが条件だった。
+ここでは、同じ$\mathbf{x}$に対して、$p(o = &#43;1 | \mathbf{x}, y = &#43;1)$が高ければ、$p(y=&#43;1 | \mathbf{x})$も高くなる。これは以下のような典型的なselection biasがある例でも、絶対に成り立つ。
+Anomaly Detectionの例 # ラベル付けされてないデータセットから、anomaly=異常値を検出する。ここで、異常値データが収集されるとき、データが異常であればあるほど、ラベル付けされる可能性が高くなる。つまり、同じanomalyの中でも、一様にランダムでラベル付けされてるわけではない！
+顔認識の例 # Positiveが明確に誰誰とわかる顔、Unlavelingが誰なのかが不明な顔。この時、例えPositiveであるものでも、はっきりと顔が映るのがPositiveで、ぼんやりならUnlavelingにされてしまう。
+選択バイアスがあるPU Learningでの問題設定 # $\mathbf{x} \in \chi \subset \mathbb{R}^d$と学習データを定義し、それぞれ$y \in -1, &#43;1$のラベルを持つ二値分類である。$o \in 0, &#43;1$はラベルがない=0、ある=1。先人に従い、$p(\mathbf{x}, y, o)$という未知の分布が存在するとする。
+サンプリングスキームには、censorシナリオ=one sampleとcase-controlシナリオ=two samplesがある。
+Censorシナリオ # censorシナリオでは、ラベル付け候補データは(当然Positive, Negative関係なく)周辺確率分布$p(\mathbf{x})$に従いまず選ばれ、
+Positiveならば、$p(o=&#43;1 | \mathbf{x}, y = &#43;1)$の確率でラベルをつける。 Negativeならば、前提条件として$p(o=&#43;1 | \mathbf{x}, y = -1) = 0$なので、ラベルをつけない。 Case-Controlシナリオ # case-controlシナリオでは、Positiveのデータは条件付き分布$p(\mathbf{x} | y=&#43;1)$から選ばれ、ラベルなしのデータは周辺確率分布$p(\mathbf{x})$から選ばれる。">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="Positiveでラベル有り無しで分布が違う時の PU学習(2019)" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://Qian-Donglin.github.io/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/" />
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+	integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"
+	integrity="sha384-cpW21h6RZv/phavutF+AuVYrr+dA8xD9zs6FwLpaCct6O9ctzYFfFr4dgmgccOTx"
+	crossorigin="anonymous"></script>
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+	integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
+	onload="renderMathInElement(document.body);"></script>
+
+<script>
+	document.addEventListener("DOMContentLoaded", function () {
+		renderMathInElement(
+			document.body,
+			{
+				delimiters: [
+					{ left: "$$", right: "$$", display: true },
+					{ left: "\\[", right: "\\]", display: true },
+					{ left: "$", right: "$", display: false },
+					{ left: "\\(", right: "\\)", display: false }
+				]
+			});
+	});
+</script>
+
+<title>Positiveでラベル有り無しで分布が違う時の PU学習(2019) | Sen(Qian)のメモ</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/%20favicon.png">
+<link rel="stylesheet" href="/book.min.f8de3645fe00591b41524aee174e19edd98a22255a2930a0cdc82a94835ba387.css" integrity="sha256-&#43;N42Rf4AWRtBUkruF04Z7dmKIiVaKTCgzcgqlINbo4c=" crossorigin="anonymous">
+<script defer src="/%20flexsearch.min.js"></script>
+<script defer src="/en.search.min.43d9e1a27caa5999a7fee1bb577c631649e74ee5e89bedb7682f0f3f87c303eb.js" integrity="sha256-Q9nhonyqWZmn/uG7V3xjFknnTuXom&#43;23aC8PP4fDA&#43;s=" crossorigin="anonymous"></script>
+
+<link rel="alternate" type="application/rss+xml" href="https://Qian-Donglin.github.io/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/index.xml" title="Sen(Qian)のメモ" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><span>Sen(Qian)のメモ</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/" class="">競プロの問題解説</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Dp</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/DP/%E6%A1%81DP/" class="">桁 Dp</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/DP/%E6%A1%81DP/Y-abc317-F/" class="">(Y-) abc317 F</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0d2a02cd744e63233ebe57612bb12952" class="toggle"  />
+    <label for="section-0d2a02cd744e63233ebe57612bb12952" class="flex justify-between">
+      <a role="button" class="">Grid</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Grid/G-abc317-E/" class="">(G&#43;) abc317 E</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Implement</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Implement/G-abc315-E/" class="">(G) Abc315 E Index</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cea18f1d04185b9a1f879558d5aeddb2" class="toggle"  />
+    <label for="section-cea18f1d04185b9a1f879558d5aeddb2" class="flex justify-between">
+      <a role="button" class="">Square Divide</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/SquareDivide/CABC293-E%E5%B9%B3%E6%96%B9%E5%88%86%E5%89%B2/" class="">(C) abc293 E(平方分割)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-52d2a0ea11310952e77a5e1d9b1ee709" class="toggle"  />
+    <label for="section-52d2a0ea11310952e77a5e1d9b1ee709" class="flex justify-between">
+      <a role="button" class="">Graph</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Graph/BrABC292-D/" class="">(Br) abc292 D</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>読んだ本</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Machine Learning</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>ベイズ推論による機械学習(緑ベイズ)</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-1/" class="">第一章</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-2/" class="">第二章</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part1/" class="">第三章その1</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part2/" class="">第三章その2</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3c22cc3dba3e6e6de0eab46bcb97d14b" class="toggle" checked />
+    <label for="section-3c22cc3dba3e6e6de0eab46bcb97d14b" class="flex justify-between">
+      <a role="button" class="">読んだ論文たちのメモ</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d64fdaa8e46f50c67b163d98fad0ddb7" class="toggle"  />
+    <label for="section-d64fdaa8e46f50c67b163d98fad0ddb7" class="flex justify-between">
+      <a role="button" class="">Graphic Design</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/graphic_design_ML/Content-aware-Generative-Modeling-of-Graphic-Design-Layouts/" class="">Content Aware Generative Modeling of Graphic Design Layouts</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/graphic_design_ML/Learning-to-Generate-Posters-of-Scientific-Papers/" class="">Learning to Generate Posters of Scientific Papers</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Order Thing</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/order_thing/Learning-to-Order-Thing/" class="">Learning to Order Thing</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-749fb68fcedaafaff7bdd8e5931b0451" class="toggle"  />
+    <label for="section-749fb68fcedaafaff7bdd8e5931b0451" class="flex justify-between">
+      <a role="button" class="">sns</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E7%82%8E%E4%B8%8A%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6/" class="">Twitterの炎上について</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E3%83%95%E3%82%A1%E3%82%AF%E3%83%88%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF%E3%81%A7%E3%81%AE%E5%BC%B1%E6%95%99%E5%B8%AB%E3%81%A4%E3%81%8D%E5%AD%A6%E7%BF%92/" class="">ファクトチェックでの弱教師つき学習</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E5%BC%B1%E6%95%99%E5%B8%AB%E5%AD%A6%E7%BF%92%E3%81%A7%E3%83%AA%E3%83%97%E3%83%A9%E3%82%A4%E3%81%8B%E3%82%89%E7%82%8E%E4%B8%8A%E5%88%86%E6%9E%90/" class="">弱教師学習でリプライから炎上分析</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-de33daac55650926621e120a75049e4a" class="toggle"  />
+    <label for="section-de33daac55650926621e120a75049e4a" class="flex justify-between">
+      <a role="button" class="">Svm</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%82%AB%E3%83%BC%E3%83%8D%E3%83%AB%E6%B3%95/" class="">カーネル法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%82%BD%E3%83%95%E3%83%88%E3%83%9E%E3%83%BC%E3%82%B8%E3%83%B3/" class="">ソフトマージン</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%83%8F%E3%83%BC%E3%83%89%E3%83%9E%E3%83%BC%E3%82%B8%E3%83%B3/" class="">ハードマージン</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0465dfafe9cdc495ea2e5d9009d8922a" class="toggle" checked />
+    <label for="section-0465dfafe9cdc495ea2e5d9009d8922a" class="flex justify-between">
+      <a role="button" class="">Weakly Supervised Learning</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/2017%E6%99%82%E7%82%B9%E3%81%AE%E5%90%84%E6%89%8B%E6%B3%95/" class="">2017時点の各手法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/PNU-Learning/" class="">PNU Learning(2017年)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive-Confidential-learning2017/" class="">Positive Confidential Learning(2017)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/" class="active">Positiveでラベル有り無しで分布が違う時の PU学習(2019)</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/PU-Learning%E3%81%AE%E3%82%AF%E3%83%A9%E3%82%B9%E3%81%AE%E5%AE%9F%E8%A3%85/" class="">バイアスつきPU Learningクラスの実装</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E5%AE%9F%E9%A8%93%E3%81%AE%E3%82%B3%E3%83%BC%E3%83%89%E3%81%AE%E8%A7%A3%E6%9E%90/" class="">バイアスつきPU Learningクラスの実装</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E3%83%A1%E3%82%A4%E3%83%B3%E3%82%B3%E3%83%BC%E3%83%89/" class="">メインコード</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/PU-Learning/" class="">PU Learning(2007年)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/%E5%88%86%E5%B8%83%E4%BB%AE%E5%AE%9A%E4%B8%8D%E8%A6%81PU-Learning2014/" class="">PU LearningでなんでSVMのヒンジ関数は精度悪いか(2014)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/%E8%A3%9C%E3%83%A9%E3%83%99%E3%83%AB%E5%AD%A6%E7%BF%922017/" class="">補ラベル学習(2017)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>Positiveでラベル有り無しで分布が違う時の PU学習(2019)</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#anomaly-detectionの例">Anomaly Detectionの例</a></li>
+    <li><a href="#顔認識の例">顔認識の例</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#censorシナリオ">Censorシナリオ</a></li>
+    <li><a href="#case-controlシナリオ">Case-Controlシナリオ</a></li>
+    <li><a href="#本筋">本筋</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#定理1の証明">定理1の証明</a></li>
+    <li><a href="#本筋-1">本筋</a></li>
+    <li><a href="#precisionとrecall">precisionとrecall</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#選択バイアスがないと仮定したリスク関数の最小化と">選択バイアスがないと仮定したリスク関数の最小化と</a></li>
+    <li><a href="#rmathbfxの推定">$r(\mathbf{x})$の推定</a></li>
+    <li><a href="#theta-_piの推測">$\theta _{\pi}$の推測</a></li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><p>
+  <a href="https://openreview.net/forum?id=rJzLciCqKm">元論文</a></p>
+<h1 id="introduction">
+  Introduction
+  <a class="anchor" href="#introduction">#</a>
+</h1>
+<p>case controlシナリオという状況。</p>
+<ul>
+<li><strong>ラベルありPositiveはラベルなしとは別に抽出される</strong>。</li>
+<li><strong>ラベルなしは、全データの中から一部だけサンプリング</strong></li>
+</ul>
+<p>この状況では、先行研究によれば、<strong>Positiveがどのようにラベル付けされるのかの仮定なくして、分類器を特定できない</strong>。なので、今までは<strong>完全にランダムに一様に選んだ＝Positiveのラベル付きとラベルなしは皆同じ分布に従う</strong>としている。</p>
+<p>だが、現実ではそうはならんやろ、の例がどんどん多い。<strong>selection bias=選択バイアスが存在</strong>する。</p>
+<p>今までも対策があったが他の謎制約をつけることが条件だった。</p>
+<p>ここでは、<strong>同じ$\mathbf{x}$に対して、$p(o = +1 | \mathbf{x}, y = +1)$が高ければ、$p(y=+1 | \mathbf{x})$も高くなる</strong>。これは以下のような<strong>典型的なselection biasがある例でも、絶対に成り立つ</strong>。</p>
+<h2 id="anomaly-detectionの例">
+  Anomaly Detectionの例
+  <a class="anchor" href="#anomaly-detection%e3%81%ae%e4%be%8b">#</a>
+</h2>
+<p>ラベル付けされてないデータセットから、anomaly=異常値を検出する。ここで、異常値データが収集されるとき、データが異常であればあるほど、ラベル付けされる可能性が高くなる。つまり、<strong>同じanomalyの中でも、一様にランダムでラベル付けされてるわけではない</strong>！</p>
+<h2 id="顔認識の例">
+  顔認識の例
+  <a class="anchor" href="#%e9%a1%94%e8%aa%8d%e8%ad%98%e3%81%ae%e4%be%8b">#</a>
+</h2>
+<p>Positiveが明確に誰誰とわかる顔、Unlavelingが誰なのかが不明な顔。この時、例えPositiveであるものでも、はっきりと顔が映るのがPositiveで、ぼんやりならUnlavelingにされてしまう。</p>
+<h1 id="選択バイアスがあるpu-learningでの問題設定">
+  選択バイアスがあるPU Learningでの問題設定
+  <a class="anchor" href="#%e9%81%b8%e6%8a%9e%e3%83%90%e3%82%a4%e3%82%a2%e3%82%b9%e3%81%8c%e3%81%82%e3%82%8bpu-learning%e3%81%a7%e3%81%ae%e5%95%8f%e9%a1%8c%e8%a8%ad%e5%ae%9a">#</a>
+</h1>
+<p>$\mathbf{x} \in \chi \subset \mathbb{R}^d$と学習データを定義し、それぞれ$y \in -1, +1$のラベルを持つ二値分類である。$o \in 0, +1$はラベルがない=0、ある=1。先人に従い、$p(\mathbf{x}, y, o)$という未知の分布が存在するとする。</p>
+<p>サンプリングスキームには、censorシナリオ=one sampleとcase-controlシナリオ=two samplesがある。</p>
+<h2 id="censorシナリオ">
+  Censorシナリオ
+  <a class="anchor" href="#censor%e3%82%b7%e3%83%8a%e3%83%aa%e3%82%aa">#</a>
+</h2>
+<p>censorシナリオでは、<strong>ラベル付け候補データは(当然Positive, Negative関係なく)周辺確率分布$p(\mathbf{x})$に従いまず選ばれ</strong>、</p>
+<ul>
+<li>Positiveならば、$p(o=+1 | \mathbf{x}, y = +1)$の確率でラベルをつける。</li>
+<li>Negativeならば、前提条件として$p(o=+1 | \mathbf{x},  y = -1) = 0$なので、ラベルをつけない。</li>
+</ul>
+<h2 id="case-controlシナリオ">
+  Case-Controlシナリオ
+  <a class="anchor" href="#case-control%e3%82%b7%e3%83%8a%e3%83%aa%e3%82%aa">#</a>
+</h2>
+<p>case-controlシナリオでは、<strong>Positiveのデータは条件付き分布$p(\mathbf{x} | y=+1)$から選ばれ、ラベルなしのデータは周辺確率分布$p(\mathbf{x})$から選ばれる</strong>。</p>
+<p>こっちの方がわずかに一般的らしい。Case-Controlシナリオは、$p(\mathbf{x}), p(\mathbf{x} | o = +1)$によって生成されたサンプルへのアクセスを仮定するが、Censorシナリオは、$p(\mathbf{x}), p(\mathbf{x} | o = 0), p(\mathbf{x} | o = +1)$を仮定するから大変らしい。 ここらへんあんまり理解できなかった&hellip;</p>
+<h2 id="本筋">
+  本筋
+  <a class="anchor" href="#%e6%9c%ac%e7%ad%8b">#</a>
+</h2>
+<p>ということで、case controlシナリオに絞ると。</p>
+<ul>
+<li>Positiveのデータセット$[\mathbf{x}_i] _{i = 1}^{n}$　$p(\mathbf{x} | y = +1, o = +1)$　<strong>ラベル付き(当然Positiveである)という条件での$\mathbf{x}$の分布に従って取得</strong>。</li>
+<li>Unlabelingのデータセット$[\mathbf{x ^\prime}_i] _{i = 1}^{n ^{\prime}}$　$p(\mathbf{x})$　<strong>PNやラベル情報関係なく、取得</strong>。</li>
+</ul>
+<p>ここで、「完全にランダムに選ぶ」ことを仮定してないことに注意。なので、$p(\mathbf{x} | y = +1)$は$p(\mathbf{x} | y + 1, o = +1)$と<strong>完全に一致するわけではない</strong>。これが違うとき、それこそが<strong>選択バイアス</strong>である。</p>
+<p>注 by me. $p(\mathbf{x} | y = +1)$は、Positiveのデータの分布。$p(\mathbf{x} | y = +1, o = +1)$は、Positiveのうち、ラベルがついてる時のデータの分布。これが異なるということは、<strong>まさにラベル付けされたPositiveと全体のPositiveの分布が違ってバイアスがある</strong>こと。</p>
+<p>$\pi = p(y = +1)$、つまりPositiveである確率は<strong>クラス事前確率</strong>というらしい。<strong>この$\pi$は既知である</strong>前提でいく。定め方はそれなりに色々あるが、この問題設定では、<strong>クラス事前確率を理論的に保障しながら推定はできないらしい</strong>。</p>
+<p>でも、大丈夫。分からないとしてもアルゴリズムをマイナーチェンジをするだけで済む。</p>
+<p>つまり、「完全にランダムに選ぶ」という仮定から弱めた条件の下でちゃんと学習できるよ、と示してみた。</p>
+<h1 id="特定戦略">
+  特定戦略
+  <a class="anchor" href="#%e7%89%b9%e5%ae%9a%e6%88%a6%e7%95%a5">#</a>
+</h1>
+<p>
+  <a href="../pu-learning/index.html">2008年のPU Learningの初リリース</a>時、仮定なしにPとUのデータからだけで$p(y = +1 | \mathbf{x})$を得ることができなかった。なぜなら、真っ先に$p(o = 1 | \mathbf{x}, y = 1) = p(o = 1 | y = 1) = 定数c$と、$\mathbf{x}$関係なく一定確率でPositiveならラベル付けしてた、と仮定したからだ。よく読めばその後の$g(\mathbf{x})$の推定は思いっきりこの仮定使ってる。</p>
+<p>Case-Controlシナリオでは、「完全にランダムに選ぶ」と仮定なら、$p(\mathbf{x} | y = +1, o = 0) = p(\mathbf{x}, y = +1, o = +1)$が成り立つ(上の段落の式の別表示ともいえるね)。この時、以下のように$p(y = + 1 | \mathbf{x})$を推定できた。</p>
+<p>$$
+p(y = + 1 | \mathbf{x}) = \frac{p(\mathbf{x}, y = +1)}{p(\mathbf{x})} = \frac{p(\mathbf{x} | y = +1) \pi}{p(\mathbf{x})}
+$$</p>
+<p>$$
+= \frac{ p(\mathbf{x} | y = +1, o = +1) \pi}{p(\mathbf{x})}
+$$</p>
+<p>そして、ここの等式が、仮説$p(o = 1 | \mathbf{x}, y = 1) = p(o = 1 | y = 1) = 定数c$、「完全にランダムに選ぶ」が使われて式変形してるところ。ここまで変形したかたちなら、入力から不変推定量で推定できる。</p>
+<p>というわけで、我々は$p(y = +1 | \mathbf{x})$自体を推定する代わりに、$p(y = +1 | \mathbf{x})$からいくつかの情報を抽出して分類器を学習させよう。これは
+  <a href="https://link.springer.com/book/10.1007/b97478">Partial Identificationと呼ばれている。(Manski, 2008？)</a></p>
+<p>この研究では、以下のような仮定に<strong>弱めてみる</strong>。</p>
+<p>任意の$\mathbf{x} _i, \mathbf{x} _j \in \chi$で、</p>
+<p>$$
+p(y = +1 | \mathbf{x} _i) \leq p(y = +1 | \mathbf{x} _j) \Leftrightarrow p(o = +1 | \mathbf{x} _i) \leq p(o = +1 | \mathbf{x} _j)
+$$</p>
+<p><strong>元々は、両辺はイコールじゃないとあかんかった</strong>。この条件は、<strong>$\mathbf{x} _i$が$\mathbf{x} _j$よりもPositiveっぽくないなら、$\mathbf{x} _i$の方が、$\mathbf{x} _j$よりも、ラベル付けされるっぽくない</strong>。</p>
+<p>これでは、リスク関数の不変推定量を経験的にデータから作れないが、それでもやってみたわ。</p>
+<p>これ、普通の仮説じゃね？弱いかいうほど？こんな仮説でも許せばいいんだ？ by me</p>
+<h1 id="partial-identificationと分類の戦略">
+  Partial Identificationと分類の戦略
+  <a class="anchor" href="#partial-identification%e3%81%a8%e5%88%86%e9%a1%9e%e3%81%ae%e6%88%a6%e7%95%a5">#</a>
+</h1>
+<p>前述のとおり、選択バイアスがあるときは$\pi$が与えられようが、$p(y = +1 | \mathbf{x})$は推定できない。</p>
+<p>以下の定理1が成り立つ。</p>
+<p>$$
+r(\mathbf{x}) = \frac{p(\mathbf{x} | y = +1, o = +1)}{p(\mathbf{x})}
+$$</p>
+<p>$$
+p(y = +1 | \mathbf{x} _i) \leq p(y = +1 | \mathbf{x} _j) \Leftrightarrow r(\mathbf{x} _i) \leq r(\mathbf{x} _j)
+$$</p>
+<h2 id="定理1の証明">
+  定理1の証明
+  <a class="anchor" href="#%e5%ae%9a%e7%90%861%e3%81%ae%e8%a8%bc%e6%98%8e">#</a>
+</h2>
+<p>注: $p(a|b)$の時、$b$は全ての項についてるおまけみたいなもんだから、それ以外で見て判断していく。</p>
+<p>$$
+p(o = +1 | \mathbf{x}) = \sum _{y \in -1, 1} p(o = +1, y | \mathbf{x})
+$$</p>
+<p>周辺確率分布に展開する。</p>
+<p>$$
+= p(o = +1 | \mathbf{x}, y = +1)p(y = +1 | \mathbf{x}) + p(o = +1 | \mathbf{x}, y = -1)p(y = -1 | \mathbf{x})
+$$</p>
+<p>$p(o = +1 | \mathbf{x}, y = -1) = 0$というのがPU Learningなので、式は以下のように簡約できる。この時、本来ならば上のように全パターンの可能性を網羅しないといけない。</p>
+<p>$$
+p(o = +1 | \mathbf{x}) = p(o = +1 | \mathbf{x}, y = +1)p(y = +1 | \mathbf{x})
+$$</p>
+<p>次に$r(\mathbf{x})$について</p>
+<p>
+  <img src="image1.png" alt="" /></p>
+<ul>
+<li>2行目ではベイズの定理で変形を考えてみてる。</li>
+<li>4行目では、
+<ul>
+<li>第1項
+<ul>
+<li>分子は$p(y = +1 | \mathbf{x}) p(o = +1 | \mathbf{x}, y = +1) = p(o = +1, y = +1 | \mathbf{x})$　$\mathbf{x}$を隠すと、条件付確率の定義の式そのもの。</li>
+<li>分母と第3行目第1項の積は$p(o = +1 | \mathbf{x}) p(y = +1 | \mathbf{x}, o = +1) = p(y = +1, o = +1 | \mathbf{x})$となる。　上の式と同じなので、確かに同値変形。</li>
+</ul>
+</li>
+<li>第2項と第3項では、それぞれ分子分母に$p(o = +1)$をかけている。</li>
+</ul>
+</li>
+</ul>
+<p>
+  <img src="iamge0.png" alt="" /></p>
+<p>ここで、先ほどの$p(o = +1 | \mathbf{x}) = p(o = +1 | \mathbf{x}, y = +1)p(y = +1 | \mathbf{x})$を使うと、<strong>第1項は1となり</strong>、第2項も$p(y = +1, o = +1)$となり、第3項も$p(\mathbf{x}, o = +1)$となる。つまり、</p>
+<p>$$
+r(\mathbf{x}) = \frac{p(\mathbf{x}, o = +1)}{p(y = +1, o = +1)p(\mathbf{x})} = \frac{p(o = +1 | \mathbf{x})}{p(y = +1, o = +1)}
+$$</p>
+<p>ここで、$C=p(y = +1, o = +1)$とすると($\mathbf{x}$について、これは変数ではないので)まさに$r(\mathbf{x}) = C p(\mathbf{x}, o = +1)$　これはまさに仮定</p>
+<p>$$
+p(y = +1 | \mathbf{x} _i) \leq p(y = +1 | \mathbf{x} _j) \Leftrightarrow p(o = +1 | \mathbf{x} _i) \leq p(o = +1 | \mathbf{x} _j)
+$$</p>
+<p>そのもの。</p>
+<h2 id="本筋-1">
+  本筋
+  <a class="anchor" href="#%e6%9c%ac%e7%ad%8b-1">#</a>
+</h2>
+<p>$$
+r(\mathbf{x}) = \frac{p(\mathbf{x} | y = +1, o = +1)}{p(\mathbf{x})}
+$$</p>
+<p>$$
+p(y = +1 | \mathbf{x} _i) \leq p(y = +1 | \mathbf{x} _j) \Leftrightarrow r(\mathbf{x} _i) \leq r(\mathbf{x} _j)
+$$</p>
+<p>ともあれ、以上が成り立つ。</p>
+<p>このことは、$p(y = +1 | \mathbf{x} _i)$を我々が推測できずとも、<strong>右辺の$r(\mathbf{x})$で順序が正しいので、右辺の推測ができれば、左辺もある程度は不等式で挟み込める</strong>、ということ。</p>
+<p>そして、ここで$r$は経験的にデータから得られるので、$\theta \in \mathbb{R}$として、</p>
+<p>$$
+h(x) = sign(r(\mathbf{x}) - \theta)
+$$</p>
+<p>この$h(\mathbf{x})$こそが、<strong>識別器そのもの</strong>。必要十分になってる不等式は、$p(y = +1 | \mathbf{x})$について、つまり<strong>我々が一番欲しかったもの</strong>。</p>
+<p>$\theta$の決め方として、以下の$\theta _{\pi}$がおすすめ。</p>
+<p>$$
+\pi = p(y = +1) = \int p(\mathbf{x}) d \mathbf{x} 積分する区間ではr(\mathbf{x}) \geq \theta _{\pi}
+$$</p>
+<p>ちょうどすべての条件を満たす$r(\mathbf{x})$についての期待値が、全体でのPositiveの割合になるように、上手く$\theta _{\pi}$にするのが理想的。</p>
+<h2 id="precisionとrecall">
+  precisionとrecall
+  <a class="anchor" href="#precision%e3%81%a8recall">#</a>
+</h2>
+<p>
+  <a href="https://qiita.com/K5K/items/5da52e99861483cae876">ここの記事</a>で解説がある。</p>
+<ul>
+<li>precisionは$\frac{TP}{TP + FP}$　Positiveと言ったもののうち、本当にPositiveの割合。</li>
+<li>recallは$\frac{TP}{TP + FN}$　結果的にPositiveの量に対して、どれだけ正し買ったかの割合。</li>
+</ul>
+<p>我々は**$h(\mathbf{x}) = r(\mathbf{x}) - \theta$の$\theta = \theta _{\pi}$とすれば、precision=recallとなる**、と証明できる。証明略。</p>
+<h1 id="提案したアルゴリズム">
+  提案したアルゴリズム
+  <a class="anchor" href="#%e6%8f%90%e6%a1%88%e3%81%97%e3%81%9f%e3%82%a2%e3%83%ab%e3%82%b4%e3%83%aa%e3%82%ba%e3%83%a0">#</a>
+</h1>
+<p>ここまでの話をまとめると、$p(y = +1 | \mathbf{x})$を予測するのは、選択バイアスがあると仮定するなら無理だが、代わりに不等式で同様に比較できる$r(\mathbf{x}) = \frac{p(\mathbf{x} | y = +1, o = +1)}{p(\mathbf{x})}$を、不変推定量からいい感じに得たい。流れとしては以下の感じ。</p>
+<ol>
+<li>入力
+<ol>
+<li>Positiveのデータセット$[\mathbf{x} _i] _{i = 1} ^ {n}$</li>
+<li>Negativeのデータセット$[\mathbf{x} ^{\prime}_i] _{i = 1} ^ {n^{\prime}}$</li>
+<li>Negativeのデータセット$[\mathbf{x} ^{test}_i] _{i = 1} ^ {n^{test}}$</li>
+<li>Positiveの割合$p(y = +1) = \pi$　これは小規模なデータセットからの平均を不変推定量として推定できる。</li>
+</ol>
+</li>
+<li>$[\mathbf{x} _i] _{i = 1} ^ {n}$と$[\mathbf{x} ^{\prime}_i] _{i = 1} ^ {n^{\prime}}$を使って、分類器$f(\mathbf{x})$を学習して、$r(\mathbf{x})$を作る。最も、実際は経験的に不変推定量から$\hat{r}(\mathbf{x})$を作るけど。</li>
+<li>$\hat{r}(\mathbf{x})$から、$\theta_{\pi}$を作る。最も以下略で$\hat{\theta_{\pi}}$だが。</li>
+<li>$\hat{r}(\mathbf{x}), \hat{\theta_{\pi}}$から、$h(\mathbf{x})$を作り、これを識別器にする。</li>
+</ol>
+<p>以下では、この各ステップについてどのように推定するのかを書く。</p>
+<h2 id="選択バイアスがないと仮定したリスク関数の最小化と">
+  選択バイアスがないと仮定したリスク関数の最小化と
+  <a class="anchor" href="#%e9%81%b8%e6%8a%9e%e3%83%90%e3%82%a4%e3%82%a2%e3%82%b9%e3%81%8c%e3%81%aa%e3%81%84%e3%81%a8%e4%bb%ae%e5%ae%9a%e3%81%97%e3%81%9f%e3%83%aa%e3%82%b9%e3%82%af%e9%96%a2%e6%95%b0%e3%81%ae%e6%9c%80%e5%b0%8f%e5%8c%96%e3%81%a8">#</a>
+</h2>
+<p><strong>選択バイアスがある</strong>と考えてるわけだが、この場合はリスク関数を上手く表現できないとのこと。仕方がないので、選択バイアスがないパターンのリスク関数を表す。これは
+  <a href="https://proceedings.mlr.press/v37/plessis15.html">2015のdu Plessisら</a></p>
+<p>なお、ここで$\mathbf{x}$ではなく$X$なのは、複数のベクトルをまとめて扱った和として考えていいだろう。</p>
+<p>$$
+R(f) = \pi \mathbb{E} _{p(\mathbf{x} | y = +1)} [l(f(X), y = +1) - l(f(X), y = -1)] + \mathbb{E} _{p(\mathbf{x})} [ l(f(X), y = -1) ]
+$$</p>
+<p>ここで、選択バイアスが働いてるので、$p(\mathbf{x} | y = +1)$について期待値を求めてる上式は使えない。我々は$p(\mathbf{x} | y = +1, o = +1)$しか知らないからだ。だが、<strong>ここでも、仕方ないとして知ってる要素入れ替えたものを、ここでつかおう</strong>。</p>
+<p>$$
+R(f)^{bias} = \pi \mathbb{E} _{p(\mathbf{x} | y = +1, o = +1)} [l(f(X), y = +1) - l(f(X), y = -1)] + \mathbb{E} _{p(\mathbf{x})} [ l(f(X), y = -1) ]
+$$</p>
+<p>ここで、損失関数としてはこの論文では</p>
+<p>$$
+l(m, y = +1) = -\log f(\mathbf{x}), l(m, y = -1) = -\log f(1 - f(\mathbf{x}))
+$$</p>
+<p>としている。これを代入すると、以下のかたちに。これを使ってるみたい。</p>
+<p>$$
+R(f)^{bias} = \pi \mathbb{E} _{p(\mathbf{x} | y = +1, o = +1)} [-\log f(X) + \log (1 - f(X))] + \mathbb{E} _{p(\mathbf{x})} [ \log (1 - f(X)) ]
+$$</p>
+<p>性能評価のところは一旦割愛や&hellip;</p>
+<p>実際のところ、最小化を考えるにあたり、以下のように正則化項$R(f)$をつけてる。</p>
+<p>du Plessisらはこの式を経験的にやっても不偏推定量なので真の分類器の損失関数へと近づくと2015年示した(まだ読んでない)。</p>
+<p>だが
+  <a href="https://arxiv.org/abs/1703.00593">2017のKiryoら</a>が示した通り、Deep Neural Networkでは上の式はあまり使えないとのこと。なぜなら、<strong>DNNのような表現能力が高すぎるネットワークでは過学習をするらしい。マイナスになる項を際限なくマイナスにしちゃうらしい</strong>。具体的には、$\log(1 - f(X))$で、$f(X)$を$1 - \epsilon$にいくらでも近づけることになり、マイナスへ無限に行っちゃうのだ。</p>
+<p>だから、以下のように$\log(1 - f(X))$の部分で$\max(0, \cdot)$という操作を加えて常に正にする正規化？をしている。</p>
+<p>
+  <img src="image2.png" alt="" /></p>
+<p>そして、$r()$</p>
+<h2 id="rmathbfxの推定">
+  $r(\mathbf{x})$の推定
+  <a class="anchor" href="#rmathbfx%e3%81%ae%e6%8e%a8%e5%ae%9a">#</a>
+</h2>
+<p>$$
+r(\mathbf{x}) = \frac{p(\mathbf{x} | y = +1, o = +1)}{p(\mathbf{x})}
+$$</p>
+<p>これを得たい。これに関しては、2012年Sugiyamaらが方法をまとめている。最小二乗法を使ったLeast-squares importance fittingを使おう。数学的にも解析しやすいからね。</p>
+<p>まず、$s : \chi \to \mathbb{R} ^{+}$を考え、$s \in S$とする。この$s$を上手いこと選んで、$r(\mathbf{x})$に近づけるようにする。</p>
+<p>$$
+R_{DR}(s) = \mathbb{E} _{p(\mathbf{x})} [ (s(X) - r(X))^2 ]
+$$</p>
+<p>$$
+= \mathbb{E} _{p(\mathbf{x})} [ s(X)^2 + r(X)^2 ] - 2 \mathbb{E} _{p(\mathbf{x})} [ s(X)r(X) ]
+$$</p>
+<p>ここで、2つ目の項は</p>
+<p>$$
+\int s(X)r(X) p(\mathbf{x}) d\mathbf{x} = \int s(X) \frac{p(\mathbf{x} | y = +1, o = +1)}{p(\mathbf{x})}p(\mathbf{x}) d\mathbf{x}
+$$</p>
+<p>$$
+= \int s(X) p(\mathbf{x} | y = +1, o = +1) d\mathbf{x} = \mathbb{E} _{p(\mathbf{x} | y = +1, o = +1)} [s(X)]
+$$</p>
+<p>これを使うと、</p>
+<p>$$
+R_{DR}(s) = \mathbb{E} _{p(\mathbf{x})} [ s(X)^2 + r(X)^2 ] - 2 \mathbb{E} _{p(\mathbf{x} | y = +1, o = +1)} [s(X)]
+$$</p>
+<p>この式を最小化する。この時、$\mathbb{E} _{p(\mathbf{x})} [ r(X)^2 ]$は定数とみなせるので、考えなくていい。実際に何かは知らないが、$s(X)$決める上ではどうしようもないからな。つまり、</p>
+<p>$$
+\hat{r}(\mathbf{x}) = \min _{s \in S} \frac{1}{2} \mathbb{E} _{p(\mathbf{x})} [ s(X)^2] - \mathbb{E} _{p(\mathbf{x} | y = +1, o = +1)} [s(X)]
+$$</p>
+<h2 id="theta-_piの推測">
+  $\theta _{\pi}$の推測
+  <a class="anchor" href="#theta-_pi%e3%81%ae%e6%8e%a8%e6%b8%ac">#</a>
+</h2>
+<p>$$
+\pi = p(y = +1) = \int p(\mathbf{x}) d \mathbf{x} 積分する区間ではr(\mathbf{x}) \geq \theta _{\pi}
+$$</p>
+<p>上式が、$\theta _{\pi}$の定義だった。$p(\mathbf{x})$に従うテストデータの$[\mathbf{x} ^{test}_i] _{i = 1} ^ {n^{test}}$を使って、経験的に推定すると、以下の式を満たす$\theta _{\pi}$が得られる。</p>
+<p>$$
+n^{test} \pi = \sum _{i = 1}^{n^{test}} 1(\mathrm{if} \hat{r}(\mathbf{x} _i) \geq \hat{\theta _{\pi}})
+$$</p>
+<p>これの決定自体は上の式に従えばいいが、明らかに単調性があるので実際は二分探索をすればいいね。</p>
+<h1 id="実験">
+  実験
+  <a class="anchor" href="#%e5%ae%9f%e9%a8%93">#</a>
+</h1>
+<p>実験では、SVMで$s(\mathbf{x})$もとい$\hat{r}(\mathbf{x})$を作った。つまり、</p>
+<p>$$
+s(\mathbf{x}) = \mathbf{w} ^ T \mathbf{\Phi}(\mathbf{x})
+$$</p>
+<p>このように識別器を定義できた。$\Phi$はいつも通り、基底の変換やね。カーネル関数はガウシアンカーネルを使った。つまり、</p>
+<p>$$
+\mathbf{\Phi} _{l} (\mathbf{x}) = \exp (- || \mathbf{x} - \mathbf{c}_l ||^2 / 2 \sigma^2)
+$$</p>
+<p>ただし、$\mathbf{c}_l$は、$\mathbf{x}_i, \mathbf{x ^{\prime}} _i$のすべて。</p>
+<p>そして、識別関数の$f(\mathbf{x})$自体は以下のようにシグモイド関数で定めてみた。(これそもそも$s(\mathbf{x})$がわかってるのに、わざわざこれを求める意味ある？)</p>
+<p>おわり</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#anomaly-detectionの例">Anomaly Detectionの例</a></li>
+    <li><a href="#顔認識の例">顔認識の例</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#censorシナリオ">Censorシナリオ</a></li>
+    <li><a href="#case-controlシナリオ">Case-Controlシナリオ</a></li>
+    <li><a href="#本筋">本筋</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#定理1の証明">定理1の証明</a></li>
+    <li><a href="#本筋-1">本筋</a></li>
+    <li><a href="#precisionとrecall">precisionとrecall</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#選択バイアスがないと仮定したリスク関数の最小化と">選択バイアスがないと仮定したリスク関数の最小化と</a></li>
+    <li><a href="#rmathbfxの推定">$r(\mathbf{x})$の推定</a></li>
+    <li><a href="#theta-_piの推測">$\theta _{\pi}$の推測</a></li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

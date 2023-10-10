@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="こちらのGitHubのレポジトリのコードについて読み込んでみた。
+pusb_liner_kernel.py # import部分 # import numpy as np from scipy import optimize import chainer from chainer import cuda, Function, gradient_check, Variable from chainer import optimizers, serializers, utils from chainer import Link, Chain, ChainList import chainer.functions as F import chainer.links as L numpy、scipyの最適化を使う。chainerはDNNの訓練と評価を行うための深層学習フレームワーク。汎用的なDNN作成を支援してるっぽい。
+PU#__init__() # def __init__(self, pi): self.pi = pi self.loss_func = lambda g: self.loss(g) あらかじめ$\pi = p(y = &#43;1)$だけ与えておく。
+識別器$g(\mathbf{x})$を受け取って損失を計算するように、loss_func()を定義。もっともloss()も 定義されてるものだがそれを使う。
+PU#loss() # def loss(self, g): g = np.">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="バイアスつきPU Learningクラスの実装" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://Qian-Donglin.github.io/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/PU-Learning%E3%81%AE%E3%82%AF%E3%83%A9%E3%82%B9%E3%81%AE%E5%AE%9F%E8%A3%85/" />
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+	integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"
+	integrity="sha384-cpW21h6RZv/phavutF+AuVYrr+dA8xD9zs6FwLpaCct6O9ctzYFfFr4dgmgccOTx"
+	crossorigin="anonymous"></script>
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+	integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
+	onload="renderMathInElement(document.body);"></script>
+
+<script>
+	document.addEventListener("DOMContentLoaded", function () {
+		renderMathInElement(
+			document.body,
+			{
+				delimiters: [
+					{ left: "$$", right: "$$", display: true },
+					{ left: "\\[", right: "\\]", display: true },
+					{ left: "$", right: "$", display: false },
+					{ left: "\\(", right: "\\)", display: false }
+				]
+			});
+	});
+</script>
+
+<title>バイアスつきPU Learningクラスの実装 | Sen(Qian)のメモ</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/%20favicon.png">
+<link rel="stylesheet" href="/book.min.f8de3645fe00591b41524aee174e19edd98a22255a2930a0cdc82a94835ba387.css" integrity="sha256-&#43;N42Rf4AWRtBUkruF04Z7dmKIiVaKTCgzcgqlINbo4c=" crossorigin="anonymous">
+<script defer src="/%20flexsearch.min.js"></script>
+<script defer src="/en.search.min.43d9e1a27caa5999a7fee1bb577c631649e74ee5e89bedb7682f0f3f87c303eb.js" integrity="sha256-Q9nhonyqWZmn/uG7V3xjFknnTuXom&#43;23aC8PP4fDA&#43;s=" crossorigin="anonymous"></script>
+
+<link rel="alternate" type="application/rss+xml" href="https://Qian-Donglin.github.io/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/PU-Learning%E3%81%AE%E3%82%AF%E3%83%A9%E3%82%B9%E3%81%AE%E5%AE%9F%E8%A3%85/index.xml" title="Sen(Qian)のメモ" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><span>Sen(Qian)のメモ</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/" class="">競プロの問題解説</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Dp</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/DP/%E6%A1%81DP/" class="">桁 Dp</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/DP/%E6%A1%81DP/Y-abc317-F/" class="">(Y-) abc317 F</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0d2a02cd744e63233ebe57612bb12952" class="toggle"  />
+    <label for="section-0d2a02cd744e63233ebe57612bb12952" class="flex justify-between">
+      <a role="button" class="">Grid</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Grid/G-abc317-E/" class="">(G&#43;) abc317 E</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Implement</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Implement/G-abc315-E/" class="">(G) Abc315 E Index</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cea18f1d04185b9a1f879558d5aeddb2" class="toggle"  />
+    <label for="section-cea18f1d04185b9a1f879558d5aeddb2" class="flex justify-between">
+      <a role="button" class="">Square Divide</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/SquareDivide/CABC293-E%E5%B9%B3%E6%96%B9%E5%88%86%E5%89%B2/" class="">(C) abc293 E(平方分割)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-52d2a0ea11310952e77a5e1d9b1ee709" class="toggle"  />
+    <label for="section-52d2a0ea11310952e77a5e1d9b1ee709" class="flex justify-between">
+      <a role="button" class="">Graph</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Graph/BrABC292-D/" class="">(Br) abc292 D</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>読んだ本</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Machine Learning</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>ベイズ推論による機械学習(緑ベイズ)</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-1/" class="">第一章</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-2/" class="">第二章</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part1/" class="">第三章その1</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part2/" class="">第三章その2</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3c22cc3dba3e6e6de0eab46bcb97d14b" class="toggle" checked />
+    <label for="section-3c22cc3dba3e6e6de0eab46bcb97d14b" class="flex justify-between">
+      <a role="button" class="">読んだ論文たちのメモ</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d64fdaa8e46f50c67b163d98fad0ddb7" class="toggle"  />
+    <label for="section-d64fdaa8e46f50c67b163d98fad0ddb7" class="flex justify-between">
+      <a role="button" class="">Graphic Design</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/graphic_design_ML/Content-aware-Generative-Modeling-of-Graphic-Design-Layouts/" class="">Content Aware Generative Modeling of Graphic Design Layouts</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/graphic_design_ML/Learning-to-Generate-Posters-of-Scientific-Papers/" class="">Learning to Generate Posters of Scientific Papers</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Order Thing</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/order_thing/Learning-to-Order-Thing/" class="">Learning to Order Thing</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-749fb68fcedaafaff7bdd8e5931b0451" class="toggle"  />
+    <label for="section-749fb68fcedaafaff7bdd8e5931b0451" class="flex justify-between">
+      <a role="button" class="">sns</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E7%82%8E%E4%B8%8A%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6/" class="">Twitterの炎上について</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E3%83%95%E3%82%A1%E3%82%AF%E3%83%88%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF%E3%81%A7%E3%81%AE%E5%BC%B1%E6%95%99%E5%B8%AB%E3%81%A4%E3%81%8D%E5%AD%A6%E7%BF%92/" class="">ファクトチェックでの弱教師つき学習</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E5%BC%B1%E6%95%99%E5%B8%AB%E5%AD%A6%E7%BF%92%E3%81%A7%E3%83%AA%E3%83%97%E3%83%A9%E3%82%A4%E3%81%8B%E3%82%89%E7%82%8E%E4%B8%8A%E5%88%86%E6%9E%90/" class="">弱教師学習でリプライから炎上分析</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-de33daac55650926621e120a75049e4a" class="toggle"  />
+    <label for="section-de33daac55650926621e120a75049e4a" class="flex justify-between">
+      <a role="button" class="">Svm</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%82%AB%E3%83%BC%E3%83%8D%E3%83%AB%E6%B3%95/" class="">カーネル法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%82%BD%E3%83%95%E3%83%88%E3%83%9E%E3%83%BC%E3%82%B8%E3%83%B3/" class="">ソフトマージン</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%83%8F%E3%83%BC%E3%83%89%E3%83%9E%E3%83%BC%E3%82%B8%E3%83%B3/" class="">ハードマージン</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0465dfafe9cdc495ea2e5d9009d8922a" class="toggle" checked />
+    <label for="section-0465dfafe9cdc495ea2e5d9009d8922a" class="flex justify-between">
+      <a role="button" class="">Weakly Supervised Learning</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/2017%E6%99%82%E7%82%B9%E3%81%AE%E5%90%84%E6%89%8B%E6%B3%95/" class="">2017時点の各手法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/PNU-Learning/" class="">PNU Learning(2017年)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive-Confidential-learning2017/" class="">Positive Confidential Learning(2017)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/" class="">Positiveでラベル有り無しで分布が違う時の PU学習(2019)</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/PU-Learning%E3%81%AE%E3%82%AF%E3%83%A9%E3%82%B9%E3%81%AE%E5%AE%9F%E8%A3%85/" class="active">バイアスつきPU Learningクラスの実装</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E5%AE%9F%E9%A8%93%E3%81%AE%E3%82%B3%E3%83%BC%E3%83%89%E3%81%AE%E8%A7%A3%E6%9E%90/" class="">バイアスつきPU Learningクラスの実装</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E3%83%A1%E3%82%A4%E3%83%B3%E3%82%B3%E3%83%BC%E3%83%89/" class="">メインコード</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/PU-Learning/" class="">PU Learning(2007年)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/%E5%88%86%E5%B8%83%E4%BB%AE%E5%AE%9A%E4%B8%8D%E8%A6%81PU-Learning2014/" class="">PU LearningでなんでSVMのヒンジ関数は精度悪いか(2014)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/%E8%A3%9C%E3%83%A9%E3%83%99%E3%83%AB%E5%AD%A6%E7%BF%922017/" class="">補ラベル学習(2017)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>バイアスつきPU Learningクラスの実装</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#import部分">import部分</a></li>
+    <li><a href="#pu__init__"><code>PU#__init__()</code></a></li>
+    <li><a href="#puloss"><code>PU#loss()</code></a></li>
+    <li><a href="#pupu"><code>PU#pu()</code></a>
+      <ul>
+        <li><a href="#j1"><code>J1</code></a></li>
+        <li><a href="#j0"><code>J0</code></a></li>
+      </ul>
+    </li>
+    <li><a href="#puprob"><code>PU#prob()</code></a></li>
+    <li><a href="#puoptimize"><code>PU#optimize()</code></a></li>
+    <li><a href="#puminimize"><code>PU#minimize()</code></a></li>
+    <li><a href="#pugradient"><code>PU#gradient()</code></a></li>
+    <li><a href="#putest"><code>PU#test()</code></a></li>
+    <li><a href="#pudist"><code>PU#dist()</code></a></li>
+    <li><a href="#calcdistancesquared"><code>CalcDistanceSquared()</code></a></li>
+    <li><a href="#pukernel_cv"><code>PU#kernel_cv()</code></a></li>
+    <li><a href="#puliner_cv"><code>PU#liner_cv()</code></a></li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><p>
+  <a href="https://github.com/MasaKat0/PUlearning/tree/master/BiasedPUlearning/PUSB">こちら</a>のGitHubのレポジトリのコードについて読み込んでみた。</p>
+<h1 id="pusb_liner_kernelpy">
+  
+  <a href="/">pusb_liner_kernel.py</a>
+  <a class="anchor" href="#pusb_liner_kernelpy">#</a>
+</h1>
+<h2 id="import部分">
+  import部分
+  <a class="anchor" href="#import%e9%83%a8%e5%88%86">#</a>
+</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> numpy <span style="color:#66d9ef">as</span> np
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> scipy <span style="color:#f92672">import</span> optimize
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> chainer
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> chainer <span style="color:#f92672">import</span> cuda, Function, gradient_check, Variable
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> chainer <span style="color:#f92672">import</span> optimizers, serializers, utils
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> chainer <span style="color:#f92672">import</span> Link, Chain, ChainList
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> chainer.functions <span style="color:#66d9ef">as</span> F
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> chainer.links <span style="color:#66d9ef">as</span> L
+</span></span></code></pre></div><p>numpy、scipyの最適化を使う。chainerはDNNの訓練と評価を行うための深層学習フレームワーク。汎用的なDNN作成を支援してるっぽい。</p>
+<h2 id="pu__init__">
+  <code>PU#__init__()</code>
+  <a class="anchor" href="#pu__init__">#</a>
+</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> __init__(self, pi):
+</span></span><span style="display:flex;"><span>    self<span style="color:#f92672">.</span>pi <span style="color:#f92672">=</span> pi
+</span></span><span style="display:flex;"><span>    self<span style="color:#f92672">.</span>loss_func <span style="color:#f92672">=</span> <span style="color:#66d9ef">lambda</span> g: self<span style="color:#f92672">.</span>loss(g)
+</span></span></code></pre></div><p>あらかじめ$\pi = p(y = +1)$だけ与えておく。</p>
+<p>識別器$g(\mathbf{x})$を受け取って損失を計算するように、<code>loss_func()</code>を定義。もっとも<code>loss()</code>も
+  <a href="/#puloss">定義されてる</a>ものだがそれを使う。</p>
+<h2 id="puloss">
+  <code>PU#loss()</code>
+  <a class="anchor" href="#puloss">#</a>
+</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">loss</span>(self, g):
+</span></span><span style="display:flex;"><span>    g <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>log(<span style="color:#ae81ff">1</span><span style="color:#f92672">+</span>np<span style="color:#f92672">.</span>exp(<span style="color:#f92672">-</span>g))
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> g
+</span></span></code></pre></div><p>損失関数を定義。意味してるのは、</p>
+<p>$$
+\log (1 + e^{g})
+$$</p>
+<p>うまいことなめらかなReLU関数みたいに。論文中では</p>
+<p>$$
+l(f(\mathbf{x}), y = +1) = -\log g(\mathbf{x})
+$$</p>
+<p>と書いてあったけど真数マイナスにならんの？と思ったが、どうやら$f(\mathbf{x})$は$[a, 1 - a], a \in (0, 1/2)$の定義である。識別器、0か1かを出すの&hellip;&hellip;?謎。0がNegativeで1がPositiveなの？</p>
+<p>と思ったやん。これ最後に$- \theta_{\pi}$をかけて、マイナスならNegative、プラスならPositiveをするみたい。</p>
+<h2 id="pupu">
+  <code>PU#pu()</code>
+  <a class="anchor" href="#pupu">#</a>
+</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">pu</span>(self, x, b, t, reg):
+</span></span><span style="display:flex;"><span>    xp <span style="color:#f92672">=</span> x[t <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>    xu <span style="color:#f92672">=</span> x[t <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span>    n1 <span style="color:#f92672">=</span> len(xp)
+</span></span><span style="display:flex;"><span>    n0 <span style="color:#f92672">=</span> len(xu)
+</span></span><span style="display:flex;"><span>    gp <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>dot(xp, b)
+</span></span><span style="display:flex;"><span>    gu <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>dot(xu, b)
+</span></span><span style="display:flex;"><span>    loss_u <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>loss_func(<span style="color:#f92672">-</span>gu)
+</span></span><span style="display:flex;"><span>    J1 <span style="color:#f92672">=</span> <span style="color:#f92672">-</span>(self<span style="color:#f92672">.</span>pi<span style="color:#f92672">/</span>n1)<span style="color:#f92672">*</span>np<span style="color:#f92672">.</span>sum(gp)
+</span></span><span style="display:flex;"><span>    J0 <span style="color:#f92672">=</span> (<span style="color:#ae81ff">1</span><span style="color:#f92672">/</span>n0)<span style="color:#f92672">*</span>np<span style="color:#f92672">.</span>sum(loss_u)
+</span></span><span style="display:flex;"><span>    J <span style="color:#f92672">=</span> J1<span style="color:#f92672">+</span>J0<span style="color:#f92672">+</span>reg<span style="color:#f92672">*</span>np<span style="color:#f92672">.</span>dot(b,b)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> J
+</span></span></code></pre></div><ul>
+<li><code>x</code>　与えられるDataFrameの訓練データ。<code>t</code>が1ならPositive、0ならUnlabeled。</li>
+<li><code>b</code>　は与えられる引数。puを最小化するのに最終的に最適な<code>b</code>がゆくゆくは収束してほしい(
+  <a href="/">別のメソッドでやる</a>)。下の式で言うと$g$を$\mathbf{x}^T \mathbf{b}$で実現させてるみたい？
+<ul>
+<li>つまり、ここでは$g$ははっきりとSVMであると言える。と思う。</li>
+</ul>
+</li>
+<li><code>t</code>　はTarget。つまり各データに対して、0か1か。</li>
+<li><code>reg</code>　は正則化定数。ここではL2正則化をかけている。</li>
+</ul>
+<p><code>x[t == 1]</code>は、1である場合がTrueでそれ以外がFalse。それをxに噛ませて、該当のindexのところだけ抽出してる感じ。</p>
+<p>これはPU Learning(オリジナル)の損失関数</p>
+<p>$$
+R(g) = \pi \mathbb{E} _{p(\mathbf{x} | y = +1)} [l(g(X), y = +1) - l(g(X), y = -1)] + \mathbb{E} _{p(\mathbf{x})} [ l(g(X), y = -1) ]
+$$</p>
+<p>について計算しているようだ。論文で言うと(5)。</p>
+<h3 id="j1">
+  <code>J1</code>
+  <a class="anchor" href="#j1">#</a>
+</h3>
+<p>J1の項は$p(\mathbf{x} | y = +1)$についての期待値のもの、すなわち</p>
+<p>$$
+\pi \mathbb{E} _{p(\mathbf{x} | y = +1)} [l(g(X), y = +1) - l(g(X), y = -1)]
+$$</p>
+<p>を求めているようだ。実際は不偏推定量で計算しているから、すべての<code>xp</code>のデータについて、理想の<code>b</code>の係数ベクトルの積？の和を個数で割っている感じ。どうやら具体的な損失関数は別でやってるっぽい？</p>
+<h3 id="j0">
+  <code>J0</code>
+  <a class="anchor" href="#j0">#</a>
+</h3>
+<p>J0の項は$p(\mathbf{x})$についての期待値のもの。</p>
+<p>どうやらUnlabeledのデータになんか$\mathbf{b}$で内積を取って、それをなぜか先ほど定義した<code>\log (1 + e^{g})</code>に入れてReLUから平滑化？の変換を施してからJ0を足している。謎。</p>
+<h2 id="puprob">
+  <code>PU#prob()</code>
+  <a class="anchor" href="#puprob">#</a>
+</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">prob</span>(self, x, b):
+</span></span><span style="display:flex;"><span>    x <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>x
+</span></span><span style="display:flex;"><span>    g <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>dot(x, b)
+</span></span><span style="display:flex;"><span>    prob <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span><span style="color:#f92672">/</span>(<span style="color:#ae81ff">1</span><span style="color:#f92672">+</span>np<span style="color:#f92672">.</span>exp(<span style="color:#f92672">-</span>g))
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> prob
+</span></span></code></pre></div><p><strong>どこでも使われてなかったもの</strong>。</p>
+<p>データの$\mathbf{x}$と識別器のパラメタ行列の$\mathbf{b}$を受け取ったら、積を取るともっともらしさみたいなのが出るから、これをシグモイド関数に入れて確率に変換している。</p>
+<h2 id="puoptimize">
+  <code>PU#optimize()</code>
+  <a class="anchor" href="#puoptimize">#</a>
+</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">optimize</span>(self, x, t, x_test):
+</span></span><span style="display:flex;"><span>    x_train, x_test, lda_chosen <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>kernel_cv(x, t, x_test)
+</span></span><span style="display:flex;"><span>    res <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>minimize(x_train, t, lda_chosen)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> res, x_test
+</span></span></code></pre></div><ul>
+<li><code>x</code>　訓練データ。
+  <a href="/">kernel_cv</a>でテストデータに分割してもらう。</li>
+<li><code>t</code>　訓練データに対してラベルデータ。0 ro 1</li>
+<li><code>x_test</code>　テストのデータ。この関数では何もしない(kernel_cvで分割の参考にさせてるだけ)</li>
+</ul>
+<p><code>x_train, x_test</code>はkernel_cvで分割してもらってる。</p>
+<p><code>lda_chosen</code>は正規化項の係数。これもkernel_cvで求まるらしい。</p>
+<p>中身はラッパーで、
+  <a href="/#puminimize">self.minimize</a>をやっているだけ。</p>
+<h2 id="puminimize">
+  <code>PU#minimize()</code>
+  <a class="anchor" href="#puminimize">#</a>
+</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">minimize</span>(self, x, t, reg):
+</span></span><span style="display:flex;"><span>    b0 <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>zeros(x<span style="color:#f92672">.</span>shape[<span style="color:#ae81ff">1</span>])
+</span></span><span style="display:flex;"><span>    func <span style="color:#f92672">=</span> <span style="color:#66d9ef">lambda</span> b: self<span style="color:#f92672">.</span>pu(x, b, t, reg)
+</span></span><span style="display:flex;"><span>    grad <span style="color:#f92672">=</span> <span style="color:#66d9ef">lambda</span> b: self<span style="color:#f92672">.</span>gradient(x, b, t, reg)
+</span></span><span style="display:flex;"><span>    self<span style="color:#f92672">.</span>result <span style="color:#f92672">=</span> optimize<span style="color:#f92672">.</span>minimize(func, b0, jac<span style="color:#f92672">=</span>grad, method<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;BFGS&#34;</span>)
+</span></span><span style="display:flex;"><span>    self<span style="color:#f92672">.</span>result <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>result<span style="color:#f92672">.</span>x
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> self<span style="color:#f92672">.</span>result
+</span></span></code></pre></div><ul>
+<li><code>x</code>　訓練データ。
+  <a href="TODO">kernel_cv</a>でテストデータに分割してもらう。</li>
+<li><code>t</code>　訓練データに対してラベルデータ。0 ro 1</li>
+</ul>
+<p>初期解は0埋めしている。funcはscipyの最適化のtargetの関数にしている、ただラップしてるだけ。</p>
+<p>gradient定義してる関数を参照。これをラップしたものをgradient関数にしてるらしい。自動微分させない感じ？</p>
+<p><code>scipyのoptimize.minimize</code>では、ヤコビアンを。BFGSは典型的な方法。</p>
+<p>最後にresultの計算して得た最適な係数たちを返して終わり。</p>
+<h2 id="pugradient">
+  <code>PU#gradient()</code>
+  <a class="anchor" href="#pugradient">#</a>
+</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">gradient</span>(self, x, b, t, reg):
+</span></span><span style="display:flex;"><span>    xp <span style="color:#f92672">=</span> x[t <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>    xu <span style="color:#f92672">=</span> x[t <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span>    n1 <span style="color:#f92672">=</span> len(xp)
+</span></span><span style="display:flex;"><span>    n0 <span style="color:#f92672">=</span> len(xu)s
+</span></span><span style="display:flex;"><span>    g <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>dot(xu, b)
+</span></span><span style="display:flex;"><span>    z <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span><span style="color:#f92672">/</span>(<span style="color:#ae81ff">1</span><span style="color:#f92672">+</span>np<span style="color:#f92672">.</span>exp(<span style="color:#f92672">-</span>g))
+</span></span><span style="display:flex;"><span>    dg <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>sum(xp, axis<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>)<span style="color:#f92672">/</span>n1
+</span></span><span style="display:flex;"><span>    grad <span style="color:#f92672">=</span> <span style="color:#f92672">-</span>self<span style="color:#f92672">.</span>pi<span style="color:#f92672">*</span>dg <span style="color:#f92672">+</span> np<span style="color:#f92672">.</span>dot(z<span style="color:#f92672">.</span>T, xu)<span style="color:#f92672">/</span>n0 <span style="color:#f92672">+</span> reg <span style="color:#f92672">*</span> b
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> grad
+</span></span></code></pre></div><p>これは
+  <a href="/#pupu">pu()</a>と同様に最初はPositive=1とUnlaveled=0に分割している。</p>
+<p>まあ<strong>やってることは<code>pu()</code>の微分</strong>だと思うけど。元々の式は以下のものに正則化項を入れていた。</p>
+<p>$$
+R(g) = \pi \mathbb{E} _{p(\mathbf{x} | y = +1)} [l(g(X), y = +1) - l(g(X), y = -1)] + \mathbb{E} _{p(\mathbf{x})} [ l(g(X), y = -1) ]
+$$</p>
+<p>これの式は、不偏推定量で記述した上の形になれば、</p>
+<p>$$
+-\pi \frac{1}{n_1} \sum _{i = 1}^{n_1} \mathbf{x} _{P,i} ^ T \mathbf{b} + \frac{1}{n_0} \sum _{j = 1}^{n_0} \mathbf{x} _{U, j} ^ T \mathbf{b} + r \mathbf{b} ^ T \mathbf{b}
+$$</p>
+<p>これはどうやら$f(\mathbf{x}) = \mathbf{x} ^ T \mathbf{b}$だとしたときみたい。$\mathbf{b}$で微分するので、</p>
+<p>$$
+-\pi \frac{1}{n_1} \sum _{i = 1}^{n_1} \mathbf{x} _{P,i} + \frac{1}{n_0} \sum _{j = 1}^{n_0} \mathbf{x} _{U, j} + 2r \mathbf{b}
+$$</p>
+<p><strong>なんか、ソースコードでは正規化項に2倍かかってないんだよな？間違えてやってないかね</strong>？</p>
+<p>なお、実際のところ、$\log (1 + e^{x})$の変換してるところはそこは配慮せなあかん。それが上のコード。</p>
+<h2 id="putest">
+  <code>PU#test()</code>
+  <a class="anchor" href="#putest">#</a>
+</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">test</span>(self, x, b, t, quant<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>, pi<span style="color:#f92672">=</span><span style="color:#66d9ef">False</span>):
+</span></span><span style="display:flex;"><span>    theta <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    f <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>dot(x, b)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> quant <span style="color:#f92672">is</span> <span style="color:#66d9ef">True</span>:
+</span></span><span style="display:flex;"><span>    temp <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>copy(f)
+</span></span><span style="display:flex;"><span>    temp <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>sort(temp)
+</span></span><span style="display:flex;"><span>    theta <span style="color:#f92672">=</span> temp[np<span style="color:#f92672">.</span>int(np<span style="color:#f92672">.</span>floor(len(x)<span style="color:#f92672">*</span>(<span style="color:#ae81ff">1</span><span style="color:#f92672">-</span>pi)))]
+</span></span><span style="display:flex;"><span>    pred <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>zeros(len(x))
+</span></span><span style="display:flex;"><span>    pred[f <span style="color:#f92672">&gt;</span> theta] <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    acc <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>mean(pred <span style="color:#f92672">==</span> t)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> acc
+</span></span></code></pre></div><p>与えられた$\mathbf{x}$と、識別器の係数ベクトル$\mathbf{b}$について演算して、実際に検証する。</p>
+<p><code>quant is True</code>ならば、論文での</p>
+<p>$$
+n^{test} \pi = \sum _{i = 1}^{n^{test}} 1(\mathrm{if} \hat{r}(\mathbf{x} _i) \geq \hat{\theta _{\pi}})
+$$</p>
+<p>をもとに、$\theta$を逆算している。</p>
+<p>最後の比較はバイアスの$\theta$を引いてプラスならPositive、それ以外ならNegativeで。</p>
+<h2 id="pudist">
+  <code>PU#dist()</code>
+  <a class="anchor" href="#pudist">#</a>
+</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dist</span>(self, x, T<span style="color:#f92672">=</span><span style="color:#66d9ef">None</span>, num_basis<span style="color:#f92672">=</span><span style="color:#66d9ef">False</span>):
+</span></span><span style="display:flex;"><span>    (d,n) <span style="color:#f92672">=</span> x<span style="color:#f92672">.</span>shape
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># check input argument</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># set the kernel bases</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> num_basis <span style="color:#f92672">is</span> <span style="color:#66d9ef">False</span>:
+</span></span><span style="display:flex;"><span>        num_basis <span style="color:#f92672">=</span> <span style="color:#ae81ff">300</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    idx <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>random<span style="color:#f92672">.</span>permutation(n)[<span style="color:#ae81ff">0</span>:num_basis]
+</span></span><span style="display:flex;"><span>    C <span style="color:#f92672">=</span> x[:, idx]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># calculate the squared distances</span>
+</span></span><span style="display:flex;"><span>    XC_dist <span style="color:#f92672">=</span> CalcDistanceSquared(x, C)
+</span></span><span style="display:flex;"><span>    TC_dist <span style="color:#f92672">=</span> CalcDistanceSquared(T, C)
+</span></span><span style="display:flex;"><span>    CC_dist <span style="color:#f92672">=</span> CalcDistanceSquared(C, C)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> XC_dist, TC_dist, CC_dist, n, num_basis
+</span></span></code></pre></div><p>これはkernel_cv内で使われているので、本筋はそちらを見たほうがいい。</p>
+<ul>
+<li><code>T</code>　TODO</li>
+</ul>
+<p>訓練データは$d$次元のもので、$n$個存在している。<code>num_basis</code>がない場合、デフォルトでベース300個とする。</p>
+<p>次に<code>num_basis</code>個だけランダムに訓練データのidxを選択する。</p>
+<p>そして、<code>XC, TC, CC</code>の距離をそれぞれ計算して、返す。</p>
+<p>
+  <a href="/#calcdistancesquared">距離関数</a>はユークリッド距離である。</p>
+<h2 id="calcdistancesquared">
+  <code>CalcDistanceSquared()</code>
+  <a class="anchor" href="#calcdistancesquared">#</a>
+</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">CalcDistanceSquared</span>(X, C):
+</span></span><span style="display:flex;"><span>    Xsum <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>sum(X<span style="color:#f92672">**</span><span style="color:#ae81ff">2</span>, axis<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>)<span style="color:#f92672">.</span>T
+</span></span><span style="display:flex;"><span>    Csum <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>sum(C<span style="color:#f92672">**</span><span style="color:#ae81ff">2</span>, axis<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>    XC_dist <span style="color:#f92672">=</span> Xsum[np<span style="color:#f92672">.</span>newaxis, :] <span style="color:#f92672">+</span> Csum[:, np<span style="color:#f92672">.</span>newaxis] <span style="color:#f92672">-</span> <span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>np<span style="color:#f92672">.</span>dot(C<span style="color:#f92672">.</span>T, X)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> XC_dist
+</span></span></code></pre></div><p>与えられた訓練データ集合について、<strong>$X$と$C$の全ての要素の間のユークリッド距離の和</strong>を計算する。</p>
+<h2 id="pukernel_cv">
+  <code>PU#kernel_cv()</code>
+  <a class="anchor" href="#pukernel_cv">#</a>
+</h2>
+<p>非常に長いので、複数に分割する。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">kernel_cv</span>(self, x_train, t, x_test, folds<span style="color:#f92672">=</span><span style="color:#ae81ff">5</span>, num_basis<span style="color:#f92672">=</span><span style="color:#66d9ef">False</span>, sigma_list<span style="color:#f92672">=</span><span style="color:#66d9ef">None</span>, lda_list<span style="color:#f92672">=</span><span style="color:#66d9ef">None</span>):
+</span></span><span style="display:flex;"><span>    x_train, x_test <span style="color:#f92672">=</span> x_train<span style="color:#f92672">.</span>T, x_test<span style="color:#f92672">.</span>T
+</span></span><span style="display:flex;"><span>    XC_dist, TC_dist, CC_dist, n, num_basis <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>dist(x_train, x_test, num_basis)
+</span></span></code></pre></div><ul>
+<li><code>x_train, t</code>　訓練データとそのPUのラベル。</li>
+<li><code>x_test</code>　テストデータ。</li>
+<li><code>folds</code>　交叉検証の時の分割数。デフォルトは5。</li>
+</ul>
+<p>まず、先ほど定義した
+  <a href="/#pudist">dist</a>でランダムに数点を選択させて、Cとする。そこから</p>
+<ul>
+<li>訓練データとCの距離</li>
+<li>テストデータとCの距離</li>
+<li>C同士の距離</li>
+</ul>
+<p>を求める。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># setup the cross validation</span>
+</span></span><span style="display:flex;"><span>cv_fold <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>arange(folds) <span style="color:#75715e"># normal range behaves strange with == sign</span>
+</span></span><span style="display:flex;"><span>cv_split0 <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>floor(np<span style="color:#f92672">.</span>arange(n)<span style="color:#f92672">*</span>folds<span style="color:#f92672">/</span>n)
+</span></span><span style="display:flex;"><span>cv_index <span style="color:#f92672">=</span> cv_split0[np<span style="color:#f92672">.</span>random<span style="color:#f92672">.</span>permutation(n)]
+</span></span></code></pre></div><p>次に、交叉検証を行う。<code>cv_split0 = np.floor(np.arange(n)*folds/n)</code>これによって、<code>cv_split0</code>は<code>[0, 0, ..., 1, 1, ..., 2, 2, ...]</code>のような配列に。</p>
+<p>そして、<code>cv_index</code>はつまり、<code>cv_split0</code>をシャッフルしたものである。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># set the sigma list and lambda list</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> sigma_list<span style="color:#f92672">==</span><span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>    sigma_list <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>array([<span style="color:#ae81ff">0.01</span>, <span style="color:#ae81ff">0.05</span>, <span style="color:#ae81ff">0.1</span>, <span style="color:#ae81ff">0.5</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">5</span>, <span style="color:#ae81ff">10</span>, <span style="color:#ae81ff">20</span>])
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> lda_list<span style="color:#f92672">==</span><span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>    lda_list <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>array([<span style="color:#ae81ff">0.001</span>, <span style="color:#ae81ff">0.005</span>, <span style="color:#ae81ff">0.01</span>, <span style="color:#ae81ff">0.05</span>, <span style="color:#ae81ff">0.1</span>, <span style="color:#ae81ff">0.5</span>, <span style="color:#ae81ff">1.</span>, <span style="color:#ae81ff">5.</span>])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>score_cv <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>zeros((len(sigma_list), len(lda_list)))
+</span></span></code></pre></div><p>ガウシアンカーネル(カーネル関数が$\exp(|| \mathbf{x} - \mathbf{c}_l || ^ 2 / (2 \sigma ^2))$)の分散について、いろいろ候補を用意している。</p>
+<p>ldaはTODO。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">for</span> sigma_idx, sigma <span style="color:#f92672">in</span> enumerate(sigma_list):
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># pre-sum to speed up calculation</span>
+</span></span><span style="display:flex;"><span>    h_cv <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>    t_cv <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> k <span style="color:#f92672">in</span> cv_fold:
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 各k=テストにする分割。</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># XC_distについて、exp(- || x_i - c ||^2 / (2σ^2))となるが、cは与えられたデータで、あらかじめPU#dist()でランダムに訓練データから300個抽出した感じみたい。</span>
+</span></span><span style="display:flex;"><span>        h_cv<span style="color:#f92672">.</span>append(np<span style="color:#f92672">.</span>exp(<span style="color:#f92672">-</span>XC_dist[:, cv_index<span style="color:#f92672">==</span>k]<span style="color:#f92672">/</span>(<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>sigma<span style="color:#f92672">**</span><span style="color:#ae81ff">2</span>)))
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 今回のk=テストにする分割のデータの正解ラベル</span>
+</span></span><span style="display:flex;"><span>        t_cv<span style="color:#f92672">.</span>append(t[cv_index<span style="color:#f92672">==</span>k])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> k <span style="color:#f92672">in</span> range(folds):
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># calculate the h vectors for training and test</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># kがテストにする分割ID。</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># hte, tteにはテストデータのガウシアンカーネルの値と正解ラベル。</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># htr, ttrには訓練データの同上のデータが。</span>
+</span></span><span style="display:flex;"><span>        count <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(folds):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> j <span style="color:#f92672">==</span> k:
+</span></span><span style="display:flex;"><span>                hte <span style="color:#f92672">=</span> h_cv[j]<span style="color:#f92672">.</span>T
+</span></span><span style="display:flex;"><span>                tte <span style="color:#f92672">=</span> t_cv[j]
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> count <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>                    htr <span style="color:#f92672">=</span> h_cv[j]<span style="color:#f92672">.</span>T
+</span></span><span style="display:flex;"><span>                    ttr <span style="color:#f92672">=</span> t_cv[j]
+</span></span><span style="display:flex;"><span>                    count <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>                    htr <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>append(htr, h_cv[j]<span style="color:#f92672">.</span>T, axis<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>                    ttr <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>append(ttr, t_cv[j], axis<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># htrは本来のhtrと全て1の列を結合。</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># hteは本来のhteと同上。</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># つまり、いずれも特徴の方。</span>
+</span></span><span style="display:flex;"><span>        one <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>ones((len(htr), <span style="color:#ae81ff">1</span>))
+</span></span><span style="display:flex;"><span>        htr <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>concatenate([htr, one], axis<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>        one <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>ones((len(hte), <span style="color:#ae81ff">1</span>))
+</span></span><span style="display:flex;"><span>        hte <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>concatenate([hte, one], axis<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># ldaは正規化係数。正規化係数も交叉検証する。</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> lda_idx, lda <span style="color:#f92672">in</span> enumerate(lda_list):
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># 交叉検証して、実際にminimizeしてみる。</span>
+</span></span><span style="display:flex;"><span>            res <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>minimize(htr, ttr, lda)
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># calculate the solution and cross-validation value</span>
+</span></span><span style="display:flex;"><span>            score <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>pu(hte, res, tte, lda)
+</span></span><span style="display:flex;"><span>            score_cv[sigma_idx, lda_idx] <span style="color:#f92672">=</span> score_cv[sigma_idx, lda_idx] <span style="color:#f92672">+</span> score
+</span></span></code></pre></div><p>大きなループのなかで、次のことを行っている。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#75715e"># get the minimum</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 交叉検証の結果一番よかったものを選ぶ。</span>
+</span></span><span style="display:flex;"><span>    (sigma_idx_chosen, lda_idx_chosen) <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>unravel_index(np<span style="color:#f92672">.</span>argmin(score_cv), score_cv<span style="color:#f92672">.</span>shape)
+</span></span><span style="display:flex;"><span>    sigma_chosen <span style="color:#f92672">=</span> sigma_list[sigma_idx_chosen]
+</span></span><span style="display:flex;"><span>    lda_chosen <span style="color:#f92672">=</span> lda_list[lda_idx_chosen]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    x_train <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>exp(<span style="color:#f92672">-</span>XC_dist<span style="color:#f92672">/</span>(<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>sigma_chosen<span style="color:#f92672">**</span><span style="color:#ae81ff">2</span>))<span style="color:#f92672">.</span>T
+</span></span><span style="display:flex;"><span>    x_test <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>exp(<span style="color:#f92672">-</span>TC_dist<span style="color:#f92672">/</span>(<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>sigma_chosen<span style="color:#f92672">**</span><span style="color:#ae81ff">2</span>))<span style="color:#f92672">.</span>T
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    one <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>ones((len(x_train),<span style="color:#ae81ff">1</span>))
+</span></span><span style="display:flex;"><span>    x_train <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>concatenate([x_train, one], axis<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>    one <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>ones((len(x_test),<span style="color:#ae81ff">1</span>))
+</span></span><span style="display:flex;"><span>    x_test <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>concatenate([x_test, one], axis<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> x_train, x_test, lda_chosen
+</span></span></code></pre></div><h2 id="puliner_cv">
+  <code>PU#liner_cv()</code>
+  <a class="anchor" href="#puliner_cv">#</a>
+</h2>
+<p>つかわれてない。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">linear_cv</span>(x0, x1, folds<span style="color:#f92672">=</span><span style="color:#ae81ff">5</span>, lda_list<span style="color:#f92672">=</span><span style="color:#66d9ef">None</span>):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> lda_list<span style="color:#f92672">==</span><span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>        lda_list <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>array([<span style="color:#ae81ff">0.001</span>, <span style="color:#ae81ff">0.01</span>, <span style="color:#ae81ff">0.1</span>, <span style="color:#ae81ff">1.</span>])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    scores <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> lda <span style="color:#f92672">in</span> lda_list:
+</span></span><span style="display:flex;"><span>        func <span style="color:#f92672">=</span> <span style="color:#66d9ef">lambda</span> b: self<span style="color:#f92672">.</span>linear_uu(b, x0, x1)
+</span></span><span style="display:flex;"><span>        res <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>minimize(func, b0)
+</span></span><span style="display:flex;"><span>        score <span style="color:#f92672">=</span> func(res)
+</span></span><span style="display:flex;"><span>        scores<span style="color:#f92672">.</span>append(score)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    scores <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>array(scores)
+</span></span><span style="display:flex;"><span>    lda <span style="color:#f92672">=</span> lda_list[scores<span style="color:#f92672">.</span>argmin()]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> lda
+</span></span></code></pre></div><p>ガウシアンカーネルを使わず、普通にminimize()させた感じ。</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#import部分">import部分</a></li>
+    <li><a href="#pu__init__"><code>PU#__init__()</code></a></li>
+    <li><a href="#puloss"><code>PU#loss()</code></a></li>
+    <li><a href="#pupu"><code>PU#pu()</code></a>
+      <ul>
+        <li><a href="#j1"><code>J1</code></a></li>
+        <li><a href="#j0"><code>J0</code></a></li>
+      </ul>
+    </li>
+    <li><a href="#puprob"><code>PU#prob()</code></a></li>
+    <li><a href="#puoptimize"><code>PU#optimize()</code></a></li>
+    <li><a href="#puminimize"><code>PU#minimize()</code></a></li>
+    <li><a href="#pugradient"><code>PU#gradient()</code></a></li>
+    <li><a href="#putest"><code>PU#test()</code></a></li>
+    <li><a href="#pudist"><code>PU#dist()</code></a></li>
+    <li><a href="#calcdistancesquared"><code>CalcDistanceSquared()</code></a></li>
+    <li><a href="#pukernel_cv"><code>PU#kernel_cv()</code></a></li>
+    <li><a href="#puliner_cv"><code>PU#liner_cv()</code></a></li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

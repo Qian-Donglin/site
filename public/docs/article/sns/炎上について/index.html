@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Twitterの炎上についての定義を各論文から集めてみた。 多分画一なものはないから、まずはそれらを参考に炎上の定義を考えたほうがいいな。
+感情分析＋「お前」「不愉快」などの悪意ワード # 「ユーザーに着目したSNS上の攻撃とそのメカニズムに関する分析」 # タイトル 著者 ユーザーに着目したSNS上の攻撃とそのメカニズムに関する分析 Tomoka Segawa, Kimitaka Asatani, Ichiro Sakata 論文の要約 # SNSでの攻撃は趣味が近いユーザー同士と、遠いユーザー同士の2つがある。 近いユーザー同士は、一部の趣味で起こる場合が多い 全コミュニティのわずか1%で、74%の争いが起きてる。 Ribeiroら、Characterizing and detecting hateful users on twitter　より 遠いユーザー同士は、政治思想が強い、普段からネガティブな発言をすると、普段関係なくても叩きに行く。 たたきに加わる人たちは、普段会話などをしてる間柄。 攻撃的ツイートは、GoogleのBERTで自然言語処理する。 ひっかけるキーワードは「お前」、「不愉快」など Semantic Textual Similarityを求める。手動でラベル付けした攻撃的ツイートを、cos類似度が大きくなるようにBERTのfine tuningできるらしい。 ユーザのフォロー関係のグラフは、Louvain法を使ってクラスタ分けできる。 そうやって得た各コミュニティでの攻撃件数、被攻撃件数etcを集める。 感情の判断は、ML-Askを使ったみたい。 かなり時代進化してきたしここは置き換えられそうね。 結果は、Accuracyは高くないが、数件以上の攻撃的投稿する人に関しては高い。 同一コミュニティ内の攻撃は、必ずしも普段からネガティブな投稿をする人だらけで攻撃してるわけじゃない。 ロジハラみたいな感じ&hellip;？ 遠いコミュニティは露出が多いと叩かれる。同一コミュニティはそうでもなかったり。 攻撃者だけを抽出すると、明らかにそれらだけでつるんでいた。 この攻撃性を強化する研究とか、見ていいよね。(エコーチェンバー) 例えば、宮迫闇営業の時は、2つに分類した攻撃的発信の混合だとわかるね。 オンラインチャットにおける誹謗中傷コメントの発信を未然に防止する機能 # タイトル 著者 オンラインチャットにおける誹謗中傷コメントの発信を未然に防止する機能 Masaki Ito, Wataru Sunayama 悪意ワードは事前に埋め込む。各ワードごとに、重大さ、というスコアを固定する。
+うーん、これ埋め込みでさあ、ある程度学習されることで自動で振れない&hellip;? By me.
+damage 3: 相手の存在を否定する単語、関係を軽視する単語死ね　消えろ　邪魔　殺すetcdamage 2: 相手の人格や容姿を攻撃する単語ハゲ　ブス　デブ　意地汚いetcdamage 1:　相手を貶める単語馬鹿　ドジ　雑魚 論文の要約 # 自動で悪口かどうかの判別はできるが、文脈を想定していくのはできない。1回では傷つかないけどやりとりしていくと傷つく場合はある。 (参考)SNSで悪口を含む投稿に取り下げを促す　藤堂悠杜ら、SNS 上の悪口を含む投稿に対する取り下げを促すフィードバック文の自動生成方法の検討 各ワードに重みをつける。各人にHPという概念をつくる。 各発信のうち、ヤバワードの重みの和を攻撃力とする。 発信のうちの相手からのダメージを軽減するワードもあり、それを防御力とする。攻撃力を相殺する感じ。 相手のHPが一定以下になるような発言をしようとした瞬間に、システム介入する感じ。 発信するメッセージに以下の種類のものがある。 共感系　例:今送ろうとしているメッセージに問題がないか、もう一度見直してみてはどうでしょうか？　HP高めの時に デメリット提示系　相手を傷つけるメッセージを送ると、お互いの関係が壊れる可能性がありますよ。　HP低めの時 禁止系　今後のメッセ――ジの送信ができなくなります。　HP瀕死の時 一言で言うと遊戯王、ポケモン　なんだお前(驚愕) 結果として、共感系のメッセージを出すのが一番有効みたい。 人間関係と誹謗中傷検出によるオンラインハラスメント対策 # タイトル 著者 人間関係と誹謗中傷検出によるオンラインハラスメント対策 Tiesong Shang, Juan Zhou, Hideyuki Takada 誹謗中傷に当たる言葉を特定するのは難しい。なぜならtypo、スラングなど文が崩れているから。　←ほんと？？？2023年ならできそう。">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="Twitterの炎上について" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://Qian-Donglin.github.io/docs/article/sns/%E7%82%8E%E4%B8%8A%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6/" />
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+	integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"
+	integrity="sha384-cpW21h6RZv/phavutF+AuVYrr+dA8xD9zs6FwLpaCct6O9ctzYFfFr4dgmgccOTx"
+	crossorigin="anonymous"></script>
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+	integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
+	onload="renderMathInElement(document.body);"></script>
+
+<script>
+	document.addEventListener("DOMContentLoaded", function () {
+		renderMathInElement(
+			document.body,
+			{
+				delimiters: [
+					{ left: "$$", right: "$$", display: true },
+					{ left: "\\[", right: "\\]", display: true },
+					{ left: "$", right: "$", display: false },
+					{ left: "\\(", right: "\\)", display: false }
+				]
+			});
+	});
+</script>
+
+<title>Twitterの炎上について | Sen(Qian)のメモ</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/%20favicon.png">
+<link rel="stylesheet" href="/book.min.f8de3645fe00591b41524aee174e19edd98a22255a2930a0cdc82a94835ba387.css" integrity="sha256-&#43;N42Rf4AWRtBUkruF04Z7dmKIiVaKTCgzcgqlINbo4c=" crossorigin="anonymous">
+<script defer src="/%20flexsearch.min.js"></script>
+<script defer src="/en.search.min.43d9e1a27caa5999a7fee1bb577c631649e74ee5e89bedb7682f0f3f87c303eb.js" integrity="sha256-Q9nhonyqWZmn/uG7V3xjFknnTuXom&#43;23aC8PP4fDA&#43;s=" crossorigin="anonymous"></script>
+
+<link rel="alternate" type="application/rss+xml" href="https://Qian-Donglin.github.io/docs/article/sns/%E7%82%8E%E4%B8%8A%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6/index.xml" title="Sen(Qian)のメモ" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><span>Sen(Qian)のメモ</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/" class="">競プロの問題解説</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Dp</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/DP/%E6%A1%81DP/" class="">桁 Dp</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/DP/%E6%A1%81DP/Y-abc317-F/" class="">(Y-) abc317 F</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0d2a02cd744e63233ebe57612bb12952" class="toggle"  />
+    <label for="section-0d2a02cd744e63233ebe57612bb12952" class="flex justify-between">
+      <a role="button" class="">Grid</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Grid/G-abc317-E/" class="">(G&#43;) abc317 E</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Implement</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Implement/G-abc315-E/" class="">(G) Abc315 E Index</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cea18f1d04185b9a1f879558d5aeddb2" class="toggle"  />
+    <label for="section-cea18f1d04185b9a1f879558d5aeddb2" class="flex justify-between">
+      <a role="button" class="">Square Divide</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/SquareDivide/CABC293-E%E5%B9%B3%E6%96%B9%E5%88%86%E5%89%B2/" class="">(C) abc293 E(平方分割)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-52d2a0ea11310952e77a5e1d9b1ee709" class="toggle"  />
+    <label for="section-52d2a0ea11310952e77a5e1d9b1ee709" class="flex justify-between">
+      <a role="button" class="">Graph</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Graph/BrABC292-D/" class="">(Br) abc292 D</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>読んだ本</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Machine Learning</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>ベイズ推論による機械学習(緑ベイズ)</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-1/" class="">第一章</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-2/" class="">第二章</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part1/" class="">第三章その1</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part2/" class="">第三章その2</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3c22cc3dba3e6e6de0eab46bcb97d14b" class="toggle" checked />
+    <label for="section-3c22cc3dba3e6e6de0eab46bcb97d14b" class="flex justify-between">
+      <a role="button" class="">読んだ論文たちのメモ</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d64fdaa8e46f50c67b163d98fad0ddb7" class="toggle"  />
+    <label for="section-d64fdaa8e46f50c67b163d98fad0ddb7" class="flex justify-between">
+      <a role="button" class="">Graphic Design</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/graphic_design_ML/Content-aware-Generative-Modeling-of-Graphic-Design-Layouts/" class="">Content Aware Generative Modeling of Graphic Design Layouts</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/graphic_design_ML/Learning-to-Generate-Posters-of-Scientific-Papers/" class="">Learning to Generate Posters of Scientific Papers</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Order Thing</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/order_thing/Learning-to-Order-Thing/" class="">Learning to Order Thing</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-749fb68fcedaafaff7bdd8e5931b0451" class="toggle" checked />
+    <label for="section-749fb68fcedaafaff7bdd8e5931b0451" class="flex justify-between">
+      <a role="button" class="">sns</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E7%82%8E%E4%B8%8A%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6/" class="active">Twitterの炎上について</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E3%83%95%E3%82%A1%E3%82%AF%E3%83%88%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF%E3%81%A7%E3%81%AE%E5%BC%B1%E6%95%99%E5%B8%AB%E3%81%A4%E3%81%8D%E5%AD%A6%E7%BF%92/" class="">ファクトチェックでの弱教師つき学習</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E5%BC%B1%E6%95%99%E5%B8%AB%E5%AD%A6%E7%BF%92%E3%81%A7%E3%83%AA%E3%83%97%E3%83%A9%E3%82%A4%E3%81%8B%E3%82%89%E7%82%8E%E4%B8%8A%E5%88%86%E6%9E%90/" class="">弱教師学習でリプライから炎上分析</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-de33daac55650926621e120a75049e4a" class="toggle"  />
+    <label for="section-de33daac55650926621e120a75049e4a" class="flex justify-between">
+      <a role="button" class="">Svm</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%82%AB%E3%83%BC%E3%83%8D%E3%83%AB%E6%B3%95/" class="">カーネル法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%82%BD%E3%83%95%E3%83%88%E3%83%9E%E3%83%BC%E3%82%B8%E3%83%B3/" class="">ソフトマージン</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%83%8F%E3%83%BC%E3%83%89%E3%83%9E%E3%83%BC%E3%82%B8%E3%83%B3/" class="">ハードマージン</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0465dfafe9cdc495ea2e5d9009d8922a" class="toggle"  />
+    <label for="section-0465dfafe9cdc495ea2e5d9009d8922a" class="flex justify-between">
+      <a role="button" class="">Weakly Supervised Learning</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/2017%E6%99%82%E7%82%B9%E3%81%AE%E5%90%84%E6%89%8B%E6%B3%95/" class="">2017時点の各手法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/PNU-Learning/" class="">PNU Learning(2017年)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive-Confidential-learning2017/" class="">Positive Confidential Learning(2017)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/" class="">Positiveでラベル有り無しで分布が違う時の PU学習(2019)</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/PU-Learning%E3%81%AE%E3%82%AF%E3%83%A9%E3%82%B9%E3%81%AE%E5%AE%9F%E8%A3%85/" class="">バイアスつきPU Learningクラスの実装</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E5%AE%9F%E9%A8%93%E3%81%AE%E3%82%B3%E3%83%BC%E3%83%89%E3%81%AE%E8%A7%A3%E6%9E%90/" class="">バイアスつきPU Learningクラスの実装</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E3%83%A1%E3%82%A4%E3%83%B3%E3%82%B3%E3%83%BC%E3%83%89/" class="">メインコード</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/PU-Learning/" class="">PU Learning(2007年)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/%E5%88%86%E5%B8%83%E4%BB%AE%E5%AE%9A%E4%B8%8D%E8%A6%81PU-Learning2014/" class="">PU LearningでなんでSVMのヒンジ関数は精度悪いか(2014)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/%E8%A3%9C%E3%83%A9%E3%83%99%E3%83%AB%E5%AD%A6%E7%BF%922017/" class="">補ラベル学習(2017)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>Twitterの炎上について</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#ユーザーに着目したsns上の攻撃とそのメカニズムに関する分析httpswwwjstagejstgojparticlepjsaijsai20210jsai2021_1i4gs4c04_article-charja"><a href="https://www.jstage.jst.go.jp/article/pjsai/JSAI2021/0/JSAI2021_1I4GS4c04/_article/-char/ja/">「ユーザーに着目したSNS上の攻撃とそのメカニズムに関する分析」</a></a>
+      <ul>
+        <li><a href="#論文の要約">論文の要約</a></li>
+      </ul>
+    </li>
+    <li><a href="#オンラインチャットにおける誹謗中傷コメントの発信を未然に防止する機能httpswwwjstagejstgojparticlepjsaijsai20210jsai2021_4c3os1a01_article-charja"><a href="https://www.jstage.jst.go.jp/article/pjsai/JSAI2021/0/JSAI2021_4C3OS1a01/_article/-char/ja/">オンラインチャットにおける誹謗中傷コメントの発信を未然に防止する機能</a></a>
+      <ul>
+        <li><a href="#論文の要約-1">論文の要約</a></li>
+      </ul>
+    </li>
+    <li><a href="#人間関係と誹謗中傷検出によるオンラインハラスメント対策httpswwwieiceorgpublicationsconference-fit-dvdsfit2018datapdfd-005pdf"><a href="https://www.ieice.org/publications/conference-FIT-DVDs/FIT2018/data/pdf/D-005.pdf">人間関係と誹謗中傷検出によるオンラインハラスメント対策</a></a>
+      <ul>
+        <li><a href="#論文の要約-2">論文の要約</a></li>
+      </ul>
+    </li>
+    <li><a href="#bertを用いたsns上における攻撃的文章訂正システムhttpsipsjixsqniiacjpejactionpages_view_mainactive_actionrepository_view_main_item_detailitem_id221101item_no1page_id13block_id8"><a href="https://ipsj.ixsq.nii.ac.jp/ej/?action=pages_view_main&amp;active_action=repository_view_main_item_detail&amp;item_id=221101&amp;item_no=1&amp;page_id=13&amp;block_id=8">BERTを用いたSNS上における攻撃的文章訂正システム</a></a></li>
+    <li><a href="#論文の要約-3">論文の要約</a></li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><p>Twitterの炎上についての定義を各論文から集めてみた。
+多分画一なものはないから、まずはそれらを参考に炎上の定義を考えたほうがいいな。</p>
+<h1 id="感情分析お前不愉快などの悪意ワード">
+  感情分析＋「お前」「不愉快」などの悪意ワード
+  <a class="anchor" href="#%e6%84%9f%e6%83%85%e5%88%86%e6%9e%90%e3%81%8a%e5%89%8d%e4%b8%8d%e6%84%89%e5%bf%ab%e3%81%aa%e3%81%a9%e3%81%ae%e6%82%aa%e6%84%8f%e3%83%af%e3%83%bc%e3%83%89">#</a>
+</h1>
+<h2 id="ユーザーに着目したsns上の攻撃とそのメカニズムに関する分析httpswwwjstagejstgojparticlepjsaijsai20210jsai2021_1i4gs4c04_article-charja">
+  
+  <a href="https://www.jstage.jst.go.jp/article/pjsai/JSAI2021/0/JSAI2021_1I4GS4c04/_article/-char/ja/">「ユーザーに着目したSNS上の攻撃とそのメカニズムに関する分析」</a>
+  <a class="anchor" href="#%e3%83%a6%e3%83%bc%e3%82%b6%e3%83%bc%e3%81%ab%e7%9d%80%e7%9b%ae%e3%81%97%e3%81%9fsns%e4%b8%8a%e3%81%ae%e6%94%bb%e6%92%83%e3%81%a8%e3%81%9d%e3%81%ae%e3%83%a1%e3%82%ab%e3%83%8b%e3%82%ba%e3%83%a0%e3%81%ab%e9%96%a2%e3%81%99%e3%82%8b%e5%88%86%e6%9e%90httpswwwjstagejstgojparticlepjsaijsai20210jsai2021_1i4gs4c04_article-charja">#</a>
+</h2>
+<table>
+<thead>
+<tr>
+<th>タイトル</th>
+<th>著者</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ユーザーに着目したSNS上の攻撃とそのメカニズムに関する分析</td>
+<td>Tomoka Segawa, Kimitaka Asatani, Ichiro Sakata</td>
+</tr>
+</tbody>
+</table>
+<h3 id="論文の要約">
+  論文の要約
+  <a class="anchor" href="#%e8%ab%96%e6%96%87%e3%81%ae%e8%a6%81%e7%b4%84">#</a>
+</h3>
+<ul>
+<li>SNSでの攻撃は趣味が近いユーザー同士と、遠いユーザー同士の2つがある。
+<ul>
+<li>近いユーザー同士は、一部の趣味で起こる場合が多い
+<ul>
+<li>全コミュニティのわずか1%で、74%の争いが起きてる。
+<ul>
+<li>Ribeiroら、Characterizing and detecting hateful users on twitter　より</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>遠いユーザー同士は、<strong>政治思想が強い、普段からネガティブな発言をすると、普段関係なくても叩きに行く</strong>。
+<ul>
+<li>たたきに加わる人たちは、普段会話などをしてる間柄。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>攻撃的ツイートは、GoogleのBERTで自然言語処理する。
+<ul>
+<li><strong>ひっかけるキーワードは「お前」、「不愉快」など</strong></li>
+<li>Semantic Textual Similarityを求める。手動でラベル付けした攻撃的ツイートを、cos類似度が大きくなるようにBERTのfine tuningできるらしい。</li>
+</ul>
+</li>
+<li>ユーザのフォロー関係のグラフは、Louvain法を使ってクラスタ分けできる。
+<ul>
+<li>そうやって得た各コミュニティでの攻撃件数、被攻撃件数etcを集める。
+<ul>
+<li>感情の判断は、<strong>ML-Ask</strong>を使ったみたい。
+<ul>
+<li>かなり時代進化してきたしここは置き換えられそうね。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>結果は、Accuracyは高くないが、数件以上の攻撃的投稿する人に関しては高い。</li>
+<li><strong>同一コミュニティ内の攻撃は、必ずしも普段からネガティブな投稿をする人だらけで攻撃してるわけじゃない</strong>。
+<ul>
+<li>ロジハラみたいな感じ&hellip;？</li>
+</ul>
+</li>
+<li><strong>遠いコミュニティは露出が多いと叩かれる。同一コミュニティはそうでもなかったり</strong>。</li>
+<li>攻撃者だけを抽出すると、明らかにそれらだけでつるんでいた。
+<ul>
+<li>この攻撃性を強化する研究とか、見ていいよね。(エコーチェンバー)</li>
+</ul>
+</li>
+<li>例えば、宮迫闇営業の時は、2つに分類した攻撃的発信の混合だとわかるね。</li>
+</ul>
+<h2 id="オンラインチャットにおける誹謗中傷コメントの発信を未然に防止する機能httpswwwjstagejstgojparticlepjsaijsai20210jsai2021_4c3os1a01_article-charja">
+  
+  <a href="https://www.jstage.jst.go.jp/article/pjsai/JSAI2021/0/JSAI2021_4C3OS1a01/_article/-char/ja/">オンラインチャットにおける誹謗中傷コメントの発信を未然に防止する機能</a>
+  <a class="anchor" href="#%e3%82%aa%e3%83%b3%e3%83%a9%e3%82%a4%e3%83%b3%e3%83%81%e3%83%a3%e3%83%83%e3%83%88%e3%81%ab%e3%81%8a%e3%81%91%e3%82%8b%e8%aa%b9%e8%ac%97%e4%b8%ad%e5%82%b7%e3%82%b3%e3%83%a1%e3%83%b3%e3%83%88%e3%81%ae%e7%99%ba%e4%bf%a1%e3%82%92%e6%9c%aa%e7%84%b6%e3%81%ab%e9%98%b2%e6%ad%a2%e3%81%99%e3%82%8b%e6%a9%9f%e8%83%bdhttpswwwjstagejstgojparticlepjsaijsai20210jsai2021_4c3os1a01_article-charja">#</a>
+</h2>
+<table>
+<thead>
+<tr>
+<th>タイトル</th>
+<th>著者</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>オンラインチャットにおける誹謗中傷コメントの発信を未然に防止する機能</td>
+<td>Masaki Ito, Wataru Sunayama</td>
+</tr>
+</tbody>
+</table>
+<p>悪意ワードは事前に埋め込む。各ワードごとに、重大さ、というスコアを固定する。</p>
+<p>うーん、これ埋め込みでさあ、ある程度学習されることで自動で振れない&hellip;? By me.</p>
+<pre tabindex="0"><code>damage 3: 相手の存在を否定する単語、関係を軽視する単語
+死ね　消えろ　邪魔　殺すetc
+damage 2: 　相手の人格や容姿を攻撃する単語
+ハゲ　ブス　デブ　意地汚いetc
+damage 1:　相手を貶める単語
+馬鹿　ドジ　雑魚
+</code></pre><h3 id="論文の要約-1">
+  論文の要約
+  <a class="anchor" href="#%e8%ab%96%e6%96%87%e3%81%ae%e8%a6%81%e7%b4%84-1">#</a>
+</h3>
+<ul>
+<li>自動で悪口かどうかの判別はできるが、文脈を想定していくのはできない。1回では傷つかないけどやりとりしていくと傷つく場合はある。</li>
+<li>(参考)SNSで悪口を含む投稿に取り下げを促す　藤堂悠杜ら、SNS 上の悪口を含む投稿に対する取り下げを促すフィードバック文の自動生成方法の検討</li>
+<li>各ワードに重みをつける。各人にHPという概念をつくる。
+<ul>
+<li>各発信のうち、ヤバワードの重みの和を攻撃力とする。</li>
+<li>発信のうちの相手からのダメージを軽減するワードもあり、それを防御力とする。攻撃力を相殺する感じ。</li>
+<li>相手のHPが一定以下になるような発言をしようとした瞬間に、システム介入する感じ。
+<ul>
+<li>発信するメッセージに以下の種類のものがある。
+<ul>
+<li>共感系　例:今送ろうとしているメッセージに問題がないか、もう一度見直してみてはどうでしょうか？　HP高めの時に</li>
+<li>デメリット提示系　相手を傷つけるメッセージを送ると、お互いの関係が壊れる可能性がありますよ。　HP低めの時</li>
+<li>禁止系　今後のメッセ――ジの送信ができなくなります。　HP瀕死の時</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>一言で言うと遊戯王、ポケモン</strong>　なんだお前(驚愕)</li>
+</ul>
+</li>
+<li>結果として、共感系のメッセージを出すのが一番有効みたい。</li>
+</ul>
+<h2 id="人間関係と誹謗中傷検出によるオンラインハラスメント対策httpswwwieiceorgpublicationsconference-fit-dvdsfit2018datapdfd-005pdf">
+  
+  <a href="https://www.ieice.org/publications/conference-FIT-DVDs/FIT2018/data/pdf/D-005.pdf">人間関係と誹謗中傷検出によるオンラインハラスメント対策</a>
+  <a class="anchor" href="#%e4%ba%ba%e9%96%93%e9%96%a2%e4%bf%82%e3%81%a8%e8%aa%b9%e8%ac%97%e4%b8%ad%e5%82%b7%e6%a4%9c%e5%87%ba%e3%81%ab%e3%82%88%e3%82%8b%e3%82%aa%e3%83%b3%e3%83%a9%e3%82%a4%e3%83%b3%e3%83%8f%e3%83%a9%e3%82%b9%e3%83%a1%e3%83%b3%e3%83%88%e5%af%be%e7%ad%96httpswwwieiceorgpublicationsconference-fit-dvdsfit2018datapdfd-005pdf">#</a>
+</h2>
+<table>
+<thead>
+<tr>
+<th>タイトル</th>
+<th>著者</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>人間関係と誹謗中傷検出によるオンラインハラスメント対策</td>
+<td>Tiesong Shang, Juan Zhou, Hideyuki Takada</td>
+</tr>
+</tbody>
+</table>
+<p>誹謗中傷に当たる言葉を特定するのは難しい。なぜならtypo、スラングなど文が崩れているから。　←ほんと？？？2023年ならできそう。</p>
+<p>研究では、bag-of-opinionモデルというものを使った。要約参照して。</p>
+<h3 id="論文の要約-2">
+  論文の要約
+  <a class="anchor" href="#%e8%ab%96%e6%96%87%e3%81%ae%e8%a6%81%e7%b4%84-2">#</a>
+</h3>
+<ul>
+<li>メッセージの内容で誹謗中傷であると判断し、加害者と被害者を見つける。</li>
+<li>その加害者と被害者中心に、ソーシャルグラフを作る。
+<ul>
+<li><strong>そこで受けてる誹謗中傷と嫌がらせのメッセージが、全体のメッセージに締める総数を計算して、それを重症度</strong>とする。
+<ul>
+<li>これ、1度誹謗中傷受けただけでも辛くないか&hellip;&hellip;？</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Baidu Tiebaでやってる。中国の2ch(検閲ゴリゴリついてる)</li>
+<li>事前に誹謗中傷を表す単語やパターンを定義して、bag-of-opinionモデルというのを使う。
+<ul>
+<li>(参考文献)　Lizhen Quら、
+  <a href="https://aclanthology.org/C10-1103.pdf">The Bag-of-Opinions Method for Reviewing Rating Prediction from Sparse Text Patterns</a>
+<ul>
+<li><strong>複数語に渡ると予想されるフレーズに点数をつける場合</strong>、N-gramにするしかないが、学習に必要なデータは多すぎる。</li>
+<li>以下の3つの要素によってOpinionが成る。
+<ul>
+<li>root word</li>
+<li>同じ文で使われた修飾語</li>
+<li>1つ以上の否定語</li>
+</ul>
+</li>
+<li>コーパスからリッジ回帰(重回帰分析+L2正則化)で、Opinionごとにスコアを振る感じ。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>誹謗中傷する人の多くは、誹謗中傷を普段からはしない人。逆にわずか1%の人が10%もの誹謗中傷をしている。という結果も。
+<ul>
+<li>E. Wulczyn, 
+  <a href="https://arxiv.org/abs/1610.08914">Ex machina: Personal attacks seen at scale</a></li>
+</ul>
+</li>
+<li>結果はなんか、書いてないんだが&hellip;&hellip;</li>
+</ul>
+<h2 id="bertを用いたsns上における攻撃的文章訂正システムhttpsipsjixsqniiacjpejactionpages_view_mainactive_actionrepository_view_main_item_detailitem_id221101item_no1page_id13block_id8">
+  
+  <a href="https://ipsj.ixsq.nii.ac.jp/ej/?action=pages_view_main&amp;active_action=repository_view_main_item_detail&amp;item_id=221101&amp;item_no=1&amp;page_id=13&amp;block_id=8">BERTを用いたSNS上における攻撃的文章訂正システム</a>
+  <a class="anchor" href="#bert%e3%82%92%e7%94%a8%e3%81%84%e3%81%9fsns%e4%b8%8a%e3%81%ab%e3%81%8a%e3%81%91%e3%82%8b%e6%94%bb%e6%92%83%e7%9a%84%e6%96%87%e7%ab%a0%e8%a8%82%e6%ad%a3%e3%82%b7%e3%82%b9%e3%83%86%e3%83%a0httpsipsjixsqniiacjpejactionpages_view_mainactive_actionrepository_view_main_item_detailitem_id221101item_no1page_id13block_id8">#</a>
+</h2>
+<table>
+<thead>
+<tr>
+<th>タイトル</th>
+<th>著者</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BERTを用いたSNS上における攻撃的文章訂正システム</td>
+<td>吉田 基信、松本 和幸、吉田 稔、北 研二</td>
+</tr>
+</tbody>
+</table>
+<h2 id="論文の要約-3">
+  論文の要約
+  <a class="anchor" href="#%e8%ab%96%e6%96%87%e3%81%ae%e8%a6%81%e7%b4%84-3">#</a>
+</h2>
+<ul>
+<li>先行研究では、SVMで炎上するorしないを判断して、炎上すると判断した単語を、あらかじめ学習させたword to vecで訂正する。だが、日本語として意味のない文を出しちゃうという問題が。
+<ul>
+<li>大西真輝ら、
+  <a href="https://www.jstage.jst.go.jp/article/pjsai/JSAI2015/0/JSAI2015_3O13in/_article/-char/ja/">ツイート炎上抑制のための包括的システムの構築</a></li>
+</ul>
+</li>
+<li>提案したシステムは以下の4歩からなる。
+<ul>
+<li>入力テキストの前処理
+<ul>
+<li><strong>TweetLというライブラリで正規化を行う</strong>。(半角全角の統一　ハッシュタグやメンションの除去など)</li>
+<li><strong>攻撃的文章であるかどうかの判定</strong>。(学習済のものをfine tuningしておく。データを1600件学習させ400件をテストに使う。スパムメッセージは除外。ラベルとして、<strong>安全、攻撃的、スパム</strong>の3つをアノテーションする)</li>
+<li><strong>攻撃的ならば、単語置き換え</strong>　BERTのTransformerの第12層のAttentionの<strong>重みが一定以上の場合、(あらかじめ学習させた)置き換えする</strong>。
+<ul>
+<li>また、<strong>事前に登録した危険単語の場合、問答無用でBERTで類義語に置き換えする</strong>。</li>
+</ul>
+</li>
+<li><strong>元の文章との類似度表示</strong>　埋め込みベクトル特有の内積を利用したcos類似度を使う。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>実験結果として、<strong>安全攻撃的スパムの分類精度自体は76%から63%と高くない</strong>。</li>
+<li>単語置き換えでも、全く意味が違う文に変換されてしまった。
+<ul>
+<li>「マーチは<strong>Ｆラン</strong>、<strong>低学歴</strong>だわ」→「マーチは<strong>当然</strong>、<strong>不可能</strong>だわ」</li>
+</ul>
+</li>
+<li>精度が足りなかったという結論。理由は
+<ul>
+<li>fine-tuningで使われた<strong>1600個の内容が限定的で数が少ない</strong>。</li>
+<li><strong>変換する用語の品詞を考えてない</strong></li>
+<li>そもそも<strong>BERTは優等生なので、誹謗中傷事態を学習してない</strong>。</li>
+<li><strong>似てないとされてる文は短文が多い</strong>。長文だと前後の文脈から推測できるってやつか？</li>
+</ul>
+</li>
+</ul>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#ユーザーに着目したsns上の攻撃とそのメカニズムに関する分析httpswwwjstagejstgojparticlepjsaijsai20210jsai2021_1i4gs4c04_article-charja"><a href="https://www.jstage.jst.go.jp/article/pjsai/JSAI2021/0/JSAI2021_1I4GS4c04/_article/-char/ja/">「ユーザーに着目したSNS上の攻撃とそのメカニズムに関する分析」</a></a>
+      <ul>
+        <li><a href="#論文の要約">論文の要約</a></li>
+      </ul>
+    </li>
+    <li><a href="#オンラインチャットにおける誹謗中傷コメントの発信を未然に防止する機能httpswwwjstagejstgojparticlepjsaijsai20210jsai2021_4c3os1a01_article-charja"><a href="https://www.jstage.jst.go.jp/article/pjsai/JSAI2021/0/JSAI2021_4C3OS1a01/_article/-char/ja/">オンラインチャットにおける誹謗中傷コメントの発信を未然に防止する機能</a></a>
+      <ul>
+        <li><a href="#論文の要約-1">論文の要約</a></li>
+      </ul>
+    </li>
+    <li><a href="#人間関係と誹謗中傷検出によるオンラインハラスメント対策httpswwwieiceorgpublicationsconference-fit-dvdsfit2018datapdfd-005pdf"><a href="https://www.ieice.org/publications/conference-FIT-DVDs/FIT2018/data/pdf/D-005.pdf">人間関係と誹謗中傷検出によるオンラインハラスメント対策</a></a>
+      <ul>
+        <li><a href="#論文の要約-2">論文の要約</a></li>
+      </ul>
+    </li>
+    <li><a href="#bertを用いたsns上における攻撃的文章訂正システムhttpsipsjixsqniiacjpejactionpages_view_mainactive_actionrepository_view_main_item_detailitem_id221101item_no1page_id13block_id8"><a href="https://ipsj.ixsq.nii.ac.jp/ej/?action=pages_view_main&amp;active_action=repository_view_main_item_detail&amp;item_id=221101&amp;item_no=1&amp;page_id=13&amp;block_id=8">BERTを用いたSNS上における攻撃的文章訂正システム</a></a></li>
+    <li><a href="#論文の要約-3">論文の要約</a></li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

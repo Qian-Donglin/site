@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="学習と予測 # ベイズ統計では、各値は一定ではなくある分布に代表されるというもの。 なので、ベイズ統計での機械学習とは、パラメタの事前分布と、学習データを前提条件とした事後分布を求めることに当たる。
+つまり、訓練データ$\mathbf{D}$を用いて、知りたい未知のパラメタ$\theta$は、
+$$ p(\mathbf{D}, \theta) = p(\mathbf{D} | \theta) p(\theta) $$
+このような式となる。この$p(\mathbf{D} | \theta), p(訓練データ | 知りたいパラメタ)$は尤度関数という。逆の$p(\theta | \mathbf{D}), p(知りたいパラメタ | 訓練データ)$は事後分布。ベイズの定理によって、尤度関数から事後分布を計算できる。
+$$ p(\theta | \mathbf{D}) = \frac{p(\mathbf{D} | \theta) p(\theta)}{p(\mathbf{D})} $$
+この左辺を計算することが学習にあたる。
+予測分布 # 1章にもあったように、訓練済のパラメタを使って予測結果を得るのは、以下の式になる。グラフィカルモデルからも同じような形が得られる。
+$$ p(x_a | \mathbf{D}) = \int p(x_a | \theta) p(\theta | \mathbf{D}) d \theta \\ p(x_a, \theta | \mathbf{D}) = \frac{p(x_a, \theta, \mathbf{D})}{p(\mathbf{D})} = \frac{p(\mathbf{\theta}) p(x_a | \mathbf{\theta}) p(\mathbf{D} | \theta)}{p(\mathbf{D})} $$">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="第三章その1" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://Qian-Donglin.github.io/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part1/" />
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+	integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"
+	integrity="sha384-cpW21h6RZv/phavutF+AuVYrr+dA8xD9zs6FwLpaCct6O9ctzYFfFr4dgmgccOTx"
+	crossorigin="anonymous"></script>
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+	integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
+	onload="renderMathInElement(document.body);"></script>
+
+<script>
+	document.addEventListener("DOMContentLoaded", function () {
+		renderMathInElement(
+			document.body,
+			{
+				delimiters: [
+					{ left: "$$", right: "$$", display: true },
+					{ left: "\\[", right: "\\]", display: true },
+					{ left: "$", right: "$", display: false },
+					{ left: "\\(", right: "\\)", display: false }
+				]
+			});
+	});
+</script>
+
+<title>第三章その1 | Sen(Qian)のメモ</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/%20favicon.png">
+<link rel="stylesheet" href="/book.min.f8de3645fe00591b41524aee174e19edd98a22255a2930a0cdc82a94835ba387.css" integrity="sha256-&#43;N42Rf4AWRtBUkruF04Z7dmKIiVaKTCgzcgqlINbo4c=" crossorigin="anonymous">
+<script defer src="/%20flexsearch.min.js"></script>
+<script defer src="/en.search.min.43d9e1a27caa5999a7fee1bb577c631649e74ee5e89bedb7682f0f3f87c303eb.js" integrity="sha256-Q9nhonyqWZmn/uG7V3xjFknnTuXom&#43;23aC8PP4fDA&#43;s=" crossorigin="anonymous"></script>
+
+<link rel="alternate" type="application/rss+xml" href="https://Qian-Donglin.github.io/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part1/index.xml" title="Sen(Qian)のメモ" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><span>Sen(Qian)のメモ</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/" class="">競プロの問題解説</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Dp</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/DP/%E6%A1%81DP/" class="">桁 Dp</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/DP/%E6%A1%81DP/Y-abc317-F/" class="">(Y-) abc317 F</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0d2a02cd744e63233ebe57612bb12952" class="toggle"  />
+    <label for="section-0d2a02cd744e63233ebe57612bb12952" class="flex justify-between">
+      <a role="button" class="">Grid</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Grid/G-abc317-E/" class="">(G&#43;) abc317 E</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Implement</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Implement/G-abc315-E/" class="">(G) Abc315 E Index</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cea18f1d04185b9a1f879558d5aeddb2" class="toggle"  />
+    <label for="section-cea18f1d04185b9a1f879558d5aeddb2" class="flex justify-between">
+      <a role="button" class="">Square Divide</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/SquareDivide/CABC293-E%E5%B9%B3%E6%96%B9%E5%88%86%E5%89%B2/" class="">(C) abc293 E(平方分割)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-52d2a0ea11310952e77a5e1d9b1ee709" class="toggle"  />
+    <label for="section-52d2a0ea11310952e77a5e1d9b1ee709" class="flex justify-between">
+      <a role="button" class="">Graph</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Graph/BrABC292-D/" class="">(Br) abc292 D</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>読んだ本</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Machine Learning</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>ベイズ推論による機械学習(緑ベイズ)</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-1/" class="">第一章</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-2/" class="">第二章</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part1/" class="active">第三章その1</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part2/" class="">第三章その2</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3c22cc3dba3e6e6de0eab46bcb97d14b" class="toggle"  />
+    <label for="section-3c22cc3dba3e6e6de0eab46bcb97d14b" class="flex justify-between">
+      <a role="button" class="">読んだ論文たちのメモ</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d64fdaa8e46f50c67b163d98fad0ddb7" class="toggle"  />
+    <label for="section-d64fdaa8e46f50c67b163d98fad0ddb7" class="flex justify-between">
+      <a role="button" class="">Graphic Design</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/graphic_design_ML/Content-aware-Generative-Modeling-of-Graphic-Design-Layouts/" class="">Content Aware Generative Modeling of Graphic Design Layouts</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/graphic_design_ML/Learning-to-Generate-Posters-of-Scientific-Papers/" class="">Learning to Generate Posters of Scientific Papers</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Order Thing</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/order_thing/Learning-to-Order-Thing/" class="">Learning to Order Thing</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-749fb68fcedaafaff7bdd8e5931b0451" class="toggle"  />
+    <label for="section-749fb68fcedaafaff7bdd8e5931b0451" class="flex justify-between">
+      <a role="button" class="">sns</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E7%82%8E%E4%B8%8A%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6/" class="">Twitterの炎上について</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E3%83%95%E3%82%A1%E3%82%AF%E3%83%88%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF%E3%81%A7%E3%81%AE%E5%BC%B1%E6%95%99%E5%B8%AB%E3%81%A4%E3%81%8D%E5%AD%A6%E7%BF%92/" class="">ファクトチェックでの弱教師つき学習</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E5%BC%B1%E6%95%99%E5%B8%AB%E5%AD%A6%E7%BF%92%E3%81%A7%E3%83%AA%E3%83%97%E3%83%A9%E3%82%A4%E3%81%8B%E3%82%89%E7%82%8E%E4%B8%8A%E5%88%86%E6%9E%90/" class="">弱教師学習でリプライから炎上分析</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-de33daac55650926621e120a75049e4a" class="toggle"  />
+    <label for="section-de33daac55650926621e120a75049e4a" class="flex justify-between">
+      <a role="button" class="">Svm</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%82%AB%E3%83%BC%E3%83%8D%E3%83%AB%E6%B3%95/" class="">カーネル法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%82%BD%E3%83%95%E3%83%88%E3%83%9E%E3%83%BC%E3%82%B8%E3%83%B3/" class="">ソフトマージン</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%83%8F%E3%83%BC%E3%83%89%E3%83%9E%E3%83%BC%E3%82%B8%E3%83%B3/" class="">ハードマージン</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0465dfafe9cdc495ea2e5d9009d8922a" class="toggle"  />
+    <label for="section-0465dfafe9cdc495ea2e5d9009d8922a" class="flex justify-between">
+      <a role="button" class="">Weakly Supervised Learning</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/2017%E6%99%82%E7%82%B9%E3%81%AE%E5%90%84%E6%89%8B%E6%B3%95/" class="">2017時点の各手法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/PNU-Learning/" class="">PNU Learning(2017年)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive-Confidential-learning2017/" class="">Positive Confidential Learning(2017)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/" class="">Positiveでラベル有り無しで分布が違う時の PU学習(2019)</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/PU-Learning%E3%81%AE%E3%82%AF%E3%83%A9%E3%82%B9%E3%81%AE%E5%AE%9F%E8%A3%85/" class="">バイアスつきPU Learningクラスの実装</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E5%AE%9F%E9%A8%93%E3%81%AE%E3%82%B3%E3%83%BC%E3%83%89%E3%81%AE%E8%A7%A3%E6%9E%90/" class="">バイアスつきPU Learningクラスの実装</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E3%83%A1%E3%82%A4%E3%83%B3%E3%82%B3%E3%83%BC%E3%83%89/" class="">メインコード</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/PU-Learning/" class="">PU Learning(2007年)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/%E5%88%86%E5%B8%83%E4%BB%AE%E5%AE%9A%E4%B8%8D%E8%A6%81PU-Learning2014/" class="">PU LearningでなんでSVMのヒンジ関数は精度悪いか(2014)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/%E8%A3%9C%E3%83%A9%E3%83%99%E3%83%AB%E5%AD%A6%E7%BF%922017/" class="">補ラベル学習(2017)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>第三章その1</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#学習と予測">学習と予測</a>
+      <ul>
+        <li><a href="#予測分布">予測分布</a></li>
+        <li><a href="#共役事前分布">共役事前分布</a></li>
+      </ul>
+    </li>
+    <li><a href="#離散確率分布の学習と予測">離散確率分布の学習と予測</a></li>
+    <li><a href="#カテゴリ分布の学習と予測">カテゴリ分布の学習と予測</a></li>
+    <li><a href="#ポアソン分布の学習と予測">ポアソン分布の学習と予測</a></li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><h2 id="学習と予測">
+  学習と予測
+  <a class="anchor" href="#%e5%ad%a6%e7%bf%92%e3%81%a8%e4%ba%88%e6%b8%ac">#</a>
+</h2>
+<p>ベイズ統計では、<strong>各値は一定ではなくある分布に代表される</strong>というもの。
+なので、<strong>ベイズ統計での機械学習とは、パラメタの事前分布と、学習データを前提条件とした事後分布を求める</strong>ことに当たる。</p>
+<p>つまり、訓練データ$\mathbf{D}$を用いて、知りたい未知のパラメタ$\theta$は、</p>
+<p>$$
+p(\mathbf{D}, \theta) = p(\mathbf{D} | \theta) p(\theta)
+$$</p>
+<p>このような式となる。この$p(\mathbf{D} | \theta), p(訓練データ | 知りたいパラメタ)$は尤度関数という。逆の$p(\theta | \mathbf{D}), p(知りたいパラメタ | 訓練データ)$は事後分布。ベイズの定理によって、尤度関数から事後分布を計算できる。</p>
+<p>$$
+p(\theta | \mathbf{D}) = \frac{p(\mathbf{D} | \theta) p(\theta)}{p(\mathbf{D})}
+$$</p>
+<p><strong>この左辺を計算することが学習にあたる</strong>。</p>
+<h3 id="予測分布">
+  予測分布
+  <a class="anchor" href="#%e4%ba%88%e6%b8%ac%e5%88%86%e5%b8%83">#</a>
+</h3>
+<p>1章にもあったように、訓練済のパラメタを使って予測結果を得るのは、以下の式になる。グラフィカルモデルからも同じような形が得られる。</p>
+<p>$$
+p(x_a | \mathbf{D}) = \int p(x_a | \theta) p(\theta | \mathbf{D}) d \theta \\
+p(x_a, \theta | \mathbf{D}) = \frac{p(x_a, \theta, \mathbf{D})}{p(\mathbf{D})} = \frac{p(\mathbf{\theta}) p(x_a | \mathbf{\theta}) p(\mathbf{D} | \theta)}{p(\mathbf{D})}
+$$</p>
+<p>この枠組み、パラメタの事後分布$p(\theta | \mathbf{D})$がすべての学習データ$D$を持つことになるが、<strong>データ量に対してモデルの表現能力が変化しないという大きな制限をもってしまう</strong>。ガウス過程などのベイジアンノンパラメトリクスの手法で改善できるらしい。この本はやらない。</p>
+<h3 id="共役事前分布">
+  共役事前分布
+  <a class="anchor" href="#%e5%85%b1%e5%bd%b9%e4%ba%8b%e5%89%8d%e5%88%86%e5%b8%83">#</a>
+</h3>
+<p>事前分布$p(\theta)$と事後分布$p(\theta | \mathbf{D})$が、数学的な計算をすると<strong>全く同形になる分布のことを共役事前分布</strong>という。</p>
+<p>逆に言えば普通は同じ分布にならない。ならないので面倒な積分を解く必要があるし、厳密に計算できるとも限らない場合は常々ある。</p>
+<p>どのような事前分布が共役になるかは、尤度関数$p(\mathbf{D} | \theta)$の設計に依存する。</p>
+<p><strong>共役性があると、同じ分布のパラメタの関係式があって、それで積分せずに目的の分布の値がわかっちゃう！すごい！</strong></p>
+<p>特にデータを小分けしながら学習してアップデートする場合、一章の逐次学習の式では、</p>
+<p>$$
+p(\theta | D_n, D_{n - 1}, \cdots, D_1) \propto p(\theta | D_{n - 1}, \cdots , D_1) p(D_n | \theta)
+$$</p>
+<p>で学習できる(ただし、それぞれの小分けしたデータは互いに独立であるという前提で)。
+ここで共役事前分布を使うことで、上の逐次学習にあるすべての項は同じ形の分布なのでやりやすい。
+そうでないときは色々やり方があるが、一例としてはKLダイバージェンスを最小化するとか。ここら辺の最適化は共役勾配法とかで解くしかないね。</p>
+<h4 id="共役事前分布の表">
+  共役事前分布の表
+  <a class="anchor" href="#%e5%85%b1%e5%bd%b9%e4%ba%8b%e5%89%8d%e5%88%86%e5%b8%83%e3%81%ae%e8%a1%a8">#</a>
+</h4>
+<table>
+<thead>
+<tr>
+<th>尤度関数</th>
+<th>パラメタ</th>
+<th>共役事前分布</th>
+<th>予測分布</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ベルヌーイ分布</td>
+<td>$\mu$</td>
+<td>β分布</td>
+<td>ベルヌーイ分布</td>
+</tr>
+<tr>
+<td>二項分布</td>
+<td>$\mu$</td>
+<td>β分布</td>
+<td>β・二項分布</td>
+</tr>
+<tr>
+<td>カテゴリ分布</td>
+<td>$\mathbf{\pi}$</td>
+<td>ディリクレ分布</td>
+<td>カテゴリ分布</td>
+</tr>
+<tr>
+<td>多項分布</td>
+<td>$\mathbf{\pi}$</td>
+<td>ディリクレ分布</td>
+<td>ディリクレ・多項分布</td>
+</tr>
+<tr>
+<td>ポアソン分布</td>
+<td>$\lambda$</td>
+<td>γ分布</td>
+<td>負の二項分布</td>
+</tr>
+<tr>
+<td>1次元ガウス分布</td>
+<td>$\mu$</td>
+<td>1次元ガウス分布</td>
+<td>1次元ガウス分布</td>
+</tr>
+<tr>
+<td>1次元ガウス分布</td>
+<td>$\sigma ^ 2$</td>
+<td>γ分布</td>
+<td>1次元のstudentのt分布</td>
+</tr>
+<tr>
+<td>1次元ガウス分布</td>
+<td>$\mathbf{\mu}, \sigma ^ 2$</td>
+<td>ガウス・γ分布</td>
+<td>1次元のstudentのt分布</td>
+</tr>
+<tr>
+<td>多次元ガウス分布</td>
+<td>$\mathbf{\mu}$</td>
+<td>多次元ガウス分布</td>
+<td>多次元ガウス分布</td>
+</tr>
+<tr>
+<td>多次元ガウス分布</td>
+<td>$\mathbf{\sigma} ^ 2$</td>
+<td>ウィシャート分布</td>
+<td>多次元のstudentのt分布</td>
+</tr>
+<tr>
+<td>多次元ガウス分布</td>
+<td>$\mathbf{\mu}, \mathbf{\sigma} ^ 2$</td>
+<td>ガウス・ウィシャート分布</td>
+<td>多次元のstudentのt分布</td>
+</tr>
+</tbody>
+</table>
+<h2 id="離散確率分布の学習と予測">
+  離散確率分布の学習と予測
+  <a class="anchor" href="#%e9%9b%a2%e6%95%a3%e7%a2%ba%e7%8e%87%e5%88%86%e5%b8%83%e3%81%ae%e5%ad%a6%e7%bf%92%e3%81%a8%e4%ba%88%e6%b8%ac">#</a>
+</h2>
+<p>$$
+p(x | \mu) = \mathrm{Bern}(x | \mu) = \mu ^ x (1 - \mu) ^ {1 - x}
+$$</p>
+<p>に従い、ベルヌーイ分布を考える。</p>
+<p><strong>ベイズ統計ではパラメタは定まった値ではなく、ある分布に従って値を産むという考え</strong>。なので、<strong>パラメタ$\mu \in (0, 1)$を産む分布=共役事前分布</strong>を考える。
+ここで、
+  <a href="/#%e5%85%b1%e5%bd%b9%e4%ba%8b%e5%89%8d%e5%88%86%e5%b8%83%e3%81%ae%e8%a1%a8">表</a>によれば、ベルヌーイ分布の共役事前分布は<strong>β分布</strong>。
+よって、以下のようになる。パラメタ$a, b$は<strong>モデルの生成する値をコントロールするハイパーパラメタであり</strong>、ここではあらかじめ与えられてると考える。</p>
+<p>$$
+p(\mu) = \mathrm{Beta}(\mu | a, b) = \frac{\Gamma(a + b)}{\Gamma(a - 1) \Gamma(b - 1)} \mu ^ {a - 1} (1 - \mu) ^ {b - 1}
+$$</p>
+<p>この事前分布$p(\mu)$と訓練データ点の分布$p(x)$について、事後分布$p(\mu | x)$を計算したい。ベイズの定理により、以下が成り立ち代入する。ここで、分布の概形だけわかってあとで正規化係数を入れればいいので、概形だけに着目する。</p>
+<p>$$
+p(\mu | x) = \frac{p(x | \mu) p(\mu)}{ p(x)} \propto p(x | \mu) p(\mu) \\
+\propto \mu ^ x (1 - \mu) ^ {1 - x} \times \mu ^ {a - 1} (1 - \mu) ^ {b - 1}
+= \mu ^ {a - 1 + x} (1 - \mu) ^ {b - x}
+$$</p>
+<p>やはり、<strong>概形は事前分布のβ分布と同じ形になっている</strong>。$x = 1$の時は$a \leftarrow a + 1$で、$x = 0$の時は$b \leftarrow b + 1$となる。意味付けとしては、</p>
+<ul>
+<li>β分布の$a, b$はそれぞれ事前に$a - 1, b - 1$回コインの表と裏が出たことを意味している。</li>
+<li>ベルヌーイ試行を通して、<strong>β分布のハイパーパラメタをアップデートした形</strong>。</li>
+</ul>
+<p>なお、経験ベイズ法(Empirical Bayes)はハイパーパラメタの値をも学習によって変動させるやつ。ハイパーパラメタにも事前分布を用意するという感じ。</p>
+<p>この例では、事前分布がお互い違うとしても、やはりどんどん近づいていくということに。ただし、<strong>事前分布で0と設定されている確率密度=絶対に無いと確信している場合、いくら学習を繰り返しても事後分布ではそこは0から変わらない</strong>。</p>
+<p>次に、未観測の値$x_n \in 0, 1$に対して予測を行ってみる。今までの訓練データを$\mathbf{X}$とする。また事後分布は$\mathrm{Beta}(\mu | a, b)$に従うと学習で分かったとする。</p>
+<p>$$
+p(x_n | \mathbf{X}) = \int p(x_n | \mu) p(\mu | \mathbf{X}) d\mu
+= \frac{\Gamma(a + b)}{\Gamma(a) \Gamma(b)} \int \mu ^ {x_n} (1 - \mu) ^ {1 - x_n} \times \mu ^ {a - 1} (1 - \mu) ^ {b - 1} d\mu \\
+= \frac{\Gamma(a + b)}{\Gamma(a) \Gamma(b)} \int \mu ^ {a - 1 - x_n} (1 - \mu) ^ {b - x_n} d\mu
+$$</p>
+<p>β関数について、以下の式が成り立つことを利用して式変形をする。</p>
+<p>$$
+\int \mu ^ {a - 1} (1 - \mu) ^ {b - 1} d\mu = \frac{\Gamma(a) \Gamma(b)}{\Gamma(a + b)} \\
+\frac{\Gamma(a + b)}{\Gamma(a) \Gamma(b)} \int \mu ^ {a - 1 - x_n} (1 - \mu) ^ {b - x_n} d\mu
+= \frac{\Gamma(a + b)}{\Gamma(a) \Gamma(b)} \frac{\Gamma(a + x_n) \Gamma(b - x_n + 1)}{\Gamma(a + b + 1)} \\
+= \frac{\Gamma(a + b)}{\Gamma(a + b + 1)} \frac{ \Gamma(a + x_n) \Gamma(b - x_n + 1)}{\Gamma(a) \Gamma(b)}
+= \frac{a}{a + b} (\mathrm{if} :: x_n = 1), \frac{b}{a + b} (\mathrm{if} :: x_n = 0)
+$$</p>
+<p>このように予測分布を得られた。β分布の期待値でもある。そして、<strong>この予測分布出さえ、ベルヌーイ分布である</strong>。</p>
+<p>$$
+(\frac{a}{a + b}) ^ {x_n} (\frac{b}{a + b}) ^ {1 - x_n} = \mathrm{Bern}(x_n | \frac{a}{a + b})
+$$</p>
+<h2 id="カテゴリ分布の学習と予測">
+  カテゴリ分布の学習と予測
+  <a class="anchor" href="#%e3%82%ab%e3%83%86%e3%82%b4%e3%83%aa%e5%88%86%e5%b8%83%e3%81%ae%e5%ad%a6%e7%bf%92%e3%81%a8%e4%ba%88%e6%b8%ac">#</a>
+</h2>
+<p>先ほどは2択試行を1回だったベルヌーイ分布であったが、今回は3択以上1回の選択のカテゴリ分布を考える。パラメタ$\mathbf{\pi}$を使って、</p>
+<p>$$
+p(\mathbf{x} | \mathbf{\pi}) = \mathrm{Cat}(\mathbf{x} | \mathbf{\pi}) = \prod _{i = 1} ^ {N} \pi_i ^ {x_i} \\
+\log p(\mathbf{x} | \mathbf{\pi}) = \sum _{i = 1} ^ {N} x_i \log \pi_i
+$$
+パラメタ$\mathbf{\pi}$は、<strong>カテゴリ分布の共役事前分布であるディリクレ分布に従う</strong>。$\mathbf{\alpha}$はハイパーパラメタ。</p>
+<p>$$
+p(\mathbf{\pi}) = \mathrm{Dir} (\mathbf{\pi} | \mathbf{\alpha}) = \frac{\Gamma(\sum _{i = 1} ^ N \alpha_i)}{\prod _{i = 1} ^ N \Gamma(\alpha_i)} \prod _{i = 1} ^ {N} \pi _i ^ {\alpha _i - 1} \\
+\log p(\pi) = \sum _{i = 1} ^ N (\alpha _i - 1) \log \pi _i + \log \Gamma ( \sum _{i = 1} ^ {N} \alpha_i) - \sum _{i = 1} ^ N \Gamma(\alpha _i)
+$$</p>
+<p>累乗は扱いづらいので、ここでlogを取ったもので計算する。
+なお、概形を見るために、係数に関してはいつも通り無視しておく。</p>
+<p>$$
+\log p(\mathbf{\pi} | \mathbf{x}) \propto \log p(\mathbf{x}, \mathbf{\pi}) = \log p(\mathbf{x} | \mathbf{\pi}) p(\mathbf{\pi}) \\
+= \sum _{i = 1} ^ {N} x_i \log \pi_i + \sum _{i = 1}^{N} (\alpha_i - 1) \log \pi_i = \sum _{i = 1} ^ {N} (\alpha_i - 1 + x_i) \log \pi_i \\
+p(\mathbf{\pi} | \mathbf{x}) \propto \prod _{i = 1} ^ {N} \pi_i ^ {\alpha_i - 1 + x_i}
+$$</p>
+<p>このように事後分布も、ディリクレ分布。ハイパーパラメタは$\mathbf{\hat{\alpha}} = (\alpha_1 + x_1, \cdots, \alpha_N + x_N)$。
+これも、事前分布が学習によって事後分布となって記憶されるということになる。</p>
+<p>また、予測を考えてみる。予測は</p>
+<p>$$
+\int p(\mathbf{x} _{new} | \mathbf{\pi}) p(\mathbf{\pi}) d\pi
+= \int \mathrm{Cat}(\mathbf{x} _{new} | \mathbf{\pi}) \mathrm{Dir}(\mathbf{\pi} | \mathbf{\alpha}) d \mathbf{\pi}
+$$</p>
+<p>$$
+\propto \int \prod _{i = 1} ^ {N} \pi_i ^ {x _{new} ^ {i}} \prod _{i = 1} ^ {N} \pi _{i} ^ {\alpha_i - 1} d \mathbf{\pi}
+= \int \prod _{i = 1} ^ {N} \pi_i ^ {x _{new} ^ {i} + \alpha_i - 1} d\pi
+$$</p>
+<h2 id="ポアソン分布の学習と予測">
+  ポアソン分布の学習と予測
+  <a class="anchor" href="#%e3%83%9d%e3%82%a2%e3%82%bd%e3%83%b3%e5%88%86%e5%b8%83%e3%81%ae%e5%ad%a6%e7%bf%92%e3%81%a8%e4%ba%88%e6%b8%ac">#</a>
+</h2>
+<p>ポアソン分布の意味は、ある指定期間の間に$\lambda$回起きる、とわかっている事象が$x$回起こる確率の分布。</p>
+<p>ポアソン分布の事後分布は、</p>
+<p>$$
+p(x | \lambda) = \mathrm{Poi}(x, \lambda) = \frac{\lambda ^ x}{x!} e ^ {-\lambda}
+$$</p>
+<p>共役事前分布はγ分布であると知られている。</p>
+<p>$$
+p(\lambda) = \mathrm{Gam}(\lambda | a, b) = \frac{b ^ a}{\Gamma(a)} \lambda ^ {a - 1} e^ {-b \lambda}
+$$</p>
+<p>よって、学習すると、</p>
+<p>$$
+p(x | \lambda) p(\lambda) = \frac{b ^ a}{\Gamma(a) \Gamma(x + 1)} \lambda ^ {x + a - 1} e ^ {-(b + 1)\lambda} \\
+= \frac{b ^ a}{\Gamma(a + x + 1)} \lambda ^ {x + a - 1} e ^ {-(b + 1)\lambda}
+$$</p>
+<p>これは、パラメタが$x + a, b + 1$のγ分布となる。$b$は回数、$a$は重みみたいな感じ。</p>
+<p>予測分布の計算もしてみる。</p>
+<p>$$
+\int p(x_{new} | \lambda) p(\lambda) d \lambda
+= \int \mathrm{Poi} (x_{new} | \lambda) \mathrm{Gam}(\lambda | a, b) d \lambda \\
+= \int \frac{b ^ a}{\Gamma(a + x + 1)} \lambda ^ {x_{new} + a - 1} e ^ {-(b + 1)\lambda} d \lambda
+$$</p>
+<p>これを計算すると、負の二項分布となるらしい。
+普通の二項分布は試行の回数を固定。負の二項分布は失敗回数を固定。</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#学習と予測">学習と予測</a>
+      <ul>
+        <li><a href="#予測分布">予測分布</a></li>
+        <li><a href="#共役事前分布">共役事前分布</a></li>
+      </ul>
+    </li>
+    <li><a href="#離散確率分布の学習と予測">離散確率分布の学習と予測</a></li>
+    <li><a href="#カテゴリ分布の学習と予測">カテゴリ分布の学習と予測</a></li>
+    <li><a href="#ポアソン分布の学習と予測">ポアソン分布の学習と予測</a></li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

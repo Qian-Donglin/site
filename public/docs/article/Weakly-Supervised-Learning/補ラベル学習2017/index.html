@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Introduction # 「○○ではない」という補ラベルで学習はできないだろうか？
+既存では、
+Partial Label　いくつかのクラスの中の1つなのはわかるが、どれなのかは不明。 Multi Labels Setup　各データは1つのクラスのみならず、複数のクラスを持つ。 そしてこの補ラベル学習は、普通のラベル付けされた学習と組み合わせることもできると。
+既存のmulti-class分類についてのおさらい # 例によって定式化する。
+データは$\mathbf{x} \in \mathbb{R}^n$、labelは$y \in 1, 2, \cdots, K$。いつも通り、未知の分布$p(\mathbf{x}, y)$に従う。
+最終目的は、$f(\mathbf{x} : \mathbb{R}^d \to 1, 2, \cdots, K)$の識別器$f(\mathbf{x})$を作る事。$f(\mathbf{x})$の決定の中身は以下のように書くとする。
+$$ f(\mathbf{x}) = \argmax _{y \in 1, \cdots, K} g_y (\mathbf{x}) $$
+$g_y (\mathbf{x})$は、$\mathbf{x}$がクラス$y$であるか否かの二値分類器。(二値分類器なら、いくつかの1があったらそれらがすべてラベルってこと？連続した$[0, 1]$を出すのじゃなかったのか？by me)つまり、全てのクラスにおいて、もっともらしさを計算して一番もっともらしいものを答えとしている。
+例によって、リスク関数$R(f)$を以下のように、損失関数$l(f(\mathbf{x}), y)$で定義(二値分類ではないので、1つの引数にまとめるのはできない)。この$l(m)$は、$m$が小さいほど大きな値を取る。
+$$ R(f) = \mathbb{E} _{p(\mathbf{x}, y)} [ L(f(\mathbf{x}), y) ] $$
+損失関数 # 以下の2つの損失関数について着目する。いずれも普通の損失関数$l(m)$からの線形合成からなる。
+One Versus All Loss # $$ L _{OVA} (f(\mathbf{x}), y) = l(g_y (\mathbf{x})) &#43; \frac{1}{K - 1} \sum _{y \prime \neq y } l(- g _{y \prime} (\mathbf{x})) $$">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="補ラベル学習(2017)" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://Qian-Donglin.github.io/docs/article/Weakly-Supervised-Learning/%E8%A3%9C%E3%83%A9%E3%83%99%E3%83%AB%E5%AD%A6%E7%BF%922017/" />
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+	integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"
+	integrity="sha384-cpW21h6RZv/phavutF+AuVYrr+dA8xD9zs6FwLpaCct6O9ctzYFfFr4dgmgccOTx"
+	crossorigin="anonymous"></script>
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+	integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
+	onload="renderMathInElement(document.body);"></script>
+
+<script>
+	document.addEventListener("DOMContentLoaded", function () {
+		renderMathInElement(
+			document.body,
+			{
+				delimiters: [
+					{ left: "$$", right: "$$", display: true },
+					{ left: "\\[", right: "\\]", display: true },
+					{ left: "$", right: "$", display: false },
+					{ left: "\\(", right: "\\)", display: false }
+				]
+			});
+	});
+</script>
+
+<title>補ラベル学習(2017) | Sen(Qian)のメモ</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/%20favicon.png">
+<link rel="stylesheet" href="/book.min.f8de3645fe00591b41524aee174e19edd98a22255a2930a0cdc82a94835ba387.css" integrity="sha256-&#43;N42Rf4AWRtBUkruF04Z7dmKIiVaKTCgzcgqlINbo4c=" crossorigin="anonymous">
+<script defer src="/%20flexsearch.min.js"></script>
+<script defer src="/en.search.min.43d9e1a27caa5999a7fee1bb577c631649e74ee5e89bedb7682f0f3f87c303eb.js" integrity="sha256-Q9nhonyqWZmn/uG7V3xjFknnTuXom&#43;23aC8PP4fDA&#43;s=" crossorigin="anonymous"></script>
+
+<link rel="alternate" type="application/rss+xml" href="https://Qian-Donglin.github.io/docs/article/Weakly-Supervised-Learning/%E8%A3%9C%E3%83%A9%E3%83%99%E3%83%AB%E5%AD%A6%E7%BF%922017/index.xml" title="Sen(Qian)のメモ" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><span>Sen(Qian)のメモ</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/" class="">競プロの問題解説</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Dp</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/DP/%E6%A1%81DP/" class="">桁 Dp</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/DP/%E6%A1%81DP/Y-abc317-F/" class="">(Y-) abc317 F</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0d2a02cd744e63233ebe57612bb12952" class="toggle"  />
+    <label for="section-0d2a02cd744e63233ebe57612bb12952" class="flex justify-between">
+      <a role="button" class="">Grid</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Grid/G-abc317-E/" class="">(G&#43;) abc317 E</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Implement</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Implement/G-abc315-E/" class="">(G) Abc315 E Index</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cea18f1d04185b9a1f879558d5aeddb2" class="toggle"  />
+    <label for="section-cea18f1d04185b9a1f879558d5aeddb2" class="flex justify-between">
+      <a role="button" class="">Square Divide</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/SquareDivide/CABC293-E%E5%B9%B3%E6%96%B9%E5%88%86%E5%89%B2/" class="">(C) abc293 E(平方分割)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-52d2a0ea11310952e77a5e1d9b1ee709" class="toggle"  />
+    <label for="section-52d2a0ea11310952e77a5e1d9b1ee709" class="flex justify-between">
+      <a role="button" class="">Graph</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Graph/BrABC292-D/" class="">(Br) abc292 D</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>読んだ本</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Machine Learning</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>ベイズ推論による機械学習(緑ベイズ)</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-1/" class="">第一章</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-2/" class="">第二章</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part1/" class="">第三章その1</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part2/" class="">第三章その2</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3c22cc3dba3e6e6de0eab46bcb97d14b" class="toggle" checked />
+    <label for="section-3c22cc3dba3e6e6de0eab46bcb97d14b" class="flex justify-between">
+      <a role="button" class="">読んだ論文たちのメモ</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d64fdaa8e46f50c67b163d98fad0ddb7" class="toggle"  />
+    <label for="section-d64fdaa8e46f50c67b163d98fad0ddb7" class="flex justify-between">
+      <a role="button" class="">Graphic Design</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/graphic_design_ML/Content-aware-Generative-Modeling-of-Graphic-Design-Layouts/" class="">Content Aware Generative Modeling of Graphic Design Layouts</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/graphic_design_ML/Learning-to-Generate-Posters-of-Scientific-Papers/" class="">Learning to Generate Posters of Scientific Papers</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Order Thing</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/order_thing/Learning-to-Order-Thing/" class="">Learning to Order Thing</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-749fb68fcedaafaff7bdd8e5931b0451" class="toggle"  />
+    <label for="section-749fb68fcedaafaff7bdd8e5931b0451" class="flex justify-between">
+      <a role="button" class="">sns</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E7%82%8E%E4%B8%8A%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6/" class="">Twitterの炎上について</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E3%83%95%E3%82%A1%E3%82%AF%E3%83%88%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF%E3%81%A7%E3%81%AE%E5%BC%B1%E6%95%99%E5%B8%AB%E3%81%A4%E3%81%8D%E5%AD%A6%E7%BF%92/" class="">ファクトチェックでの弱教師つき学習</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E5%BC%B1%E6%95%99%E5%B8%AB%E5%AD%A6%E7%BF%92%E3%81%A7%E3%83%AA%E3%83%97%E3%83%A9%E3%82%A4%E3%81%8B%E3%82%89%E7%82%8E%E4%B8%8A%E5%88%86%E6%9E%90/" class="">弱教師学習でリプライから炎上分析</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-de33daac55650926621e120a75049e4a" class="toggle"  />
+    <label for="section-de33daac55650926621e120a75049e4a" class="flex justify-between">
+      <a role="button" class="">Svm</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%82%AB%E3%83%BC%E3%83%8D%E3%83%AB%E6%B3%95/" class="">カーネル法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%82%BD%E3%83%95%E3%83%88%E3%83%9E%E3%83%BC%E3%82%B8%E3%83%B3/" class="">ソフトマージン</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%83%8F%E3%83%BC%E3%83%89%E3%83%9E%E3%83%BC%E3%82%B8%E3%83%B3/" class="">ハードマージン</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0465dfafe9cdc495ea2e5d9009d8922a" class="toggle" checked />
+    <label for="section-0465dfafe9cdc495ea2e5d9009d8922a" class="flex justify-between">
+      <a role="button" class="">Weakly Supervised Learning</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/2017%E6%99%82%E7%82%B9%E3%81%AE%E5%90%84%E6%89%8B%E6%B3%95/" class="">2017時点の各手法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/PNU-Learning/" class="">PNU Learning(2017年)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive-Confidential-learning2017/" class="">Positive Confidential Learning(2017)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/" class="">Positiveでラベル有り無しで分布が違う時の PU学習(2019)</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/PU-Learning%E3%81%AE%E3%82%AF%E3%83%A9%E3%82%B9%E3%81%AE%E5%AE%9F%E8%A3%85/" class="">バイアスつきPU Learningクラスの実装</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E5%AE%9F%E9%A8%93%E3%81%AE%E3%82%B3%E3%83%BC%E3%83%89%E3%81%AE%E8%A7%A3%E6%9E%90/" class="">バイアスつきPU Learningクラスの実装</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E3%83%A1%E3%82%A4%E3%83%B3%E3%82%B3%E3%83%BC%E3%83%89/" class="">メインコード</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/PU-Learning/" class="">PU Learning(2007年)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/%E5%88%86%E5%B8%83%E4%BB%AE%E5%AE%9A%E4%B8%8D%E8%A6%81PU-Learning2014/" class="">PU LearningでなんでSVMのヒンジ関数は精度悪いか(2014)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/%E8%A3%9C%E3%83%A9%E3%83%99%E3%83%AB%E5%AD%A6%E7%BF%922017/" class="active">補ラベル学習(2017)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>補ラベル学習(2017)</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#損失関数">損失関数</a>
+      <ul>
+        <li><a href="#one-versus-all-loss">One Versus All Loss</a></li>
+        <li><a href="#pairwise-comparison">Pairwise Comparison</a></li>
+      </ul>
+    </li>
+  </ul>
+
+  <ul>
+    <li><a href="#リスク関数の表示">リスク関数の表示</a>
+      <ul>
+        <li><a href="#変形">変形</a></li>
+        <li><a href="#実際の使われ方">実際の使われ方</a></li>
+        <li><a href="#損失関数の実際の使われ方">損失関数の実際の使われ方</a></li>
+      </ul>
+    </li>
+    <li><a href="#点対称lz--l-z">点対称$l(z) + l(-z)$</a></li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><h1 id="introduction">
+  Introduction
+  <a class="anchor" href="#introduction">#</a>
+</h1>
+<p><strong>「○○ではない」という補ラベル</strong>で学習はできないだろうか？</p>
+<p>既存では、</p>
+<ul>
+<li>Partial Label　　いくつかのクラスの中の1つなのはわかるが、どれなのかは不明。</li>
+<li>Multi Labels Setup　　各データは1つのクラスのみならず、複数のクラスを持つ。</li>
+</ul>
+<p>そしてこの補ラベル学習は、<strong>普通のラベル付けされた学習と組み合わせることもできる</strong>と。</p>
+<h1 id="既存のmulti-class分類についてのおさらい">
+  既存のmulti-class分類についてのおさらい
+  <a class="anchor" href="#%e6%97%a2%e5%ad%98%e3%81%aemulti-class%e5%88%86%e9%a1%9e%e3%81%ab%e3%81%a4%e3%81%84%e3%81%a6%e3%81%ae%e3%81%8a%e3%81%95%e3%82%89%e3%81%84">#</a>
+</h1>
+<p>例によって定式化する。</p>
+<p>データは$\mathbf{x} \in \mathbb{R}^n$、labelは$y \in 1, 2, \cdots, K$。いつも通り、未知の分布$p(\mathbf{x}, y)$に従う。</p>
+<p>最終目的は、$f(\mathbf{x} : \mathbb{R}^d \to 1, 2, \cdots, K)$の識別器$f(\mathbf{x})$を作る事。$f(\mathbf{x})$の決定の中身は以下のように書くとする。</p>
+<p>$$
+f(\mathbf{x}) = \argmax _{y \in 1, \cdots, K} g_y (\mathbf{x})
+$$</p>
+<p>$g_y (\mathbf{x})$は、$\mathbf{x}$がクラス$y$であるか否かの二値分類器。(二値分類器なら、いくつかの1があったらそれらがすべてラベルってこと？連続した$[0, 1]$を出すのじゃなかったのか？by me)つまり、<strong>全てのクラスにおいて、もっともらしさを計算して一番もっともらしいものを答え</strong>としている。</p>
+<p>例によって、リスク関数$R(f)$を以下のように、損失関数$l(f(\mathbf{x}), y)$で定義(二値分類ではないので、1つの引数にまとめるのはできない)。この$l(m)$は、$m$が小さいほど大きな値を取る。</p>
+<p>$$
+R(f) = \mathbb{E} _{p(\mathbf{x}, y)} [ L(f(\mathbf{x}), y) ]
+$$</p>
+<h2 id="損失関数">
+  損失関数
+  <a class="anchor" href="#%e6%90%8d%e5%a4%b1%e9%96%a2%e6%95%b0">#</a>
+</h2>
+<p>以下の2つの損失関数について着目する。いずれも<strong>普通の損失関数$l(m)$からの線形合成からなる</strong>。</p>
+<h3 id="one-versus-all-loss">
+  One Versus All Loss
+  <a class="anchor" href="#one-versus-all-loss">#</a>
+</h3>
+<p>$$
+L _{OVA} (f(\mathbf{x}), y) = l(g_y (\mathbf{x})) + \frac{1}{K - 1} \sum _{y \prime \neq y } l(- g _{y \prime} (\mathbf{x}))
+$$</p>
+<p>いかに自信満々にクラス$y$であれはあるほど、このロスは小さくなる。逆に、その決定したクラスと他のクラスとの差があまりない場合、2つ目の項でそれなりに損失関数が大きくなってしまう。</p>
+<h3 id="pairwise-comparison">
+  Pairwise Comparison
+  <a class="anchor" href="#pairwise-comparison">#</a>
+</h3>
+<p>$$
+L _{PC} (f(\mathbf{x}), y) = \sum _{y \prime \neq y} l(g_y (\mathbf{x}) - g _{y \prime} (\mathbf{x}))
+$$</p>
+<p>上と同じように自信満々にクラス決定できれば強い。このロスの場合、<code>0.2, 0.1, 0,1, 0,1, 0.1, 0.1, 0.1, 0.1, 0.1</code>のような分布だと、上の方法より良く出る。</p>
+<h1 id="どうやって補ラベルからやるのか">
+  どうやって補ラベルからやるのか？
+  <a class="anchor" href="#%e3%81%a9%e3%81%86%e3%82%84%e3%81%a3%e3%81%a6%e8%a3%9c%e3%83%a9%e3%83%99%e3%83%ab%e3%81%8b%e3%82%89%e3%82%84%e3%82%8b%e3%81%ae%e3%81%8b">#</a>
+</h1>
+<p>まずは普通の分類とは別に、**補ラベル(〇〇ではない！)**だけで分類器をどう作るかを書く。</p>
+<p>$\bar{p}(\mathbf{x}, \bar{y})$が以下の分布に従ってるとする。定義からしたら、それはそうなんだけど。</p>
+<p>$$
+\bar{p}(\mathbf{x}, \bar{y}) = \frac{1}{K - 1} \sum _{y \neq \bar{y}} p(\mathbf{x}, y)
+$$</p>
+<p>つまり、<strong>○○以外のすべてのラベルに対しての確率の平均</strong>。</p>
+<h2 id="リスク関数の表示">
+  リスク関数の表示
+  <a class="anchor" href="#%e3%83%aa%e3%82%b9%e3%82%af%e9%96%a2%e6%95%b0%e3%81%ae%e8%a1%a8%e7%a4%ba">#</a>
+</h2>
+<p>補ラベルに対して、損失関数$\bar{L}(f(\mathbf{x}), y)$を考える。これが意味のするものは、<strong>予測結果$f(\mathbf{x})$と、補ラベル=$y$じゃない、との相違度</strong>。</p>
+<p>こんなに風に表せる。</p>
+<p>$$
+R(f) = (K - 1) \mathbb{E} _{\bar{p} (\mathbf{x}, \bar{y})} [\bar{L} (f(\mathbf{x}), \bar{y})] - M_1 + M_2
+$$</p>
+<p>$M1, M2$の増減はあれど、$K-1$倍された、補ラベル$\bar{p}(\mathbf{x}, \bar{y})$全体においての、損失関数の期待値。</p>
+<p>$$
+M_1 = \sum _{\bar{y} = 1}^{K} \bar{L}(f(\mathbf{x}), \bar{y})
+$$</p>
+<p>$M_1$は、<strong>すべてのありえる補ラベルに対して、予測結果との損失関数$\bar{L}$の和</strong>である。</p>
+<p>$$
+M_2 = \bar{L}(f(\mathbf{x}), y) + L(f(\mathbf{x}), y)
+$$</p>
+<p>$M_2$は、普通の損失関数と、補ラベルの損失関数の和、みたいな。和が定数という仮定に従うなら、<strong>$\mathbf{x}$がクラス$y$に属してる可能性が高ければ高いほど、$\mathbf{x}$がクラス$y$に属してない可能性が低い</strong>。</p>
+<p><strong>ここで、$M_1, M_2$は定数であると仮定する。実際はそうじゃない場合も多々あるが、ここで考えて評価するには仮定する</strong>！</p>
+<h3 id="変形">
+  変形
+  <a class="anchor" href="#%e5%a4%89%e5%bd%a2">#</a>
+</h3>
+<p>$$
+(K - 1) \mathbb{E} _{\bar{p} (\mathbf{x}, \bar{y})} [\bar{L} (f(\mathbf{x}), \bar{y})] = (K - 1) \int \sum _{\bar{y} = 1} ^ {K} \bar{L} (f(\mathbf{x}), \bar{y}) p(\mathbf{x}, \bar{y}) d\mathbf{x}
+$$</p>
+<p>前に定義した、$\bar{p}(\mathbf{x}, \bar{y})$を代入する。</p>
+<p>$$
+= (K - 1) \int \sum _{\bar{y} = 1} ^ {K} \bar{L} (f(\mathbf{x}), \bar{y}) (\frac{1}{K - 1} \sum _{y \neq \bar{y}} p(\mathbf{x}, y)) d\mathbf{x}
+$$</p>
+<p>ここで、Σの2つの順番を、次のようにしてもいい。<strong>全体をイテレーションしてることには変わりがないからだ</strong>。</p>
+<p>$$
+= \int \sum _{y = 1} ^ {K} \sum _{\bar{y} \neq y} \bar{L} (f(\mathbf{x}), \bar{y}) p(\mathbf{x}, y) d\mathbf{x}
+$$</p>
+<p>よく見ると$p(\mathbf{x}, y)$についての期待値のかたちである。</p>
+<p>$$
+= \mathbb{E} _{p(\mathbf{x}, y)} [ \sum _{\bar{y} \neq y} \bar{L} (f(\mathbf{x}), \bar{y}) ] = \mathbb{E} _{p(\mathbf{x}, y)} [ M_1 - \bar{L}(f(\mathbf{x}), y) ]
+$$</p>
+<p>$M_1$には$\mathbf{x}$が入ってるけど、定数と仮定するので、</p>
+<p>$$
+= M_1 - \mathbb{E} _{p(\mathbf{x}, y)} [\bar{L}(f(\mathbf{x}), y) ]
+$$</p>
+<p>そして、ここで、</p>
+<p>$$
+(K - 1) \mathbb{E} _{\bar{p}(\mathbf{x}, \bar{y})} [ \bar{L}(f(\mathbf{x}), \bar{y}) ] - \mathbb{E} _{\bar{p}(\mathbf{x}, \bar{y})}[L(f(\mathbf{x}), y)]
+$$</p>
+<p>次に、突然だが、引いてみる。</p>
+<p>$$
+= M_1 - \mathbb{E} _{p(\mathbf{x}, y)} [ \bar{L}(f(\mathbf{x}), y) + L(f(\mathbf{x}), y)] = M_1 - \mathbb{E} _{p(\mathbf{x}, y)} [ M_2 ] = M_1 - M_2
+$$</p>
+<p>ここで、$R(f) = \mathbb{E} _{p(\mathbf{x}, y)} [ L(f(\mathbf{x}), y) ]$であることから、</p>
+<p>$$
+R(f) = \mathbb{E} _{p(\mathbf{x}, y)} [ L(f(\mathbf{x}), y) ] = M_2 - \mathbb{E} _{p(\mathbf{x}, y)} [ \bar{L}(f(\mathbf{x}), y) ]
+$$</p>
+<p>$$
+= M_2 - (M_1 - (K - 1) \mathbb{E} _{\bar{p} (\mathbf{x}, \bar{y})} [\bar{L} (f(\mathbf{x}), \bar{y})])
+$$</p>
+<p>このように、式変形できるのだ。</p>
+<h3 id="実際の使われ方">
+  実際の使われ方
+  <a class="anchor" href="#%e5%ae%9f%e9%9a%9b%e3%81%ae%e4%bd%bf%e3%82%8f%e3%82%8c%e6%96%b9">#</a>
+</h3>
+<p>$$
+R(f) = (K - 1) \mathbb{E} _{\bar{p} (\mathbf{x}, \bar{y})} [\bar{L} (f(\mathbf{x}), \bar{y})] - M_1 + M_2
+$$</p>
+<p>実際にはこの式を経験的な値で代用をするしかない。</p>
+<p>$$
+\hat{R}(f) = (K - 1)\frac{1}{N} \bar{L} \sum _{i = 1} ^ N (f(\mathbf{x} _i), \bar{y_i})
+$$</p>
+<h3 id="損失関数の実際の使われ方">
+  損失関数の実際の使われ方
+  <a class="anchor" href="#%e6%90%8d%e5%a4%b1%e9%96%a2%e6%95%b0%e3%81%ae%e5%ae%9f%e9%9a%9b%e3%81%ae%e4%bd%bf%e3%82%8f%e3%82%8c%e6%96%b9">#</a>
+</h3>
+<p>先ほど定義したOVA損失とPC損失を、経験損失で書き直してみる。<strong>補ラベルなので、$l(m)$の符号は逆である</strong>。</p>
+<p>$$
+\bar{L}_{OVA} (f(\mathbf{x}), \bar{y})= \frac{1}{N - 1} \sum _{y \neq \bar{y}} l(g _{y} (\mathbf{x}_i)) + l( -g _{\bar{y}} (\mathbf{x_i}))
+$$</p>
+<p>$$
+\bar{L}_{PC} (f(\mathbf{x}), y) = \sum _{y \neq \bar{y}} l(g _{y}(\mathbf{x}_i) - g _{\bar{y}}(\mathbf{x}_i))
+$$</p>
+<p>あれ、PCのlの中身の符号はお互い逆では？？？ようわからんのだ。</p>
+<h2 id="点対称lz--l-z">
+  点対称$l(z) + l(-z)$
+  <a class="anchor" href="#%e7%82%b9%e5%af%be%e7%a7%b0lz--l-z">#</a>
+</h2>
+<p>もし、$l(z) + l(-z) = 1$と点対称ならば、</p>
+<p>$$
+\bar{L} _{OVA} (f(\mathbf{x}), \bar{y})= \frac{1}{N - 1} \sum _{y \neq \bar{y}} l(g _{y} (\mathbf{x}_i)) + l( -g _{\bar{y}} (\mathbf{x_i})) = 1
+$$</p>
+<p>この時定数の$M_1 = N, M_2 = 2$</p>
+<p>$$
+\bar{L}_{PC} (f(\mathbf{x}), y) = \sum _{y \neq \bar{y}} l(g _{y}(\mathbf{x}_i) - g _{\bar{y}}(\mathbf{x}_i))
+$$</p>
+<p>この場合は求まらないが、$M_1 = \frac{K (K - 1)}{2}$であり、$M_2 = K - 1$となる。</p>
+<p>$l(z) + l(-z) = 1$となる関数はシグモイド関数、ランプ損失、01損失などがある。シグモイドとランプは識別器の訓練に、0-1はハイパーパラメタの訓練に使われる。</p>
+<h1 id="リスク関数の抑え方">
+  リスク関数の抑え方
+  <a class="anchor" href="#%e3%83%aa%e3%82%b9%e3%82%af%e9%96%a2%e6%95%b0%e3%81%ae%e6%8a%91%e3%81%88%e6%96%b9">#</a>
+</h1>
+<p>ここはスキップで&hellip;</p>
+<h1 id="通常のラベル付けと補ラベルの融合">
+  通常のラベル付けと補ラベルの融合
+  <a class="anchor" href="#%e9%80%9a%e5%b8%b8%e3%81%ae%e3%83%a9%e3%83%99%e3%83%ab%e4%bb%98%e3%81%91%e3%81%a8%e8%a3%9c%e3%83%a9%e3%83%99%e3%83%ab%e3%81%ae%e8%9e%8d%e5%90%88">#</a>
+</h1>
+<p>通常のラベル付けのリスク関数は</p>
+<p>$$
+\mathbb{E} _{p(\mathbf{x}, y)} [ L(f(\mathbf{x}), y) ]
+$$</p>
+<p>なので、組み合わせるだけならば、以下の関数の最適化を考えればよい。以下の関数は融合できてると言える。$\alpha$は0から1の間の定数。</p>
+<p>$$
+\hat{R} (f) = \alpha \frac{1}{N_1} \sum _{i = 1} ^ {N_1} L(f(\mathbf{x}_i), y_i) + (1 - \alpha) (K - 1)\frac{1}{N_2} \bar{L} \sum _{i = 1} ^ {N_2} (f(\mathbf{x} _i), \bar{y_i})
+$$</p>
+<p>これの最小化という最適化問題に落ち着く。</p>
+<h1 id="実験結果">
+  実験結果
+  <a class="anchor" href="#%e5%ae%9f%e9%a8%93%e7%b5%90%e6%9e%9c">#</a>
+</h1>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#損失関数">損失関数</a>
+      <ul>
+        <li><a href="#one-versus-all-loss">One Versus All Loss</a></li>
+        <li><a href="#pairwise-comparison">Pairwise Comparison</a></li>
+      </ul>
+    </li>
+  </ul>
+
+  <ul>
+    <li><a href="#リスク関数の表示">リスク関数の表示</a>
+      <ul>
+        <li><a href="#変形">変形</a></li>
+        <li><a href="#実際の使われ方">実際の使われ方</a></li>
+        <li><a href="#損失関数の実際の使われ方">損失関数の実際の使われ方</a></li>
+      </ul>
+    </li>
+    <li><a href="#点対称lz--l-z">点対称$l(z) + l(-z)$</a></li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

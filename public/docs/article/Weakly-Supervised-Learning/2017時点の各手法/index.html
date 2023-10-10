@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="元論文
+Introduction # Weakly Supervised Learningでは3つの分野がある。
+Incomplete Supervision　学習データの一部にだけラベルがあって、他にない。これ、Semi Supervised Learningでは？？？ 大量の写真は集められるけど、アノテーションのコストもあって、一部しかアノテーションできないやつ。 Inexact Supervision　ラベル付けの粒度が荒く、細かい粒度のラベル付けはできない。 画像内の各オブジェクトについて、 Inaccurate Supervision　アノテーションにに一部間違いを混入されている 実際、これらは並列して起こることもよくある。簡単のため、この記事では二値分類を考える。
+Incomplete Supervision # 学習データの一部にだけラベルがあって、他にない問題。これ、Semi Incomplete Supervisionと混同してないか？
+定式化すると、$f : X \to Y$の学習器で、データセットが$D$であり、(l&#43;1のindexは間違えて表記してるが、l&#43;1番目であるという意味)
+$$ D = {(\mathbf{x}_1, y_1), (\mathbf{x}_2, y_2), \cdots, (\mathbf{x}_l, y_l), \mathbf{x}_l&#43;1, \cdots, \mathbf{x}_m} $$
+つまり、$l$個のアノテーション済と、$m - l$個のラベルなしがある状態。
+これを解決するテクは2つ。違いは下図。
+Active Learning # 専門家(人間)が、ラベル付けされてないうち、重要なデータ=(これがわかれば性能上がるぞ～～～のデータ)のみにラベルをつけて学習データにいれていく。
+どういうものがいいかは、 このスライドが参考になる。以下が基準の例。 情報量(不確かさ)をいかに減らせるか Uncertainty Sampling, Query-by-Committee 欠点は、不安定なことと、Queryを出すべきものを選ぶのが難しいところ。情報量の計算は大変なんよ。 入力パターンをいかにうまく減らせるか clustering methodでclusterを作ってそこから推測ってね。欠点は、Clusteringの結果に全依存しちゃうこと。 上の2つのハイブリッドもある。 コストは、OracleにQueryを出す回数そのものなので、これをいかに減らせるか。 データをうまく分類する仮説が存在してるなら、指数のオーダーで改善されていくという結果もある(元の13，14参考)。そういう仮説がないなら、active learningの下限はpassive learningの上限と一致するらしい。あまり役に立たないというのを示してるらしい。
+なお、困難なケースでも、Active Learningは繊細な設計に役に立つらしい。">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="2017時点の各手法" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://Qian-Donglin.github.io/docs/article/Weakly-Supervised-Learning/2017%E6%99%82%E7%82%B9%E3%81%AE%E5%90%84%E6%89%8B%E6%B3%95/" />
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+	integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"
+	integrity="sha384-cpW21h6RZv/phavutF+AuVYrr+dA8xD9zs6FwLpaCct6O9ctzYFfFr4dgmgccOTx"
+	crossorigin="anonymous"></script>
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+	integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
+	onload="renderMathInElement(document.body);"></script>
+
+<script>
+	document.addEventListener("DOMContentLoaded", function () {
+		renderMathInElement(
+			document.body,
+			{
+				delimiters: [
+					{ left: "$$", right: "$$", display: true },
+					{ left: "\\[", right: "\\]", display: true },
+					{ left: "$", right: "$", display: false },
+					{ left: "\\(", right: "\\)", display: false }
+				]
+			});
+	});
+</script>
+
+<title>2017時点の各手法 | Sen(Qian)のメモ</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/%20favicon.png">
+<link rel="stylesheet" href="/book.min.f8de3645fe00591b41524aee174e19edd98a22255a2930a0cdc82a94835ba387.css" integrity="sha256-&#43;N42Rf4AWRtBUkruF04Z7dmKIiVaKTCgzcgqlINbo4c=" crossorigin="anonymous">
+<script defer src="/%20flexsearch.min.js"></script>
+<script defer src="/en.search.min.43d9e1a27caa5999a7fee1bb577c631649e74ee5e89bedb7682f0f3f87c303eb.js" integrity="sha256-Q9nhonyqWZmn/uG7V3xjFknnTuXom&#43;23aC8PP4fDA&#43;s=" crossorigin="anonymous"></script>
+
+<link rel="alternate" type="application/rss+xml" href="https://Qian-Donglin.github.io/docs/article/Weakly-Supervised-Learning/2017%E6%99%82%E7%82%B9%E3%81%AE%E5%90%84%E6%89%8B%E6%B3%95/index.xml" title="Sen(Qian)のメモ" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><span>Sen(Qian)のメモ</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/" class="">競プロの問題解説</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Dp</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/DP/%E6%A1%81DP/" class="">桁 Dp</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/DP/%E6%A1%81DP/Y-abc317-F/" class="">(Y-) abc317 F</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0d2a02cd744e63233ebe57612bb12952" class="toggle"  />
+    <label for="section-0d2a02cd744e63233ebe57612bb12952" class="flex justify-between">
+      <a role="button" class="">Grid</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Grid/G-abc317-E/" class="">(G&#43;) abc317 E</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Implement</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Implement/G-abc315-E/" class="">(G) Abc315 E Index</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cea18f1d04185b9a1f879558d5aeddb2" class="toggle"  />
+    <label for="section-cea18f1d04185b9a1f879558d5aeddb2" class="flex justify-between">
+      <a role="button" class="">Square Divide</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/SquareDivide/CABC293-E%E5%B9%B3%E6%96%B9%E5%88%86%E5%89%B2/" class="">(C) abc293 E(平方分割)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-52d2a0ea11310952e77a5e1d9b1ee709" class="toggle"  />
+    <label for="section-52d2a0ea11310952e77a5e1d9b1ee709" class="flex justify-between">
+      <a role="button" class="">Graph</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/editorial/Graph/BrABC292-D/" class="">(Br) abc292 D</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>読んだ本</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Machine Learning</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>ベイズ推論による機械学習(緑ベイズ)</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-1/" class="">第一章</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-2/" class="">第二章</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part1/" class="">第三章その1</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/read_book/Machine-Learning/%E3%83%99%E3%82%A4%E3%82%BA%E6%8E%A8%E8%AB%96%E3%81%AB%E3%82%88%E3%82%8B%E6%A9%9F%E6%A2%B0%E5%AD%A6%E7%BF%92%E7%B7%91%E3%83%99%E3%82%A4%E3%82%BA/section-3-part2/" class="">第三章その2</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3c22cc3dba3e6e6de0eab46bcb97d14b" class="toggle" checked />
+    <label for="section-3c22cc3dba3e6e6de0eab46bcb97d14b" class="flex justify-between">
+      <a role="button" class="">読んだ論文たちのメモ</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-d64fdaa8e46f50c67b163d98fad0ddb7" class="toggle"  />
+    <label for="section-d64fdaa8e46f50c67b163d98fad0ddb7" class="flex justify-between">
+      <a role="button" class="">Graphic Design</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/graphic_design_ML/Content-aware-Generative-Modeling-of-Graphic-Design-Layouts/" class="">Content Aware Generative Modeling of Graphic Design Layouts</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/graphic_design_ML/Learning-to-Generate-Posters-of-Scientific-Papers/" class="">Learning to Generate Posters of Scientific Papers</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Order Thing</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/order_thing/Learning-to-Order-Thing/" class="">Learning to Order Thing</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-749fb68fcedaafaff7bdd8e5931b0451" class="toggle"  />
+    <label for="section-749fb68fcedaafaff7bdd8e5931b0451" class="flex justify-between">
+      <a role="button" class="">sns</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E7%82%8E%E4%B8%8A%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6/" class="">Twitterの炎上について</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E3%83%95%E3%82%A1%E3%82%AF%E3%83%88%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF%E3%81%A7%E3%81%AE%E5%BC%B1%E6%95%99%E5%B8%AB%E3%81%A4%E3%81%8D%E5%AD%A6%E7%BF%92/" class="">ファクトチェックでの弱教師つき学習</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/sns/%E5%BC%B1%E6%95%99%E5%B8%AB%E5%AD%A6%E7%BF%92%E3%81%A7%E3%83%AA%E3%83%97%E3%83%A9%E3%82%A4%E3%81%8B%E3%82%89%E7%82%8E%E4%B8%8A%E5%88%86%E6%9E%90/" class="">弱教師学習でリプライから炎上分析</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-de33daac55650926621e120a75049e4a" class="toggle"  />
+    <label for="section-de33daac55650926621e120a75049e4a" class="flex justify-between">
+      <a role="button" class="">Svm</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%82%AB%E3%83%BC%E3%83%8D%E3%83%AB%E6%B3%95/" class="">カーネル法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%82%BD%E3%83%95%E3%83%88%E3%83%9E%E3%83%BC%E3%82%B8%E3%83%B3/" class="">ソフトマージン</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/SVM/%E3%83%8F%E3%83%BC%E3%83%89%E3%83%9E%E3%83%BC%E3%82%B8%E3%83%B3/" class="">ハードマージン</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-0465dfafe9cdc495ea2e5d9009d8922a" class="toggle" checked />
+    <label for="section-0465dfafe9cdc495ea2e5d9009d8922a" class="flex justify-between">
+      <a role="button" class="">Weakly Supervised Learning</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/2017%E6%99%82%E7%82%B9%E3%81%AE%E5%90%84%E6%89%8B%E6%B3%95/" class="active">2017時点の各手法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/PNU-Learning/" class="">PNU Learning(2017年)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive-Confidential-learning2017/" class="">Positive Confidential Learning(2017)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/" class="">Positiveでラベル有り無しで分布が違う時の PU学習(2019)</a>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/PU-Learning%E3%81%AE%E3%82%AF%E3%83%A9%E3%82%B9%E3%81%AE%E5%AE%9F%E8%A3%85/" class="">バイアスつきPU Learningクラスの実装</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E5%AE%9F%E9%A8%93%E3%81%AE%E3%82%B3%E3%83%BC%E3%83%89%E3%81%AE%E8%A7%A3%E6%9E%90/" class="">バイアスつきPU Learningクラスの実装</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/Positive%E3%81%A7%E3%83%A9%E3%83%99%E3%83%AB%E6%9C%89%E3%82%8A%E7%84%A1%E3%81%97%E3%81%A7%E5%88%86%E5%B8%83%E3%81%8C%E9%81%95%E3%81%86%E6%99%82%E3%81%AEPU%E5%AD%A6%E7%BF%922019/%E3%83%A1%E3%82%A4%E3%83%B3%E3%82%B3%E3%83%BC%E3%83%89/" class="">メインコード</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/PU-Learning/" class="">PU Learning(2007年)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/%E5%88%86%E5%B8%83%E4%BB%AE%E5%AE%9A%E4%B8%8D%E8%A6%81PU-Learning2014/" class="">PU LearningでなんでSVMのヒンジ関数は精度悪いか(2014)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/article/Weakly-Supervised-Learning/%E8%A3%9C%E3%83%A9%E3%83%99%E3%83%AB%E5%AD%A6%E7%BF%922017/" class="">補ラベル学習(2017)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>2017時点の各手法</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#active-learning">Active Learning</a></li>
+    <li><a href="#semi-supervised-learning">Semi-Supervised Learning</a></li>
+    <li><a href="#人の手が介在するやり方">人の手が介在するやり方</a>
+      <ul>
+        <li><a href="#generative-method">Generative Method</a></li>
+        <li><a href="#graph-based-method">Graph-based Method</a></li>
+      </ul>
+    </li>
+    <li><a href="#low-density-separation-method">Low-density Separation Method</a>
+      <ul>
+        <li><a href="#disagreement-based-method">Disagreement-based Method</a></li>
+      </ul>
+    </li>
+    <li><a href="#落とし穴">落とし穴</a></li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><p>
+  <a href="https://academic.oup.com/nsr/article/5/1/44/4093912">元論文</a></p>
+<h1 id="introduction">
+  Introduction
+  <a class="anchor" href="#introduction">#</a>
+</h1>
+<p>Weakly Supervised Learningでは3つの分野がある。</p>
+<ul>
+<li>Incomplete Supervision　　<strong>学習データの一部にだけラベルがあって、他にない</strong>。これ、Semi Supervised Learningでは？？？
+<ul>
+<li>大量の写真は集められるけど、アノテーションのコストもあって、一部しかアノテーションできないやつ。</li>
+</ul>
+</li>
+<li>Inexact Supervision　　<strong>ラベル付けの粒度が荒く、細かい粒度のラベル付けはできない</strong>。
+<ul>
+<li>画像内の各オブジェクトについて、</li>
+</ul>
+</li>
+<li>Inaccurate Supervision　　<strong>アノテーションにに一部間違いを混入されている</strong></li>
+</ul>
+<p>実際、これらは並列して起こることもよくある。簡単のため、この記事では二値分類を考える。</p>
+<h1 id="incomplete-supervision">
+  Incomplete Supervision
+  <a class="anchor" href="#incomplete-supervision">#</a>
+</h1>
+<p><strong>学習データの一部にだけラベルがあって、他にない</strong>問題。これ、Semi Incomplete Supervisionと混同してないか？</p>
+<p>定式化すると、$f : X \to Y$の学習器で、データセットが$D$であり、(l+1のindexは間違えて表記してるが、l+1番目であるという意味)</p>
+<p>$$
+D = {(\mathbf{x}_1, y_1), (\mathbf{x}_2, y_2), \cdots, (\mathbf{x}_l, y_l), \mathbf{x}_l+1, \cdots, \mathbf{x}_m}
+$$</p>
+<p>つまり、$l$個のアノテーション済と、$m - l$個のラベルなしがある状態。</p>
+<p>これを解決するテクは2つ。違いは下図。</p>
+<p>
+  <img src="%e5%8d%8a%e6%95%99%e5%b8%ab%e3%81%a8%e3%82%a2%e3%82%af%e3%83%86%e3%82%a3%e3%83%96.jpeg" alt="" /></p>
+<h2 id="active-learning">
+  Active Learning
+  <a class="anchor" href="#active-learning">#</a>
+</h2>
+<p>専門家(人間)が、<strong>ラベル付けされてないうち、重要なデータ=(これがわかれば性能上がるぞ～～～のデータ)のみにラベルをつけて学習データにいれていく</strong>。</p>
+<ul>
+<li>どういうものがいいかは、
+  <a href="https://www.slideshare.net/shuyo/introduction-to-active-learning-25787487">このスライド</a>が参考になる。以下が基準の例。
+<ul>
+<li>情報量(不確かさ)をいかに減らせるか
+<ul>
+<li>Uncertainty Sampling, Query-by-Committee</li>
+<li>欠点は、<strong>不安定なことと、Queryを出すべきものを選ぶのが難しい</strong>ところ。情報量の計算は大変なんよ。</li>
+</ul>
+</li>
+<li>入力パターンをいかにうまく減らせるか</li>
+<li>clustering methodでclusterを作ってそこから推測ってね。<strong>欠点は、Clusteringの結果に全依存しちゃう</strong>こと。</li>
+</ul>
+</li>
+<li>上の2つのハイブリッドもある。</li>
+<li>コストは、OracleにQueryを出す回数そのものなので、これをいかに減らせるか。</li>
+</ul>
+<p>データをうまく分類する仮説が存在してるなら、指数のオーダーで改善されていくという結果もある(元の13，14参考)。そういう仮説がないなら、active learningの下限はpassive learningの上限と一致するらしい。あまり役に立たないというのを示してるらしい。</p>
+<p>なお、困難なケースでも、<strong>Active Learningは繊細な設計に役に立つ</strong>らしい。</p>
+<h2 id="semi-supervised-learning">
+  Semi-Supervised Learning
+  <a class="anchor" href="#semi-supervised-learning">#</a>
+</h2>
+<p><strong>少ないデータでまず分類器を学習</strong>させる。その分類器で<strong>高い確信度の結果を正しい結果と判定し、自動的にラベル付けをして、本番の学習データとして使っていく</strong>。</p>
+<ul>
+<li>微妙だと判断されたやつはつかわなければよし。</li>
+<li>人間が介在しない。全自動化されてる。</li>
+<li>一種として、transductive learningというのがある。
+<ul>
+<li>Bootstrapのように、今ある訓練データで学習器作って、ラベルなしのなかで確信度高いものにラベルをつける。→それを訓練データとして取り込んでもう1回学習器をつくる。という流れを何回も回す。</li>
+</ul>
+</li>
+</ul>
+<p>
+  <a href="https://qiita.com/cvusk/items/f411dadd0e464b7d5471">このサイト</a>を参考にした。</p>
+<h2 id="人の手が介在するやり方">
+  人の手が介在するやり方
+  <a class="anchor" href="#%e4%ba%ba%e3%81%ae%e6%89%8b%e3%81%8c%e4%bb%8b%e5%9c%a8%e3%81%99%e3%82%8b%e3%82%84%e3%82%8a%e6%96%b9">#</a>
+</h2>
+<p>データが$n$クラスを代表する$n$個の混合ガウス分布が、それぞれ$a_i$の確率を持っているとする。</p>
+<p>$$
+f(\mathbf{x} | \mathbf{\theta}) = \sum \limits _{j = 1}^{n} a_j f(\mathbf{x}, \theta_j)
+$$</p>
+<p>そして、我々は特徴量をのベクトル$\mathbf{x}_i$と、仮定した混合ガウスモデルの$g_i$から、最終的な予測ラベル$y_i$を得たい。</p>
+<p>$$
+h(\mathbf{x}_i) = \argmax \limits _{c \in {Y, N}} \sum \limits _{j = 1}^{n} P(y_i = c | g_i = j, \mathbf{x}_i) P(g_i | \mathbf{x}_i)
+$$</p>
+<p>$$
+P(g_i = j | {\mathbf{x}}_i ) = \frac{\alpha _j f({\mathbf{x}}_i | \theta _j)}{\sum \nolimits _{k=1}^{n} \alpha _k f({\boldsymbol x}_i | \theta _k) }.
+$$</p>
+<p>これは、i番目の特徴量ベクトルと</p>
+<p>普通に判断はできないが、</p>
+<p>クラスター推測：データは出てきた元集団があり、そこからの抽出したデータは近傍に集まる。</p>
+<p>手法は以下の4つが有名。</p>
+<h3 id="generative-method">
+  Generative Method
+  <a class="anchor" href="#generative-method">#</a>
+</h3>
+<p>ラベル付けされたものとされてないものは、<strong>似てるなら同じクラスに属する</strong>と判断する方法。EMアルゴリズムで推定できるらしい。</p>
+<p>高い精度を出すには、いい生成モデルを使う必要がある。</p>
+<h3 id="graph-based-method">
+  Graph-based Method
+  <a class="anchor" href="#graph-based-method">#</a>
+</h3>
+<p>頂点が各データ、辺がそれぞれの関係(往々にして近さ)のグラフを作る。そして、例えば最小カットで2つに切り分けたサブグラフの中が同じクラスだと判定していく。(他にも手法ある)</p>
+<p>高い精度を出すには、いい感じにグラフを作る必要がある。また、明らかにこれは完全グラフを作るのでデータ量が増えるとこれは非現実的手法となる。</p>
+<h2 id="low-density-separation-method">
+  Low-density Separation Method
+  <a class="anchor" href="#low-density-separation-method">#</a>
+</h2>
+<p>分離境界をデータ空間上の低密度な所にする、という手法。Semi-supervised Support Vector Machineが有名。</p>
+<h3 id="disagreement-based-method">
+  Disagreement-based Method
+  <a class="anchor" href="#disagreement-based-method">#</a>
+</h3>
+<p>複数人の学習者を作り、協力してラベル付けをしていく。学習者のラベル付けの不一致が重要。</p>
+<p>1回の試行で、ラベル付けしてないデータから、<strong>それぞれが最も信頼できるものを選んで、その予測したラベルを正解として、自分以外の相手に渡して学習させる</strong>。こうやって何回も試行を繰り返す。これだとアンサンブル学習にもなるので効果も上がるっていうね。</p>
+<h2 id="落とし穴">
+  落とし穴
+  <a class="anchor" href="#%e8%90%bd%e3%81%a8%e3%81%97%e7%a9%b4">#</a>
+</h2>
+<p>基本的にデータ量を増やせばガバガバアノテーションでもそこそこ正しいなら精度上がるが、<strong>逆に精度が下がることもある</strong>。</p>
+<p><strong>半教師あり学習を使う時は、分類器の最悪の場合の性能をよくする=下振れを減らしたいとき</strong>。</p>
+<h1 id="inexact-supervision">
+  Inexact supervision
+  <a class="anchor" href="#inexact-supervision">#</a>
+</h1>
+<p><strong>ラベル付けの粒度が荒く、細かい粒度のラベル付けはできない</strong>。例えば、<strong>車とラベル付けした写真だが、車だけトリミングしたわけではなく</strong>、背景として道路標識、建物、信号、通行人なども移りこんでる。これを利用していくこと。</p>
+<p>$$
+f: X \to Y, D = { (X_i, y_i) }
+$$</p>
+<p>各$X_i$は、<strong>いろんな情報の詰め込みの集合</strong>になり、$X_i = {\mathbf{x}_{i, 1}, \cdots, \mathbf{x}_im_i }$。$m_i$は添え字。これはつまり、$X_i = { 道路標識, 車, 信号, 通行人, 建物 }$のように。</p>
+<p>Tweetみたいな雑多なものが色々混入するものとの相性は良さそうね。 by me. 他にも、画像処理、テキスト分類、スパム検出、医療診断、物体検出etcに応用できる。</p>
+<p>多くのマルチインスタンス学習のアルゴリズムがある。集合の中の決定の鍵となるアイテム(たち)を見つける研究もある。</p>
+<p>ただし、<strong>集合内の各アイテムが異なるルールで分類されるケースだと学習はうまくいかないらしい</strong>。</p>
+<p>
+  <a href="https://arxiv.org/abs/2106.04716">2021の新しいやつ論文もある</a>。Labeled Data Generation with Inexact Supervision.</p>
+<p>
+  <a href="https://qiita.com/k43175695/items/6a86eb83db994f57fc8d">2020の新しめの論文その2</a>で、日本語の解説。数式多め。</p>
+<h1 id="inaccurate-supervision">
+  Inaccurate Supervision
+  <a class="anchor" href="#inaccurate-supervision">#</a>
+</h1>
+<p><strong>アノテーションにに一部間違いを混入されている</strong>。</p>
+<p>よくあるのが、ラベルノイズ。間違ったラベル付けを修正していくことをやっていく感じ。</p>
+<p>一例として、data-editing approachはグラフを作る。各点の<strong>近傍にある点</strong>に対して、<strong>異なるラベルを持つなら2つのノードを辺で結び、重みを与える</strong>。明らかに、まわりと距離近いのに違う！と判定されてるのは特異点か、ラベル付けミス。この場合、その点を学習データから削除するかラベルを変更することになる。ただ。高次元空間では信頼性低いし、疎空間の場合そもそも意味がない。</p>
+<p>クラウドソーシングでアノテーションの外注でも、間違いを混入される可能性がかなり高い。ワーカの質とタスクの難易度をモデル化できれば、アノテーションの質も高くなる。2017現在でEMアルゴリズムで確率モデルを作る研究がある。</p>
+<p>ただ、<strong>ラベルの質よりも、学習したモデルの性能の方が大事</strong>みたい。つまりアノテーションの質に関して四の五の言う意味はないです。ここらへん中本くん成田くんの発表やね。</p>
+<p>ただ、<strong>アノテーションするとき、Unsureは付け加えるべき</strong>。自信のないアノテーションが回避できるようにしないと。実際これで性能は上がる結果が研究にある。double or nothingの方法でやると、自信があるタスクだけつけさせることができる。</p>
+<h1 id="結論">
+  結論
+  <a class="anchor" href="#%e7%b5%90%e8%ab%96">#</a>
+</h1>
+<p><strong>上述の3つは組み合わせることができるよ</strong>！</p>
+<p>他にも、time-delayed supervisionという強化学習での問題とかもこれの一種。</p>
+<p>また、二値分類に注目したが、複数クラス分類や回帰問題にもこれは同じように反映できる。マルチクラスへの割り当てができる問題だと、更に難易度が上がる。</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#active-learning">Active Learning</a></li>
+    <li><a href="#semi-supervised-learning">Semi-Supervised Learning</a></li>
+    <li><a href="#人の手が介在するやり方">人の手が介在するやり方</a>
+      <ul>
+        <li><a href="#generative-method">Generative Method</a></li>
+        <li><a href="#graph-based-method">Graph-based Method</a></li>
+      </ul>
+    </li>
+    <li><a href="#low-density-separation-method">Low-density Separation Method</a>
+      <ul>
+        <li><a href="#disagreement-based-method">Disagreement-based Method</a></li>
+      </ul>
+    </li>
+    <li><a href="#落とし穴">落とし穴</a></li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
