@@ -336,7 +336,7 @@ $\mathbf{w}$を普通に決定するなら最小二乗法でいいが、分布�
 事前分布$p(\mathbf{w})$に対して、事後分布$p(\mathbf{w} | \mathbf{y}, \mathbf{X})$をベイズの定理によって得ることができる。
 
 $$
-p(\mathbf{w} | \mathbf{y} | \mathbf{X}) 
+p(\mathbf{w} | \mathbf{y}, \mathbf{X}) 
 = \frac{p(\mathbf{w}) p(\mathbf{y} | \mathbf{w}, \mathbf{X})}{p(\mathbf{y} | \mathbf{X})}
 = \frac{p(\mathbf{w}) \prod _{i = 1} ^ N p(y _i | \mathbf{x} _i, \mathbf{w})}{p(\mathbf{y} | \mathbf{X})}
 \propto p(\mathbf{w}) \prod _{i = 1} ^ N p(y _i | \mathbf{x} _i, \mathbf{w}) 
@@ -345,7 +345,7 @@ $$
 これは多次元ガウス分布同士の積なのでいつも通り$\mathbf{w}$に着目して対数で考える。多次元ガウス分布の平均推定の結果を借りたいところだが微妙に違うので惜しい。
 
 $$
-\log p(\mathbf{w} | \mathbf{y} | \mathbf{X})
+\log p(\mathbf{w} | \mathbf{y}, \mathbf{X})
 = \log p(\mathbf{w}) + \sum _{i = 1} ^ N \log p(y _i | \mathbf{x} _i, \mathbf{w}) + \mathrm{const} \\\\ 
 = (\mathbf{w} - \mathbf{m}) ^ T \boldsymbol{\Lambda} (\mathbf{w} - \mathbf{m}) + \sum _{i = 1} ^ N (y_i - \mathbf{w} ^ T \mathbf{x} _i) ^ T \lambda (y_i - \mathbf{w} ^ T \mathbf{x} _i) + \mathrm{const} \\\\ 
 = \mathbf{w} ^ T (\boldsymbol{\Lambda} + \lambda \sum _{i = 1} ^ N \mathbf{x} _i \mathbf{x} _i ^ T) \mathbf{w} + 
@@ -359,4 +359,92 @@ $$
 \hat{\mathbf{m}} = \hat{\boldsymbol{\Lambda}} ^ {-1} (\boldsymbol{\Lambda} \mathbf{m} + \lambda \sum _{i = 1} ^ N y _i \mathbf{x} _i)
 $$
 
-ということは、予測分布も計算できるはずである。
+ということは、予測分布の$p(y _{pred} | \mathbf{x} _{pred}, \mathbf{X}, \mathbf{Y})$も計算できるはずである。
+ここでは、先ほどの結果を例によって利用するベイズの定理の式変形を考えて解くことができる。
+
+$$
+p(\mathbf{w} | y _{pred}, x _{pred}) = \frac{p(\mathbf{w}) p(y _{pred} | \mathbf{x} _{pred}, \mathbf{w})}{p(y _{pred} | \mathbf{x} _{pred})} \\\\ 
+\log p(y _{pred} | \mathbf{x} _{pred}) = \log p(y _{pred} | \mathbf{x} _{pred}, \mathbf{w}) - \log p(\mathbf{w} | y _{pred}, \mathbf{x} _{pred}) + \mathrm{const}
+$$
+
+先ほどの$\mathbf{w}$の事後分布で、$\mathbf{X} \to \mathbf{x} _{pred}$とすれば、$p(\mathbf{w} | y _{pred}, \mathbf{x} _{pred})$を得る事ができる。($\lambda$は与えた$\mathbf{x} _{pred}$の精度、$\mathbf{m}$は$\mathbf{w}$の事前分布の平均)
+
+$$
+\log p(\mathbf{w} | y _{pred}, \mathbf{x} _{pred}) = (\mathbf{w} - \mathbf{m}(\mathbf{x} _{pred})) ^ T \boldsymbol{\Lambda} _{pred} (\mathbf{w} - \mathbf{m}(\mathbf{x} _{pred})) \\\\ 
+\boldsymbol{\Lambda} _{pred} = (\lambda \mathbf{x} _{pred} \mathbf{x} _{pred} ^ T + \boldsymbol{\Lambda}) ^ {-1} \\\\ 
+\mathbf{m} (\mathbf{x} _{pred}) = \boldsymbol{\Lambda} _{pred} (\lambda y _{pred} \mathbf{x} _{pred} + \boldsymbol{\Lambda} \mathbf{m})
+$$
+
+同様に、$p(y _{pred} | \mathbf{x} _{pred}, \mathbf{w})$は前述の平行移動した分布だと考えられる。つまり、$\mathcal{N} (y _{pred} | \mathbf{w} ^ T \mathbf{x} _{pred}, \lambda)$である。
+
+これらをもとに$y _{pred}$でまとめると、
+
+$$
+\log p(\mathbf{w} | y _{pred}, \mathbf{x} _{pred}) = y _{pred} ^ 2 (\lambda - \lambda ^ 2 \mathbf{x} _{pred} ^ T (\lambda \mathbf{x} _{pred} \mathbf{x} _{pred} ^ T + \boldsymbol{\Lambda}) ^ {-1} \mathbf{x} _{pred}) \\\\ - 
+2 y _{pred} (\lambda \mathbf{x} _{pred} ^ T (\lambda \mathbf{x} _{pred} \mathbf{x} _{pred} ^ T + \boldsymbol{\Lambda}) ^ {-1} \boldsymbol{\Lambda} \mathbf{m})
+$$
+
+整理するとやはりきれいになる。
+
+$$
+p(y _{pred} | \mathbf{x} _{pred}) = \mathcal{N} (y _{pred} | \hat{\mathbf{m}}, \hat{\lambda}) \\\\ 
+\hat{\mathbf{m}} = \mathbf{m} ^ T \mathbf{x} _{pred} \\\\ 
+\hat{\lambda} ^ {-1} = \lambda ^ {-1} + \mathbf{x} _{pred} ^ T \boldsymbol{\Lambda} ^ {-1} \mathbf{x} _{pred}
+$$
+
+平均値の推定と似た結果になった。すなわち、
+
+- 予測分布の平均値は、$\mathbf{w}$の事前分布$\mathcal{N} (\mathbf{w} | \mathbf{m}, \boldsymbol{\Lambda})$の中央値$\mathbf{m}$である。
+  - つまり、事前分布の期待値そのもの。
+- 予測分布の分散は、データ自体の分散$\lambda ^ {-1}$と、$\mathbf{w}$の事前分布の分散と予測値$\mathbf{x} _{pred}$の二次形式の和。
+
+## モデル選択
+
+モデルを選び間違えると学習してもいい結果につながらない。色々選んで検討を重ねるべし。モデルの良さを評価する場合、低次元データなら可視化が一番いいが、高次元にもなるとそうはいかない。評価する量は周辺尤度というもの。
+
+**周辺尤度、エビデンス**は、今考えるモデルに基づいてデータ$\mathbf{X}$から実際にラベル$\mathbf{y}$を生成する尤もらしさである。
+これは下式のように$p(\mathbf{y} | \mathbf{X})$を流用すればいい。
+
+$$
+p(\mathbf{y} | \mathbf{X}) = \frac{p(\mathbf{w}) \prod _{i = 1} ^ N p(y _i | \mathbf{x} _i, \mathbf{w})}{p(\mathbf{w} | \mathbf{y}, \mathbf{X})}
+$$
+
+この式自体は右から計算できるが、$[0, 1]$に収まるという保証はない(完全に理想的なものなら収まるがそこはもうどうしようもない)。この式を計算するときは、式変形すると以下のような対数化した周辺尤度が望ましい。なお、$\hat{\mathbf{m}}$などは$\mathbf{w}$の事後分布のものである。(まじ？)
+
+$$
+\log p(\mathbf{y} | \mathbf{X}) = - \frac{1}{2} (\sum _{i = 1} ^ N (\lambda y _i ^ 2 - \log \lambda + \log 2 \pi) + \mathbf{m} ^ T \boldsymbol{\Lambda} \mathbf{m} - \log |\Lambda| - \hat{\mathbf{m}} ^ T \hat{\boldsymbol{\Lambda}} \hat{\mathbf{m}} + \log |\hat{\boldsymbol{\Lambda}}|)
+$$
+
+## 最近傍法
+
+与えられた点に対して、最も距離(定義による)が近い点のラベルを予測とすること。つまり、下式のように各成分との距離で測る感じ。
+
+$$
+y _{pred}= \argmin _{n \in 1, \cdots, N} \sum _{i = 1} ^ d (x _{n, i} - x _{pred, i}) ^ 2
+$$
+
+この手法は先ほどのベイズ推定とは違う。先ほどはパラメタ数は固定であり、データ数が増えても最初に規定した分布の概形は変わらないが、この手法ではデータ数が増えるにつれて予測の線がどんどんアップデートされていくようになる(ついでにいえばベイズ推定でも当然ない)。これは**ノンパラメトリックな手法**である。
+
+ただ明確に最近傍法は愚直に実装したら$O(Nd)$、上手いこと二分探索とかやれても良くて$O(d\log N)$の時間計算量が必要であり、どうあがいても遅いのが難点。ベイズ推定は一度求まれば$O(1)$でわかる。
+
+## 最尤推定
+
+なんでわざわざパラメタ$\mathbf{a}$はそのまま求めずに分布に従うとか言うんですか？そのままやればいいじゃないですか。これが最尤推定です。
+
+$$
+\argmax _{\theta} p(\mathbf{X} | \theta)
+$$
+
+最尤推定は最適な1点を推定する=点推定となるが、無限に適合できてしまうので過学習はもちろんひどい。また、これからやる混合モデルの推定を行うにあたり、0除算や非正則の行列なので逆行列持たないとか色々面倒なので非実用的。
+
+## MAP推定
+
+最尤推定に救いはないんですか？あります。事前分布を導入しておきましょう。これで過学習は起きなくなる。
+
+ベイズの定理を使って、尤度$p(\mathbf{X} | \theta)$ではなく、事後確率$p(\theta | \mathbf{X})$を推定している。
+
+$$
+\argmax _{\theta} p(\mathbf{X} | \theta) p(\theta) = \argmax _{\theta} p(\theta | \mathbf{X})
+$$
+
+**ベイズ推定もMAP推定と同じ、最大値を取るような事後分布のパラメタを選ぶことであるが、ただ1点違うのはパラメタ$\theta$を直接推定するのではなく、わざわざ分布だとおいて分布のまま推定することである**。
