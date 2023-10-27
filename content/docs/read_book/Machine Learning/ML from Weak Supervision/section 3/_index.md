@@ -156,3 +156,44 @@ generalization errorは分類の時のエラー$\hat{R}(g _{ML}) - I(g)$であ�
 
 ### Rademacher Complexity(ラデマッハ複雑度)
 
+[補助のおよみものブログ](https://dw-dw-dt.hatenablog.com/entry/2022/05/25/031243)
+
+$\mathcal{G}$の複雑度を測るのに、ラデマッハ複雑度がおすすめである。
+
+まず、ラデマッハ分布(下式)に従うラデマッハ変数$\sigma$があるとする。ベルヌーイ分布の0を-1にしたともいえる。
+
+$$
+p(\sigma = +1) = p(\sigma = -1) = \frac{1}{2}
+$$
+
+ラデマッハ変数は、モデルの複雑度を決定するうえで完全なランダムノイズであり、下式では互いに独立したラデマッハ変数$\sigma _1, \cdots, \sigma _n$が存在する。以下のラデマッハ複雑度の定義式を見るとわかるように、ランダムに正か負かに割り振っている。$\mathbf{s} \in S$だとする。対象の全てのベクトル$\mathbf{s}$に対して、**ラデマッハ変数をその成分に乗じたものの和の期待値である**。
+
+$$
+\mathcal{R}(S) = \mathbb{E} _{\sigma _1, \cdots, \sigma _n} [ \sup _{(s _1, \cdots, s _n)} \frac{1}{n} \sum _{i = 1} ^ n \sigma _i s _i]
+= \mathbb{E} _{\boldsymbol{\sigma}} [ \sup _{\boldsymbol{s}} \frac{1}{n} \boldsymbol{\sigma} ^ T \mathbf{s}] 
+$$
+
+ここで、内積$\boldsymbol{\sigma} ^ T \mathbf{s}$は2つのベクトルの向いてる方向の近似度の指標にもなるので、**ラデマッハ複雑度はランダムに生成されたノイズと実際に学習した結果の一致度の期待値と言える**。これが高ければ、**どんなランダムなノイズに対してもfitするようなモデルであることを示しており、複雑度が高いということ**。
+
+ラデマッハ複雑度は実際のところ、分類器を代入して、経験的に不偏推定量で求める。下式のように、$\mathbf{s}$には具体的に$g(\mathbf{x})$を当てはめることで、モデル$\mathcal{G}$に含まれる学習器$g$を考える。
+
+$$
+\mathcal{R} _S (\mathcal{G}) = \mathbb{E} _{\boldsymbol{\sigma}} [ \sup _{g \in \mathcal{G}} \frac{1}{N} \sum _{i = 1} ^ N \sigma _i g(\mathbf{x} _i) ]
+$$
+
+なお、任意の分布$q(\mathbf{x})$から訓練データ$\mathbf{x} _1, \cdots, \mathbf{x} _N$が得られたとする(この分布を$p _N, p _P$にすればPN Learningそのものになる)。こう考えると、**前述のランダムなノイズに対してのfitと同様に、どんなランダムなノイズに対しても、モデルに属する識別器のfitする度を、全ての訓練データ$\mathbf{x} _i$で期待値を取っている**ともいえる。
+
+ラデマッハ複雑度は複数の定義がある。以下に書いておく。全部絶対値でくくっていいので、その場合は$\mathcal{R}(S) \leq \mathcal{R} ^ \prime (S)$が当然成り立つ。
+その上、$\mathbf{s} , -\mathbf{s} \in S$か$g, -g \in \mathcal{G}$が成り立つのであれば、当然$\mathcal{R}(S) = \mathcal{R} ^ \prime (S)$となる。
+
+このことから、損失関数が非負ならば$g, -g \in \mathcal{G}$に入ることはない(あってる？？？)
+
+$$
+\mathcal{R} ^ \prime (S) = \mathbb{E} _{(\boldsymbol{\sigma})} [ \sup _{\mathbf{s} \in S} |\frac{1}{n} \boldsymbol{\sigma} ^ T \mathbf{s}| ] \\\\ 
+\mathcal{R} _S ^ \prime (\mathcal{G}) = \mathbb{E} _{\boldsymbol{\sigma}} [ \sup _{g \in \mathcal{G}} |\frac{1}{N} \sum _{i = 1} ^ N \sigma _i g(\mathbf{x} _i)| ] \\\\ 
+\mathcal{R} _S ^ {\prime} (\mathcal{G}) = \mathbb{E} _{\mathbf{x}_1, \cdots, \mathbf{x} _n} \mathbb{E} _{\boldsymbol{\sigma}} [ \sup _{g \in \mathcal{G}} |\frac{1}{n} \sum _{i = 1} ^ N \sigma _i g(\mathbf{x} _i)| ]
+$$
+
+**ある程度重要な上限の抑え方として、リプシッツ収束関係のものがある**。
+
+Talagrand Contraction Lemmaによると、[リプシッツ連続](https://mathlandscape.com/lipschitz/)(変化率に定数の上限がある場合)の関数$f$について、$f(0) = 0$、変化率の上限に当たる定数=リプシッツ定数$L _f$ならば、$lを代入したもの \leq \mathcal{R} _S ^ \prime (\mathcal{G})$が成り立つ。
