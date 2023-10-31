@@ -159,6 +159,7 @@ generalization errorは分類の時のエラー$\hat{R}(g _{ML}) - I(g)$であ�
 [補助のおよみものブログ](https://dw-dw-dt.hatenablog.com/entry/2022/05/25/031243)
 
 $\mathcal{G}$の複雑度を測るのに、ラデマッハ複雑度がおすすめである。
+リスクを推定し、その推定した経験的リスク関数を最小化するが、
 
 まず、ラデマッハ分布(下式)に従うラデマッハ変数$\sigma$があるとする。ベルヌーイ分布の0を-1にしたともいえる。
 
@@ -197,3 +198,48 @@ $$
 **ある程度重要な上限の抑え方として、リプシッツ収束関係のものがある**。
 
 Talagrand Contraction Lemmaによると、[リプシッツ連続](https://mathlandscape.com/lipschitz/)(変化率に定数の上限がある場合)の関数$f$について、$f(0) = 0$、変化率の上限に当たる定数=リプシッツ定数$L _f$ならば、$lを代入したもの \leq \mathcal{R} _S ^ \prime (\mathcal{G})$が成り立つ。
+
+### ラデマッハ複雑度での上界
+
+#### 線形モデル$\mathbf{a} ^ T \mathbf{x}$の場合
+\
+訓練データに関しては、正規化をすることにより$\mathbf{x}$は有界である。係数ベクトル$\mathbf{a}$も、正規化項を付けているので有界である。いずれも有界ということは、**$|| \mathbf{x} || _2 \leq C _x$だとすれば、$|| \mathbf{a} || _2 \leq C _a$で抑えられる**ということだ。具体的な式変形によって以下のように評価できる。
+
+![](linear_upper_bound.png)
+
+$\mathbf{a} ^ *$は、$\sigma _i$が各々で動く中で、$\sigma _i$も使って$\mathbf{a} ^ *$を構成するという条件下では、上記のものが最適である。これの2乗ノルムでは、分子の内積を分母で打ち消しているので確かに$C _a$に収まる。
+
+また、イェンセンの不等式$\mathbb{E} [ f(x) ] \leq f(\mathbb{E} [ x ])$を用いて、$f(x)$を$x ^ 2$としたうえで、全体に$1/2$乗がかかっている状態でイェンセンの不等式が成り立つ(上の式はf(x)と1/2乗で打ち消し合って何もないように見える)。注: [イェンセンの不等式のおすすめの使い方](https://qiita.com/kenmatsu4/items/26d098a4048f84bf85fb)とかはここを参照。
+
+**期待値の展開部分では、$i = j$は同じ変数の2乗なので必ず1となる。$i \neq j$の場合、$\sigma _i, \sigma _j$の全パターンを考えると、ちょうど打ち消し合うので0となる**。この性質はかなりラデマッハ複雑度を評価するうえで重要。
+
+結果として、$\frac{C _a C _x}{\sqrt{n}}$が取り得る上界だと評価でき、これがラデマッハ複雑度となる。式から、訓練データの数$n$が増加するにつれて、$\sqrt{n}$に反比例するかたちで複雑度が低下することがわかる。
+
+#### 線形パラメタモデル$g(\mathbf{x}) = \mathbf{a} ^ T \boldsymbol{\phi}(\mathbf{x})$
+
+$$
+g(\mathbf{x}) = \mathbf{a} ^ T \boldsymbol{\phi}(\mathbf{x}) = a _1 \phi _1 (\mathbf{x}) + \cdots
+= a _1 K(\mathbf{x}, \mathbf{b} _1) + \cdots = a _1 K(\mathbf{b} _1, \mathbf{x}) + \cdots
+$$
+
+線形パラメタと書いたがもちろんカーネル法も含む。$\phi(\mathbf{x})$はデータを別の空間へ移す写像で、この上で線形分類を行う。
+実際はカーネル関数$K(\mathbf{a}, \mathbf{b})$のようにデータをそのまま代入するが、
+
+カーネルのアンカー$\mathbf{b} _j$(計$m$個)を使い、$\phi _j(\mathbf{x}) = K(\mathbf{x}, \mathbf{b} _j)$となる。この時、以下の式のように。同様に再生核ヒルベルト空間の内積のかたちに書き直せる。
+
+$$
+<\mathbf{a}, \mathbf{b}> _{\mathcal{K}} = K(\mathbf{a}, \mathbf{b}) \\\\ 
+\mathbf{w} = (a _1 \mathbf{b} _1, \cdots, a _m \mathbf{b} _m) ^ T \\\\ 
+g(\mathbf{x}) = <\mathbf{w}, \mathbf{x}> _{\mathcal{K}}
+$$
+
+線形モデルと同様にラデマッハ複雑度を考える。$\mathbf{x}$が与えられたとき、$|| \mathbf{w} || _\mathcal{K} ^ 2$が収束するとまず示す。
+
+$$
+|| \mathbf{w} || _\mathcal{K} ^ 2 = || \sum _{i = 1} ^ m a _i \mathbf{b} _i || _{\mathcal{K}} ^ 2
+= <\sum _{i = 1} ^ m a _i \mathbf{b} _i, \sum _{i = 1} ^ m a _i \mathbf{b} _i> \\\\ 
+= \sum _{i = 1, j = 1} ^ m a _i a _j <\mathbf{b} _i, \mathbf{b} _j> _{\mathcal{K}} = \sum _{i = 1, j = 1} ^ m a _i b _j K(\mathbf{b} _i, \mathbf{b} _j)
+$$
+
+### 誤差の評価
+
