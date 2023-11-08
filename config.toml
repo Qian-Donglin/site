@@ -10,7 +10,7 @@ BookSearch = true
 [params]
 	BookTheme = 'auto'
 	BookToC = true
-	BookRepo = 'https://github.com/Qian-Donglin/site'
+	BookRepo = 'https://qian-donglin.github.io/site/'
 	BookCommitPath = 'commit'
 	BookSearch = true
 	BookComments = true
