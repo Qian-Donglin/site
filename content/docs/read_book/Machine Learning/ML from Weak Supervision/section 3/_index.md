@@ -213,7 +213,7 @@ $\mathbf{a} ^ *$は、$\sigma _i$が各々で動く中で、$\sigma _i$も使っ
 
 **期待値の展開部分では、$i = j$は同じ変数の2乗なので必ず1となる。$i \neq j$の場合、$\sigma _i, \sigma _j$の全パターンを考えると、ちょうど打ち消し合うので0となる**。この性質はかなりラデマッハ複雑度を評価するうえで重要。
 
-結果として、$\frac{C _a C _x}{\sqrt{n}}$が取り得る上界だと評価でき、これがラデマッハ複雑度となる。式から、訓練データの数$n$が増加するにつれて、$\sqrt{n}$に反比例するかたちで複雑度が低下することがわかる。
+結果として、$\frac{C _a C _x}{\sqrt{n}}$が取り得る上界だと評価でき、これがラデマッハ複雑度となる。式から、訓練データの数$n$が増加するにつれて、$\sqrt{n}$に反比例するかたちで複雑度=モデルの表現力が低下することがわかる。
 
 #### 線形パラメタモデル$g(\mathbf{x}) = \mathbf{a} ^ T \boldsymbol{\phi}(\mathbf{x})$
 
@@ -225,21 +225,80 @@ $$
 線形パラメタと書いたがもちろんカーネル法も含む。$\phi(\mathbf{x})$はデータを別の空間へ移す写像で、この上で線形分類を行う。
 実際はカーネル関数$K(\mathbf{a}, \mathbf{b})$のようにデータをそのまま代入するが、
 
-カーネルのアンカー$\mathbf{b} _j$(計$m$個)を使い、$\phi _j(\mathbf{x}) = K(\mathbf{x}, \mathbf{b} _j)$となる。この時、以下の式のように。同様に再生核ヒルベルト空間の内積のかたちに書き直せる。
+ここで、カーネル法により、$K(\mathbf{a}, \mathbf{b}) = <\phi(\mathbf{a}), \phi(\mathbf{b})> _{\mathcal{H}}$が成り立つ($\phi(\mathbf{a})$は関数空間の上の元)。$\mathbf{w} = \sum _{i = 1} ^ m a _i \phi(\mathbf{x} _i)$と定義した時($\mathbf{w}$はベクトルを受け取る関数)、下式のように書ける。(ついでに言えば、再生核ヒルベルト空間なのでどのような次元数$m$の$\mathbf{w}$でも、どんな$\mathbf{x}$を代入されても$g$と$\mathbf{w}$は同じ値を返す)
 
 $$
-<\mathbf{a}, \mathbf{b}> _{\mathcal{K}} = K(\mathbf{a}, \mathbf{b}) \\\\ 
-\mathbf{w} = (a _1 \mathbf{b} _1, \cdots, a _m \mathbf{b} _m) ^ T \\\\ 
-g(\mathbf{x}) = <\mathbf{w}, \mathbf{x}> _{\mathcal{K}}
+g(\mathbf{x}) = \sum _{i = 1} ^ m a_i K(\mathbf{x}, \mathbf{x} _i)
+= \sum _{i = 1} ^ m a_i <\phi(\mathbf{x}), \phi(\mathbf{x} _i)> _{\mathcal{H}}
+= \sum _{i = 1} ^ m a_i <\phi(\mathbf{x} _i), \phi(\mathbf{x})> _{\mathcal{H}} \\\\ 
+= <\mathbf{w}, \phi(\mathbf{x})> _{\mathcal{H}}
 $$
 
-線形モデルと同様にラデマッハ複雑度を考える。$\mathbf{x}$が与えられたとき、$|| \mathbf{w} || _\mathcal{K} ^ 2$が収束するとまず示す。
+ここから、線形モデルと同様にラデマッハ複雑度を考える。$\mathbf{a} ^ T \boldsymbol{\phi}(\mathbf{x})$であるので、それぞれの項が有界であると仮定する。($\mathbf{w}$が有界と仮定してもOK)。つまり、以下の仮定である。
 
 $$
-|| \mathbf{w} || _\mathcal{K} ^ 2 = || \sum _{i = 1} ^ m a _i \mathbf{b} _i || _{\mathcal{K}} ^ 2
-= <\sum _{i = 1} ^ m a _i \mathbf{b} _i, \sum _{i = 1} ^ m a _i \mathbf{b} _i> \\\\ 
-= \sum _{i = 1, j = 1} ^ m a _i a _j <\mathbf{b} _i, \mathbf{b} _j> _{\mathcal{K}} = \sum _{i = 1, j = 1} ^ m a _i b _j K(\mathbf{b} _i, \mathbf{b} _j)
+\exist C _{\phi} > 0, || \boldsymbol{\phi}(\mathbf{x}) || _2 \leq C _{\phi} \Rightarrow || \mathbf{a} || _2 \leq C _a
 $$
+
+上界が定義されれば、本質的には線形モデルの時と同じなので、**ラデマッハ複雑度の上界は$\frac{C _{\phi} C _a}{\sqrt{n}}$**。ということはカーネル法を使っても、複雑度=モデルの自由度は同様に$1 / \sqrt{n}$の速度で下がる。
+
+なお、この議論は普通の線形変換でも、カーネル法でもベクトルや関数のノルムを定義できるので、同様にこの結果を共有する。
+
+カーネル法限定の他の評価方法として、$g(\mathbf{x}) = <\mathbf{w}, \phi(\mathbf{x})>$であることを活かして、
+
+$$
+\exist C _K > 0, \forall \mathbf{x}, || K(\mathbf{x}, \mathbf{x}) || \leq C _K ^ 2 \Rightarrow || \mathbf{w} || _{\mathcal{H}} \leq C _w
+$$
+
+これをもとに、$|| \phi(\mathbf{x}) || _{\mathcal{H}} = K(\mathbf{x}, \mathbf{x}) \leq C _K$が成り立つので、同様に**上界評価は$\frac{C _{K} C _{w}}{\sqrt{n}}$**。
+
+#### Neural Network
+
+ニューラルネットワークは以下のように定式化できる。入力は$\mathbf{x}$であり、出力もベクトルである。$\phi$は活性化関数である。$A _{i,(i+1)}$はi層目からi+1層目の重み行列であり、(i+1層目の数)行(i層目の数)列である。(最後に重み行列を乗じたものが答え)
+
+$$
+g(\mathbf{x}) = A _{l} \phi(A _{l - 1, l}(\cdots \phi(A _{1, 2} \mathbf{x})))
+= A _l 
+$$
+
+このNNのラデマッハ複雑度の評価は活性化関数が有界(シグモイド関数)と有界ではない(ReLU関数)ごとに違う。
+
+##### 有界な場合
+
+有界な場合は容易である。$\phi$が有界、$A$も$\mathbf{x}$も有界なので、合成した$g(\mathbf{x})$はもちろん有界。$g(\mathbf{x})$はベクトルを返すので、$\mathbf{a} ^ T \mathbf{x}$とみなすことができ、この時いつものように
+
+$$
+\exist C _x > 0, || \mathbf{x} || _2 \leq C _x \Rightarrow || \mathbf{a} || \leq C _a
+$$
+
+上界は$\frac{C _x C _a}{\sqrt{n}}$となる。
+
+##### 有界ではない場合
+
+有界ではない活性化関数と言ってもNNで使われるのは正斉次な(1. 入力が$a$倍されたら出力も$a$倍。 2. 非負)関数だけである。有名なのはReLU関数一族。Golowich(2018)が示した評価式として以下のものがある。フロベニウスノルムを使う。
+
+$$
+|| A || _F = \sqrt{\sum _{i, j} a _{i, j}} \\\\ 
+\exist C _x > 0, || \mathbf{x} || _2 \leq C _x \Rightarrow \forall i, ||A _i || _F \leq C _{A _i} \\\\ 
+\mathcal{R} \leq \frac{C _x (\sqrt{2 \log 2 }\sqrt{l} + 1) \prod _{i = 1} ^ l C _{A _i}}{\sqrt{n}}
+$$
+
+結局これも$1 / \sqrt{n}$で複雑度は低下する。
 
 ### 誤差の評価
+
+今まではモデルの表現力の評価であり、次は分類エラーの上限の評価である。分類エラーの評価には一般的にMcDiarmidの境界分散？法(method of bounded differences)を使う。(詳しい証明はカットされていた)
+
+モデル$\mathcal{G}$があり、識別関数$g \in G$にて、任意のデータの入力に対しての上限$C _g > 0, || g || _{\infty} = \sup |g(\mathbf{x})| \leq C _g$があるとする。代理損失関数は上限$C _l \geq 0, l(\hat{y}, y) \leq C _l$を持ち、$\hat{y} \leq C _g$でもあり、($g(\mathbf{x})$から得られたので)リプシッツ連続(傾きの上限はリプシッツ定数$L _l$である)である。この時、$1 - \delta$以上の確率で以下の式が成り立つ。($S$はそこに所属している訓練データ$\mathbf{x} _i$の集合)
+
+$$
+\mathcal{R} _S ^ {\prime} (\mathcal{G}) = \mathbb{E} _{\mathbf{x} _1, \cdots, \mathbf{x} _n} \mathbb{E} _{\boldsymbol{\sigma}} [ \sup _{g \in \mathcal{G}} |\frac{1}{n} \sum _{i = 1} ^ N \sigma _i g(\mathbf{x} _i)| ] \\\\ 
+R(\hat{g}) - R(g) \leq 4 L _l (\pi _P \mathcal{R} _{pos}(\mathcal{G}) + \pi _N \mathcal{R} _{neg}(\mathcal{G})) + \sqrt{2 \log \frac{2}{\delta}} C _l (\frac{\pi _P}{\sqrt{n _P}} + \frac{\pi _N}{n _N})
+$$
+
+これを利用して、PN Learningでの訓練誤差評価として以下の式がある。$1 - \detla$以上の確率で成り立つ。
+
+$$
+\sup _{g \in \mathcal{G}} |\hat{R} _{PN}(g) - R(g)| \leq 2 L _l (\pi _{P} \mathcal{R} _{pos}(\mathcal{G}) + \pi _{N} \mathcal{R} _{neg} (\mathcal{G})) + \sqrt{\frac{1}{2} \log \frac{2}{\delta}}(\frac{\pi _P}{\sqrt{n _P}} + \frac{\pi _N}{n _N})
+$$
 
