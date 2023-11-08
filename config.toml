@@ -1,4 +1,4 @@
-baseURL = 'https://Qian-Donglin.github.io/site/'
+baseURL = 'https://qian-donglin.github.io/site/'
 languageCode = 'ja'
 title = 'Sen(Qian)のメモ'
 disablePathToLower = true
