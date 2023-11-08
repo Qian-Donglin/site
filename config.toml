@@ -1,5 +1,5 @@
-baseURL = 'https://Qian-Donglin.github.io/'
-languageCode = 'en-us'
+baseURL = 'https://Qian-Donglin.github.io/site/'
+languageCode = 'ja'
 title = 'Sen(Qian)のメモ'
 disablePathToLower = true
 enableGitInfo = true
