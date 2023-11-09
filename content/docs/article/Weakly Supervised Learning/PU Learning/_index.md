@@ -1,5 +1,5 @@
 ---
-title: "Learning Classifiers from Only Positive and Unlabeled Data"
+title: "2008-KDD-Learning Classifiers from Only Positive and Unlabeled Data"
 weight: 1
 # bookFlatSection: false
 # bookToc: true
@@ -17,15 +17,34 @@ https://mamo3gr.hatenablog.com/entry/2020/11/29/123147
 
 https://speakerdeck.com/hellorusk/pu-positive-unlabeled-learning?slide=3
 
-# 何なの？
+## 何なの？
 
 ラベルはいっぱいあるけどつけるの間に合わん。普通はPositiveとNegativeにつけられたデータで行うが、PU Learningは**PositiveとUnknownで区分したデータで学習させる**。
 
 生成モデルに基づく半教師付きの手法と違って、分布を仮定する必要はない。
 
-# 手法
+## 先行研究
 
-手法自体は結構単純だが、確率変数$s$で定式化したものは初出である。
+2008年時点での先行研究としては以下のような方針がある。
+
+- Unlabeledのなかからnegativeっぽいデータを出して、それをもとにPN学習する?
+- UnlabeledのままPositiveと何とか学習をする。
+  - Unlabeledを軽い負例として扱うやつ？
+  - 一部positive、一部negativeだと割り振って学習するやつ？
+
+[2003年の先行研究](https://www.cs.uic.edu/~liub/publications/ICDM-03.pdf)でこのような重みづけのソフトマージンのSVMをやる分類器はある。
+
+$$
+\frac{1}{2} || \mathbf{w} || + C_p \sum _{i \in P} z_i + C_U \sum _{j \in U} z_j
+$$
+
+この$C_P, C_U$は**経験則で決めるしかない**らしい。この手法をこの論文が**biased-SVM**と提案している。
+
+- $C_U = 0.01, 0.03, 0.05, \cdots, 0.61$
+- $\frac{C_P}{C_U} = 10, 20, \cdots, 200$
+- **$C_P$に大きく重みを寄せる**。
+
+1クラスSVM(解説は[ここ](https://yuyumoyuyu.com/wp-content/uploads/2021/01/oneclasssupportvectorremachine.pdf)とか[ここ](https://datachemeng.com/wp-content/uploads/oneclasssupportvectormachine.pdf))を使った分類もある。(**negativeを外れ値とみなして外れ値検出**)ただ、ハイパーパラメタにかなり依存してしまうという性質がある。
 
 ## 仮定、説明
 
@@ -64,10 +83,12 @@ $$
 
 よって、一番欲しい$p(y = 1 | x)$推定できる。
 
-## 定数$c$の推定方法
+## Elkan Noto法
 
-というわけで、**$c = p(s = 1 | y = 1)$を推定することができれば、勝ちです**。
-ちゃんと無限のデータで訓練し、真のモデルで学習できる前提だと3つの手法のいずれも正しい。だが実用上は手法1がいい。
+やりたいこととしては、$p(s = 1 | \mathbfx{x})$を学習できたら、これをcalibrationして$p(y = 1 | \mathbf{x})$にすること。
+というわけで、係数の**$c = p(s = 1 | y = 1)$を推定することができれば、勝ちです**。
+
+推定法としては、ちゃんと無限のデータで訓練し、真のモデルで学習できる前提だと3つの手法のいずれも正しい。だが実用上は手法1がいい。
 
 ### 手法1
 
@@ -99,58 +120,53 @@ $$
 $p(s = 1 | y = 1)$が$p(s = 1 | \mathbf{x})$にとっての最大なので、集めてきた$p(s = 1 | \mathbf{x})$が最大のものとすればよい。
 $p(s = 1 | \mathbf{x})$はあらかじめ別口で学習させておく。ただ理論上は等号成立するが01損失で学習をしない以上ここら辺は曖昧になりそう？ INTEREST!
 
----
+## 重み付きElkan Noto法
 
-## 重み付きElkan Noto
-
-前述のとおり、$p(s = 1 | x)$「**データ$x$に対して、それがラベル付きかどうか**」。これは学習器で学習できる。その学習器に入れた時の結果を$g(x)$と置く。
-
-$c = p(s = 1 | y = 1)$**Positiveなラベルなら、印がつく確率**。
-
-ここで、訓練データと同じように抽出したテストデータ集合$V$を考える。**その中で、ラベルの付いてる集合**を$P$とする。
-
-$$
-c = \frac{1}{n} \sum \limits_{x \in P} g(x)
-$$
-
-つまり、$V$**のなかで実際にラベル付きのデータに対して、分類器でラベル付き=1か否か=0**を**、$|P|=n$**で割った平均**。$|V|$**ではない！**。これは**実際にラベル付きのデータに対してどれぐらい正確に予測できてるか**、ということを示す。
-
-そして、分類器が正しく**訓練データについて**$p(s = 1 | x)$を学習できてるなら、これは**テストデータ(そしては訓練データ以外の全体のデータ)に対して、真のPositiveのデータのうち、ラベル付けされてるサンプルの割合**になる。
-
-つまり、ちゃんと訓練データに対して学習をさせたから(もちろんその訓練データの中でまた訓練とテストに分けるけど)、同じ分布(未知だけど)に従ってPositiveのものにラベルがつくと仮定してる以上、**すでにラベルついてるデータに対して予測器でラベルつく割合を見つけられれば、それは全体のPositiveの者に対して、ラベル付きであるの割合だと**なる。
-
-実際はだいたいそうならない。ちゃんと同じ分布に従うかな？でもこの手法はそれなりに正しいんですよこれ。
-
-### 手法2
-
-先ほどは、$p(y = 1 | x) = \frac{p(s = 1 | x)}{c}$で$p(y = 1 | x)$を求めた。
-
-今度は、まず$p(s = 1 | x)$を学習してみる。次に
-
-- **ラベル付きはそのまま**。
-- **ラベルなしは、ラベルあり=重み**$w(x)$と**ラベルなし=重み**$1 - w(x)$**という2つの点に複製する。そして、もう一度、$p(s = 1 | x)$を重みつきで学習する。**
-
-なお、重みは、$w(x) = p(y = 1 | x, s = 0)$とする。
+$p(s = 1 | \mathbf{x})$から直接推定するのではなく(だが学習器として$p(s = 1 | \mathbf{x})$はこの手法で使われる)、Unlabeledのデータを重み$w \in [0, 1]$のPositive例と、重み$1 - w$のNegative例の2つとみなして、そこから学習を進める手法。では、重み$w$の推定はどうするか？仮定の$p(y = 1 | \mathbf{x}, s = 1) = 1$を前提に$p(y = 1 | \mathbf{x}, s = 0)$(ラベルなしのPositive例)の式変形を考える。
 
 ![](image0.jpg)
 
-こんな風に、**一度方法1から予測した**$c$から計算できる。
+[理論的なお話](#理論的なおはなし)でもあったように、$c = p(s = 1 | y = 1) = p(s = 1 | \mathbf{x}, y = 1)$が前提であるので、前述の推定によってこれを得るのをやる前提である。
+この式変形でひとまず、**UnlabeledであるときののPositiveである確率**を求められた。
 
-そして、これらの重みをそれぞれつけなおしたものから、もう一度$p(s = 1 | x)$を学習させるのだ。
+次は、データ分布全体$p(\mathbf{x})$にわたる関数h(これはまあ結局損失関数かな？)に対しての期待値を求めてみる。
+
+$$
+\mathbb{E} _{(\mathbf{x}, y, s)} [h(\mathbf{x}, y)] = \int _{\mathbf{x}, y, s} h(\mathbf{x}, y) p(\mathbf{x}, y, s) d \mathbf{x} dy ds \\\\ 
+= \int _{\mathbf{x}} p(\mathbf{x}) \sum _{s = 0, 1}p(s | \mathbf{x}) \sum _{y = 0, 1}p(y | s, \mathbf{x}) h(\mathbf{x}, y) d \mathbf{x} \\\\ 
+= \mathbb{E} _{\mathbf{x}} [ p(s = 0 | \mathbf{x}) p(y = 0 | \mathbf{x}, s = 0) h(\mathbf{x}, 0) + p(s = 0 | \mathbf{x}) p(y = 1 | \mathbf{x}, s = 0) h(\mathbf{x}, 1) \\\\ 
++p(s = 1 | \mathbf{x}) p(y = 0 | \mathbf{x}, s = 1) h(\mathbf{x}, 0) + p(s = 1 | \mathbf{x}) p(y = 1 | \mathbf{x}, s = 1) h(\mathbf{x}, 1) ] \\\\ 
+$$
+
+ここで、期待値の中の第3項は$y = 0, s = 1$であるがこれはあり得ないという問題設定なので項を消すことができる。そして、重みを以下のように設定してみると、式をかなり書き換えられる。第4項の$p(y = 1 | \mathbf{x}, s = 1) = 1$は仮定より自明。
+
+$$
+w(\mathbf{x}) = p(y = 1 | \mathbf{x}, s = 0) = \frac{1 - c}{c} \frac{p(s = 1 | \mathbf{x})}{1 - p(s = 1 | \mathbf{x})} \\\\ 
+\mathrm{第4項:}\mathbb{E} _{\mathbf{x}} [ p(s = 1 | \mathbf{x}) p(y = 1 | \mathbf{x}, s = 1) h(\mathbf{x}, 1) ] 
+= \mathbb{E} _{\mathbf{x} | s = 1} [h(\mathbf{x}, 1)] \\\\ 
+\mathrm{第1,2項:}\mathbb{E} _{\mathbf{x}} [ p(s = 0 | \mathbf{x}) p(y = 0 | \mathbf{x}, s = 0) h(\mathbf{x}, 0) + p(s = 0 | \mathbf{x}) p(y = 1 | \mathbf{x}, s = 0) h(\mathbf{x}, 1) ] \\\\ 
+= \mathbb{E} _{\mathbf{x} | s = 0} [ (1 - w(\mathbf{x})) h(\mathbf{x}, 0) + w(\mathbf{x}) h(\mathbf{x}, 1) ] \\\\ 
+\mathbb{E} _{\mathbf{x}, y, s} [h(\mathbf{x}, y)] 
+= \mathbb{E} _{\mathbf{x} | s = 1}[ h(\mathbf{x}, 1) ] + \mathbb{E} _{\mathbf{x} | s = 0} [ w(\mathbf{x}) h(\mathbf{x}, 1) + (1 - w(\mathbf{x}), 0)]
+$$
+
+このように、**ラベルなしのデータ**は重み$w(\mathbf{x})$のラベルありと重み$1 - w(\mathbf{x})$のラベルなし(**必ずNegativeであることを意味しているわけではない**！)に分割できる。そして、この$h$に損失関数を代入して学習をさせることにより、分類ができるのだ。
+
+まとめると、重み付きElkan Notoは以下の手順を取る。
+1. 無印Elkan Notoをまず行う。
+   1. $p(s = 1 | \mathbf{x})$の分類器の訓練。
+   2. $c = p(s = 1 | y = 1)$の推定。
+   3. 無印Elkan Notoならこれらだけで推定をするが、重み付きはこれらの情報を使って新たに損失関数を定義し、それの最適化をする形になる。
+2. 上記の通りに損失関数を定義。
+3. 学習を行い、得られた分類器は入力例に対して、PositiveかNegativeかを分類できる。
+
+## モデルの出力する確率(calibrated)の正確さ
+
+ロジスティック回帰はそれなりに正しいらしいが、ランダムフォレスト、SVM、ナイーブベイズなどは確率自体それなりに正しくないのでこの手法ではブレてしまうのでは。
 
 ### 実際の学習のフェーズ
 
-実際、識別器はSVMのソフトマージンで実装される。だが、SVMのソフトマージンでの定式化での損失関数はヒンジ損失$z$を用いると、
 
-$$
-\frac{1}{2} || \mathbf{w} || + C_p \sum _{i \in P} z_i + C_U \sum _{j \in U} z_j
-$$
-
-この$C_P, C_U$は**経験則で決めるしかない**らしい。この手法をこの論文が**biased-SVM**と提案している。
-
-- $C_U = 0.01, 0.03, 0.05, \cdots, 0.61$
-- $\frac{C_P}{C_U} = 10, 20, \cdots, 200$
-- **$C_P$に大きく重みを寄せる**。
 
 ### 評価
 

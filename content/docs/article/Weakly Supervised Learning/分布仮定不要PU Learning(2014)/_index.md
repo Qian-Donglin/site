@@ -1,5 +1,5 @@
 ---
-title: "PU LearningでなんでSVMのヒンジ関数は精度悪いか(2014)"
+title: "2014-NIPS-Analysis of Learning from Positive and Unlabeled Data"
 weight: 1
 # bookFlatSection: false
 # bookToc: true
