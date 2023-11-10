@@ -38,3 +38,23 @@ $$
 R(g) = 2\pi R _{fp}(g) + R _{X}(g) - \pi
 $$
 
+ここで、$\eta$を全体の中のラベル付きの割合とする(これは経験的に推定できる)。すると、$R(g)$は以下のように書き直せる。
+
+$$
+c _1 = \frac{2 \pi}{\eta}, c _X = \frac{1}{1 - \eta} \\\\ 
+R(g) = 2\pi R _{fp}(g) + R _{X}(g) - \pi = \frac{2 \pi}{\eta} \eta R _1(g) + \frac{1}{1 - \eta} (1 - \eta) R _X(g) - \pi \\\\ 
+= c _1 \eta R _1(g) + c _C (1 - \eta) R _X(g) - \pi
+$$
+
+Cost-Sensitive Classificationは確率$\pi$でクラスA、$1 - \pi$でクラスBが得られるとするとき、損失関数が
+
+$$
+R(g) = \pi R _A(g) + (1 - \pi) R _B(g)
+$$
+
+となるのみならず、お互いにコスト$c _A, c _B$まで定義されているというもの。
+
+$$
+R(g) = c _A \pi R _A(g) + c _B (1 - \pi) R _B(g)
+$$
+
