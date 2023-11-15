@@ -4,7 +4,7 @@ weight: 1
 # bookFlatSection: false
 # bookToc: true
 # bookHidden: false
-# bookCollapseSection: false
+bookCollapseSection: true
 # bookComments: false
 # bookSearchExclude: false
 ---
@@ -19,7 +19,7 @@ weight: 1
 
 [SVMの総集編論文](https://www.csie.ntu.edu.tw/~cjlin/papers/libsvm.pdf)
 
----
+In any way, this article is the only one to explain the generalization error bounds for PU classification in the paper. I suggest everyone who tries to do research for PU Learning to read this article. 
 
 PU Learningは結局、条件の下でのコスト最小化による最適化なので、SVMと同じようにやることができる。
 
@@ -121,5 +121,68 @@ $$
 
 ## PU Learningの誤差境界の理論的解析
 
+$\mathbf{x} _1 \cdots \mathbf{x} _n \sim p(\mathbf{x} | y = +1), \mathbf{x} ^ \prime _ 1, \cdots, \mathbf{x} ^ \prime _ {n ^ \prime} \sim p(\mathbf{x})$がPositiveデータとUnlabeledデータと定義する。
+
+分類器$f(\mathbf{x})$はカーネル法を使用したSVMだと想定して、係数$\alpha _ i, \alpha ^ \prime _ i$以下のような一般形で表す。
+
+$$
+f(\mathbf{x}) = \sum _{i = 1} ^ n \alpha _ i k(\mathbf{x}, \mathbf{x} _ i) + \sum _ {j = 1} ^ {n ^ \prime} \alpha ^ \prime _ j k(\mathbf{x}, \mathbf{x} ^ \prime _ j)
+$$
+
+そして、01損失の代理損失関数として、ランプ損失を以下のように定義する。
+
+$$
+l_n(z) = 
+\begin{cases} 
+0 & \text{if } z > \eta, \\\\ 
+1 - \frac{z}{\eta} & \text{if } 0 \leq z \leq \eta, \\\\ 
+1 & \text{if } z \leq 0.
+\end{cases}
+$$
+
+その上、通常の損失関数$l _{01}, l _{\eta}$に対して、以下の損失関数を天下り的に定義する。
+
+$$
+\tilde{l}(y f(\mathbf{x})) = \frac{2}{y + 3} l _{01} (y f(\mathbf{x})) \\\\ 
+\tilde{l} _{\eta} (y f(\mathbf{x})) = \frac{2}{y + 3} l _{\eta} (y f(\mathbf{x}))
+$$
+
+このような定義では、$y = -1$の時は1倍、$y = +1$の時は$1 / 2$倍されることを意味する。
+
+そして、次のように$\mathbb{E} _{p(\mathbf{x}, y)} [l _{01} (y f(\mathbf{x}))]$を分解することができる、というのを利用する。証明は[こちら](./expectation_decomposition_proof/_index.md)。
+
+$$
+\mathbb{E} _{p(\mathbf{x}, y)} [l _{01} (y f(\mathbf{x}))]
+= p(y = +1) \mathbb{E} _{p(\mathbf{x} | y = +1)} [ \tilde{l} (f(\mathbf{x})) ] + \mathbb{E} _{p(\mathbf{x})} [ \tilde{l} (f(\mathbf{x})) ]
+$$
+
+以下の定理1と定理2が存在する。**この2つの定理は01損失と代理損失(ランプ損失)を使用した時のそれぞれの理論的な誤差の上界である**。
+
+### 定理1
+
+先ほどの分解を使用すると、以下のことが得られる。
+
+識別器$\forall f \in \mathcal{F}$がある。PositiveとUnlabeledデータをサンプリングする。
+そこで、$\delta \in (0, 1)$として、少なくとも$1 - \delta$以上の確率で下の式が成り立つ。($\pi ^ * = p(y = +1)$)
+
+$$
+\mathbb{E} _{p(\mathbf{x},y)}\left[ l _{01}(yf(\mathbf{x})) \right] - \frac{1}{n ^ \prime} \sum _{j=1}^{n\prime} \tilde{l} (y ^ \prime _j f(\mathbf{x} ^ \prime _j)) \leq \frac{\pi^*}{n} \sum _{i=1}^{n} l(f(\mathbf{x} _i)) + ( \frac{\pi ^ *}{2\sqrt{n}} + \frac{1}{\sqrt{n ^ \prime}}) \sqrt{\frac{\ln(2/\delta)}{2}}.
+$$
+
+証明は[こちら](./theorem1_proof/_index.md)。
+
+### 定理2
 
 
+
+### 意味すること
+
+この2つの定理はみな$O(\frac{1}{\sqrt{n}} + \frac{1}{n ^ \prime})$である。一方、完全にラベルがわかるPN Learningは1つのルートの中で収まるので、$O(\frac{1}{n + n ^ \prime})$が成り立つ。
+
+$$
+\frac{1}{\sqrt{n}} + \frac{1}{\sqrt{n ^ \prime}} \geq 2 \sqrt{2} \frac{1}{\sqrt{n + n ^ \prime}}
+$$
+
+つまり、上界をこのような形で評価でき、PU LearningはPN Learningに比べてもオーダーでは$2 \sqrt{2}$倍までしか悪くならないと示せた。
+
+証明は[こちら](./conclusion_proof/_index.md)。
