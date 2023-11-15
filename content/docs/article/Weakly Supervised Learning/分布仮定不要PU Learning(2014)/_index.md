@@ -171,9 +171,19 @@ $$
 
 証明は[こちら](./theorem1_proof/_index.md)。
 
+この定理は、損失関数が理想的な$l _{01}$であることを前提とおいている。ただ、現実には代理損失関数を使うことになる。今回の場合はランプ損失にあたる$\tilde{l}$を使用しているので、そちらでの評価もしなければならない。これは定理2である。
+
 ### 定理2
 
+$\forall \eta > 0, \delta \in (0, 1)$であるとする。PositiveとUnlabeledデータをサンプリングする。少なくとも$1 - \delta$以上の確率で、識別器$f \in \mathcal{F}$において、以下の式が成り立つ。
 
+$$
+\mathbb{E} _{p(\mathbf{x}, y)} [ l _{01} (y f(\mathbf{x})) ] - \frac{1}{n ^ \prime} \sum _{i = 1} ^ {n ^ \prime} \tilde{l} _{\eta} (y _i ^ \prime f(\mathbf{x} _i ^ \prime)) \leq \frac{\pi ^ *}{n} \sum _{i = 1} ^ n \tilde{l} _{\eta} (f(\mathbf{x})) + (\frac{\pi ^ *}{\sqrt{n}} + \frac{2}{\sqrt{n ^ \prime}}) \frac{C _{\alpha} C _{k}}{\eta} + (\frac{\pi ^ *}{2 \sqrt{n}}) \sqrt{\frac{\log(2 / \delta)}{2}}
+$$
+
+証明は[こちら](./theorem2_proof/_index.md)。
+
+この定理は一番欲しかったこと。代理損失との差を評価できた。
 
 ### 意味すること
 
