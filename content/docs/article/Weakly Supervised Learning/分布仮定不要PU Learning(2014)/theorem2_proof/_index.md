@@ -67,7 +67,7 @@ $$
 
 $$
 \mathcal{R} _{n} (\mathcal{F}) = \frac{C _\alpha C _x}{\sqrt{n}} \\\\ 
-\mathcal{R} _{n} (\mathcal{F}) = \frac{C _\alpha C _x}{\sqrt{n ^ \prime}} 
+\mathcal{R} _{n ^ \prime} (\mathcal{F}) = \frac{C _\alpha C _x}{\sqrt{n ^ \prime}} 
 $$
 
 これを代入すると、
