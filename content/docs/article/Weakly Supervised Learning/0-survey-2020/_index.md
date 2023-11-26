@@ -11,7 +11,7 @@ weight: 1
 
 [元論文のリンク](https://link.springer.com/article/10.1007/s10994-020-05877-5)
 
-2020年のサーベイ論文。[弱教師学習本](../../../read_book/Machine%20Learning/ML%20from%20Weak%20Supervision/_index.md)よりコンパクトにまとまっている。
+2020年のサーベイ論文。[弱教師学習本](../../../read_book/Machine%20Learning/ML%20from%20Weak%20Supervision/_index.md)よりも、とりわけPUについてまとめている。
 
 ## Introduction
 
@@ -47,7 +47,7 @@ $$
 
 ### 学習のメカニズム
 
-Positiveのデータは$\mathbf{x} \sim p(\mathbf{x} | y = +1)$から得られる。各Positiveのデータについて、選ばれる確率$p(s = +1 | \mathbf{x}, y = +1)$はPropensity SScoreと呼ばれる。[2008 Elkan, Noto](../PU%20Learning/_index.md)にも指摘しているように、一様にPositiveのなかから選ぶのであれば$\mathbf{x}$に依らない定数倍が成立する。
+Positiveのデータは$\mathbf{x} \sim p(\mathbf{x} | y = +1)$から得られる。各Positiveのデータについて、選ばれる確率$p(s = +1 | \mathbf{x}, y = +1)$はPropensity SScoreと呼ばれる。[2008 Elkan, Noto](../PU%20Learning/_index.md)にも指摘しているように、(後述する)$p(s = +1)$がわかる、single-training-setの場合は、一様にPositiveのなかから選ぶのであれば$\mathbf{x}$に依らない定数倍が成立する。
 
 $$
 p(\mathbf{x} | s = +1) = p(\mathbf{x} | s = +1, y = +1) = \frac{p(s = +1 | \mathbf{x}, y = +1)}{p(s = +1 | y = +1)} p(\mathbf{x} | y = +1)
@@ -55,21 +55,29 @@ $$
 
 ### single-training-setシナリオとcase-controlシナリオ
 
+Elkan, Notoらの論文での説明をそのまま持ってきた。
+
 基本的には、いずれのデータセットも分布からデータを得るときはi.i.d.である。
 
-single-training-setシナリオでは、各Positiveのデータは上にもある$p(s = +1 | \mathbf{x}, y = +1)$というデータに依存するラベル付けされやすさという値をもってしてラベルが付く。これらはすべて**同じデータセット**から得られている。定式化するなら、以下の通り。周辺確率ごと定義できるというものである。
+基本的には、ランダムに訓練データは$p(\mathbf{x}, y, s)$の分布から選ばれる(もちろん$p(s = 1 | y = 0) = 0$というのが成り立つ分布)が、$y$の情報を落としてデータとしては$(\mathbf{x}, s)$のみを得る。
 
-$$
-\mathbf{x} \sim f(\mathbf{x}) \\\\ 
-\sim \pi f _+ (\mathbf{x}) + (1 - \pi) f _- (\mathbf{x})
-$$
+今回の場合はsingle-training-setシナリオというものであり、以下の手順で行う。
 
-case-controlシナリオでは、PositiveとUnlabeledは別々のデータセットから来ている。別々のデータセットであるため、選択バイアスが発生していることが多い。また、クラス事前確率$p(y = +1)$が不明な時も多い。定式化するときは以下のものとなる。これは**ラベルなしの時だけわかるが、ラベルありについては全く分からない**。
+1. $p(\mathbf{x}, y, s)$の分布から1回、一定数サンプリングしてこれを$D$とする。
+2. $D$の中で$s = 1$となる部分をPositiveとする。
+3. $D$の中で$s = 0$となった、つまり残りのすべてをUnlabeledとして扱う。
 
-$$
-\mathbf{x} | s = 0 \sim f(\mathbf{x}) \\\\ 
-\sim \pi f _+ (\mathbf{x}) + (1 - \pi) f _- (\mathbf{x})
-$$
+このサンプリング方法では、一度だけのサンプリングして、そこから$p(s = 1)$は計算できる。
+
+一方、case-controlシナリオでは、以下の手順で行う。
+
+1. $p(\mathbf{x}, y, s)$の分布から1回、一定数サンプリングしてこれを$D _1$とする。
+2. $D _1$の中で$s = 1$となる部分をPositiveとする。
+3. $D _1$の$s = 0$の部分、すなわち残ったすべてを**捨てる**。
+4. $p(\mathbf{x}, y, s)$の分布から**もう1回**、一定数サンプリング(さきほどと同数である必要もない)して、これを$D _2$とする。
+5. $D _2$の全てをUnlabeledとする。(つまり、single-training-setのように$D _1$の$s = 0$なら全部ここに入るわけではない！)
+
+こちらの方が一般的である。ただし、欠点としては2回のサンプリングの母数は同数ではないし、1回目のサンプリングの母数がいくつなのかもわからないことが通例なので、$p(s = 1)$の推定はそもそもできない。
 
 この論文では**後者を論じる**。大は小を兼ねる！
 
