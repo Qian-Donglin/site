@@ -14,6 +14,26 @@ weight: 1
 - Foundations of Machine Learning
 - 統計的学習理論(MLPシリーズ)
 
+## VC Dimension
+
+モデル=仮説集合$\mathcal{H}$が存在し、その中で識別器=仮説$h \in \mathcal{H}$が存在し、これが二値分類をする。データ$\mathbf{x}$に対して、ラベル$y$があり、これに分類器$h(\mathbf{x})$の出力ができるだけ合致することが望ましく、それが学習である。モデル$\mathcal{H}$のなかで、1通りの$\mathbf{y}$に対応できることを+1として、その個数を$\Pi _{\mathcal{H}}(\mathbf{x} _1, \cdots, \mathbf{x} _n)$とおく。ここで、**パラメタは連続値であるので理論上は無限通りの$\mathcal{H}$のパラメタの取り方が存在するが、同じラベル付け$\mathbf{y}$は1通りとまとめる**。
+
+データが$n$個存在するとして、$2 ^ n$パターンのラベルの付き方が存在する。これについて、$n$が小さければ$\Pi _{\mathcal{H}} (\mathbf{x} _1, \cdots, \mathbf{x} _n) = 2 ^ n$が成り立つ。すなわち、ありうるすべてのラベルの付け方$\mathbf{y}$に対して、パラメタを調節すれば必ずそれを実現する識別器$h \in \mathcal{H}$が存在するということである。
+
+$n$が増加していくにあたり、この等式が満たされなくなる=表現力が足りなくなる。この時の**最大の$n$をVC次元**という。
+
+### Sauerの補題
+
+VC次元が$d$の$\mathcal{H}$について、$\forall n \leq d$について、
+
+$$
+\max _{\mathbf{x} _1, \cdots, \mathbf{x} _n} \Pi _{\mathcal{H}} (\mathbf{x} _1, \cdots, \mathbf{x} _n) \leq (\frac{en}{d}) ^ d
+$$
+
+これにより、VC次元が$d$の時、データ数が$n$ならばたかだか$d$次の多項式$O(n ^ d)$になるとわかる。
+
+続く(まだ終わっていない...)
+
 ## Rademacher Complexity
 
 ラデマッハ複雑度とは、ランダムなノイズに対して学習させるとき、モデルがどれほど追随できるか、という量である。大きいほど表現力が高いモデルである。
@@ -21,7 +41,7 @@ weight: 1
 ラデマッハ変数という、1/2の確率で+1, 1/2の確率で-1を取る確率変数$\sigma$を考える。厳密には$m$個の訓練データ$\mathbf{x} _i$が存在するときのラデマッハ複雑度は以下のように定義する。$g$は学習器であり、$G$は学習器の集合=モデル。
 
 $$
-\mathcal{\hat{R}}(G) = \mathbb{E} _{\boldsymbol{\sigma}} [ \sup _{g \in G} \frac{1}{m} ]\sigma _i g(\mathbf{x} _i)] \\\\ 
+\mathcal{\hat{R}}(G) = \mathbb{E} _{\boldsymbol{\sigma}} [ \sup _{g \in G} \frac{1}{m} ]\sigma _i g(\mathbf{x} _i) \\\\ 
 = \mathbb{E} _{\boldsymbol{\sigma}} [ \sup _{g \in G} \frac{\boldsymbol{\sigma} ^ T \mathbf{g} _\mathbf{x}}{m} ]
 $$
 
@@ -87,6 +107,12 @@ $$
 \sup _{g \in \mathcal{G}} \lbrace \mathbb{E} [g(Z)] - \sum _{i = 1} ^ N g(Z _i) \rbrace \leq 2 \mathcal{R} _N (\mathcal{G}) + (b - a) \sqrt{\frac{\log(1 / \delta)}{2N}}
 $$
 
+これを絶対誤差で評価した版は以下である。
+
+$$
+\sup _{g \in \mathcal{G}} \lbrace | \mathbb{E} [g(Z)] - \sum _{i = 1} ^ N g(Z _i) | \rbrace \leq 2 \mathcal{R} _N (\mathcal{G}) + (b - a) \sqrt{\frac{\log(2 / \delta)}{2N}}
+$$
+
 ### 証明
 
 $A(z _1, \cdots, z _n) = \sup _{g \in \mathcal{G}} \lbrace \mathbb{E} [ g(Z) ] - \frac{1}{N} \sum _{i = 1} ^ N g(z _i) \rbrace$とする。
@@ -141,13 +167,4 @@ $$
 A(Z _1, \cdots, Z _n) = \sup _{g \in \mathcal{G}} \lbrace \mathbb{E} [g(Z)] - \sum _{i = 1} ^ n g(Z _i) \rbrace \leq 2 \mathcal{R} _n (\mathcal{G}) + (b - a) \sqrt{\frac{\log(1 / \delta)}{2n}}
 $$
 
----
-
-$$
-\mathbb{E} [g(\mathbf{x})] \leq \frac{1}{m} \sum _{i = 1} ^ m g(\mathbf{x} _i) + 2 \mathcal{R} (\mathcal{G}) + \sqrt{\frac{\log \frac{1}{\delta}}{2m}} \\\\ 
-\mathrm{or} \\\\ 
-\mathbb{E} [g(\mathbf{x})] \leq \frac{1}{m} \sum _{i = 1} ^ m g(\mathbf{x} _i) + 2 \mathcal{R} (\mathcal{G}) + 3\sqrt{\frac{\log \frac{2}{\delta}}{2m}}
-$$
-
-正直使い勝手がいい式ではない(上限の推定するにしても、結構広いのでは？)。
-
+絶対値版に対しては、ここまでの議論で$\delta$としていたものを$\delta / 2$に置き換えて、それを足し合わせれば
