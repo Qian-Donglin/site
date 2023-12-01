@@ -41,7 +41,7 @@ $$
 ラデマッハ変数という、1/2の確率で+1, 1/2の確率で-1を取る確率変数$\sigma$を考える。厳密には$m$個の訓練データ$\mathbf{x} _i$が存在するときのラデマッハ複雑度は以下のように定義する。$g$は学習器であり、$G$は学習器の集合=モデル。
 
 $$
-\mathcal{\hat{R}}(G) = \mathbb{E} _{\boldsymbol{\sigma}} [ \sup _{g \in G} \frac{1}{m} ]\sigma _i g(\mathbf{x} _i) \\\\ 
+\mathcal{\hat{R}}(G) = \mathbb{E} _{\boldsymbol{\sigma}} [ \sup _{g \in G} \frac{1}{m} \sigma _i g(\mathbf{x} _i)] \\\\ 
 = \mathbb{E} _{\boldsymbol{\sigma}} [ \sup _{g \in G} \frac{\boldsymbol{\sigma} ^ T \mathbf{g} _\mathbf{x}}{m} ]
 $$
 
@@ -69,34 +69,38 @@ $$
 Pr( f(X _1, \cdots, X _N) - \mathbb{E} [ f(X _1, \cdots, X _N) ] \geq \epsilon) \leq \exp( -\frac{2 \epsilon ^ 2}{\sum _{i = 1} ^ N c _i ^ 2})
 $$
 
-$c _i$は$X _i, X _{i + 1}$の間の距離の上界。これが成り立つ。
-
-ここで、$f$が$\sum _{i = 0} ^ N g(\mathbf{x} _i)$であり、$\forall \mathbf{x}, g(\mathbf{x}) \in [a, b]$と上界が決まっているのであれば、この式は次のように書くことができる。ここで、普通の$N$回イテレーションする場合最終的には$b - a$となるには、毎回は$\frac{b - a}{N}$にならないといけない。
+$c _i$は次の条件を満たす。$X _i$を同じく分布に従う別の確率変数$Y$に変えた時、$f$の取る値との差の上界にあたる。
 
 $$
-Pr( \sum _{i = 1} ^ N g(\mathbf{x} _i) - \mathbb{E} [ g(\mathbf{x}) ] \geq \epsilon) \leq \exp( -\frac{2 \epsilon ^ 2}{N (b - a) ^ 2})
+c _i = \sup _{Y} \lbrace |f(X _1, \cdots, X _{i - 1}, X _i, X _{i + 1}, \cdots, X _n) - f(X _1, \cdots, X _{i - 1}, Y, X _{i + 1}, \cdots, X _n)| \rbrace
+$$
+
+ここで、$f$がN変数関数であるが、とりわけ$\mathbf{x} _i$を引数に取って、識別器による経験平均$\sum _{i = 1} ^ N g(\mathbf{x} _i)$である場合を考える。そして、$\forall \mathbf{x}, g(\mathbf{x}) \in [a, b]$と識別器の関数の上界が決まっているのであれば、この式は次のように書くことができる。
+
+$$
+Pr( \sum _{i = 1} ^ N g(\mathbf{x} _i) - \mathbb{E} [ g(\mathbf{x}) ] \geq \epsilon) \leq \exp( -\frac{2 \epsilon ^ 2 N }{ (b - a) ^ 2})
 $$
 
 そして、一般的には$1 - \delta$以上の確率で○○が成り立つ、という形なので、それに式変形する。
 
 $$
-\delta = \exp( -\frac{2 \epsilon ^ 2}{N (b - a) ^ 2}) \\\\ 
-\log \delta = - \frac{2 \epsilon ^ 2}{N (b - a) ^ 2} \\\\ 
-N(b - a) ^ 2 \log (1 / \delta) = 2 \epsilon ^ 2 \\\\ 
-\frac{N(b - a) ^ 2}{2} \log (1 / \delta) = \epsilon ^ 2 \\\\ 
-(b - a) \sqrt{\frac{N \log (1 / \delta)}{2}} = \epsilon
+\delta = \exp( -\frac{2 \epsilon ^ 2 N}{(b - a) ^ 2}) \\\\ 
+\log \delta = - \frac{2 \epsilon ^ 2 N }{(b - a) ^ 2} \\\\ 
+(b - a) ^ 2 \log (1 / \delta) = 2 \epsilon ^ 2 N \\\\ 
+\frac{(b - a) ^ 2}{2N} \log (1 / \delta) = \epsilon ^ 2 \\\\ 
+(b - a) \sqrt{\frac{\log (1 / \delta)}{2N}} = \epsilon
 $$
 
 このことから、$\forall \delta, 1 - \delta$以上の確率で、下式が成り立つ。
 
 $$
-\sum _{i = 1} ^ N g(\mathbf{x} _i) - \mathbb{E} [ g(\mathbf{x}) ] \leq (b - a) \sqrt{\frac{N \log (1 / \delta)}{2}}
+\sum _{i = 1} ^ N g(\mathbf{x} _i) - \mathbb{E} [ g(\mathbf{x}) ] \leq (b - a) \sqrt{\frac{\log (1 / \delta)}{2N}}
 $$
 
-特に、写す空間が$[0, 1]$であり、$N$回のイテレーションで合計して$1$に届くのであれば、更に簡略化して
+特に、写す空間が$[0, 1]$である場合は、以下のように更に略して×。
 
 $$
-\sum _{i = 1} ^ N g(\mathbf{x} _i) - \mathbb{E} [ g(\mathbf{x}) ] \leq \frac{1}{N} \sqrt{\frac{N \log (1 / \delta)}{2}} = \sqrt{\frac{\log (1 / \delta)}{2N}}
+\sum _{i = 1} ^ N g(\mathbf{x} _i) - \mathbb{E} [ g(\mathbf{x}) ] \sqrt{\frac{\log (1 / \delta)}{2N}} = \sqrt{\frac{\log (1 / \delta)}{2N}}
 $$
 
 ## 一様大数の法則
@@ -133,7 +137,7 @@ $$
 |\frac{g(z ^ \prime) - g(z _n)}{n}| \leq \frac{b - a}{n}
 $$
 
-このことから、先ほどのMcDirmidの不等式を用いると以下のような集中不等式を得られる。$\forall \delta, 1 - \delta$以上の確率で、以下が成り立つ。**$A$自体に対して不等式を適用している**ということに**注目**。$A(z _1, \cdots, z _n) = \sup _{g \in \mathcal{G}} \mathbb{E} [g(Z)] - \frac{1}{n} \sum _{i = 1} ^ n g(z _i)$であり、**この中の$g$に対してMcDirmidの不等式を適用するのではない**！なお、普通に$g$で不等式を使うと、$\mathbb{E} [g]$の評価ができなくなるので、このような評価できるかたちで不等式を使った。
+このことから、先ほどのMcDiarmidの不等式を用いると以下のような集中不等式を得られる。$\forall \delta, 1 - \delta$以上の確率で、以下が成り立つ。**$A$自体に対して不等式を適用している**ということに**注目**。$A(z _1, \cdots, z _n) = \sup _{g \in \mathcal{G}} \mathbb{E} [g(Z)] - \frac{1}{n} \sum _{i = 1} ^ n g(z _i)$であり、**この中の$g$に対してMcDiarmidの不等式を適用するのではない**！なお、普通に$g$で不等式を使うと、$\mathbb{E} [g]$の評価ができなくなるので、このような評価できるかたちで不等式を使った。
 
 $$
 A(Z _1, \cdots, Z _n) - \mathbb{E} [A] \leq (b - a) \sqrt{\frac{\log(1 / \delta)}{2n}}
@@ -142,16 +146,16 @@ $$
 次に、$Z _1, \cdots, Z _n$のみならず、$Z _1 ^ \prime, \cdots, Z _n ^ \prime$も$\mathcal{Z}$に従う確率変数とする。これを使えば、$\mathbb{E} [g]$を$n$個の確率変数に分割できる。つぎに、期待値を外に出すことで、$\leq$の形を作れる。
 
 $$
-A(z _1, \cdots, z _n) = \sup _{g \in \mathcal{G}} \lbrace \mathbb{E} [ g(Z) ] - \sum _{i = 1} ^ N g(z _i) \rbrace \\\\ 
-= \sup _{g \in \mathcal{G}} \lbrace \mathbb{E} _{Z _1 ^ \prime, \cdots, Z _n ^ \prime} [\frac{1}{n} \sum _{i = 1} ^ n g(Z _i ^ \prime)] -\frac{1}{n} g(Z _i) \rbrace \\\\ 
+A(Z _1, \cdots, Z _n) = \sup _{g \in \mathcal{G}} \lbrace \mathbb{E} [ g(Z) ] - \frac{1}{n} \sum _{i = 1} ^ n g(Z _i) \rbrace \\\\ 
+= \sup _{g \in \mathcal{G}} \lbrace \mathbb{E} _{Z _1 ^ \prime, \cdots, Z _n ^ \prime} [\frac{1}{n} \sum _{i = 1} ^ n g(Z _i ^ \prime)] -\frac{1}{n} \sum _{i = 1} ^ n g(Z _i) \rbrace \\\\ 
 \leq \mathbb{E} _{Z _1 ^ \prime, \cdots, Z _n ^ \prime} [ \sup _{g \in \mathcal{G}} \lbrace \frac{1}{n} \sum _{i = 1} ^ n g(Z _i ^ \prime) - \frac{1}{n} \sum _{i = 1} ^ n g(Z _i)  \rbrace ] \\\\ 
-= \mathbb{E} _{Z _1 ^ \prime, \cdots, Z _n ^ \prime} [ \sup _{g \in \mathcal{G}} \lbrace \frac{1}{n} (g(Z _i ^ \prime) - g(Z _i) )\rbrace ]
+= \mathbb{E} _{Z _1 ^ \prime, \cdots, Z _n ^ \prime} [ \sum _{i = 1} ^ n \sup _{g \in \mathcal{G}} \lbrace \frac{1}{n} (g(Z _i ^ \prime) - g(Z _i) )\rbrace ]
 $$
 
 ここで、対称性により、$g(Z _i) - g(Z _i ^ \prime)$も$g(Z _i ^ \prime) - g(Z _i)$も同じ分布を持っている(同じ$\mathcal{Z}$から来ているし、$g$も1つである)。だから、**符号を自由にflipさせてもいい**ということになる！**符号を自由にflipさせるというのならば、まさにラデマッハ変数じゃないか**！あとは三角不等式で評価すればラデマッハ複雑度が出てくる！
 
 $$
-\mathbb{E} [ A(z _1, \cdots, z _n) ] = \mathbb{E} _{Z _1, \cdots, Z _n} [ \sup _{g \in \mathcal{G}} \lbrace \mathbb{E} [ g(Z) ] - \sum _{i = 1} ^ N g(z _i) \rbrace ] \\\\ 
+\mathbb{E} [ A(z _1, \cdots, z _n) ] = \mathbb{E} _{Z _1, \cdots, Z _n} [ \sup _{g \in \mathcal{G}} \lbrace \mathbb{E} [ g(Z) ] - \frac{1}{n} \sum _{i = 1} ^ n g(z _i) \rbrace ] \\\\ 
 \leq \mathbb{E} _{Z _1, \cdots, Z _n} [ \mathbb{E} _{Z _1 ^ \prime, \cdots, Z _n ^ \prime} [ \sup _{g \in \mathcal{G}} \lbrace \frac{1}{n} (g(Z _i ^ \prime) - g(Z _i) )\rbrace ] ] \\\\ 
 \leq \mathbb{E} _{\sigma _1, \cdots, \sigma _n} [\mathbb{E} _{Z _1, \cdots, Z _n} [ \mathbb{E} _{Z _1 ^ \prime, \cdots, Z _n ^ \prime} [ \sup _{g \in \mathcal{G}} \lbrace \frac{\sigma _i}{n} (g(Z _i ^ \prime) - g(Z _i) )\rbrace ] ] ] \\\\ 
 = \mathbb{E} _{Z _1, \cdots, Z _n} [ \mathbb{E} _{Z _1 ^ \prime, \cdots, Z _n ^ \prime} [ \mathbb{E} _{\sigma _1, \cdots, \sigma _n} [\sup _{g \in \mathcal{G}} \lbrace \frac{\sigma _i}{n} (g(Z _i ^ \prime) - g(Z _i) )\rbrace ] ] ] \\\\ 
@@ -167,4 +171,15 @@ $$
 A(Z _1, \cdots, Z _n) = \sup _{g \in \mathcal{G}} \lbrace \mathbb{E} [g(Z)] - \sum _{i = 1} ^ n g(Z _i) \rbrace \leq 2 \mathcal{R} _n (\mathcal{G}) + (b - a) \sqrt{\frac{\log(1 / \delta)}{2n}}
 $$
 
-絶対値版に対しては、ここまでの議論で$\delta$としていたものを$\delta / 2$に置き換えて、それを足し合わせれば
+絶対値版に対しては、ここまでの議論で$\delta$としていたものを$\delta / 2$に置き換えると、以下の2つの式が得られる。いずれも$\forall \delta, 1 - \delta / 2$以上の確率で成立する。
+
+$$
+\sup _{g \in \mathcal{G}} \lbrace \mathbb{E} [g(Z)] - \sum _{i = 1} ^ n g(Z _i) \rbrace \leq \sup _{g \in \mathcal{G}} \lbrace |\mathbb{E} [g(Z)] - \sum _{i = 1} ^ n g(Z _i)| \rbrace \leq 2 \mathcal{R} _n (\mathcal{G}) + (b - a) \sqrt{\frac{\log(1 / \delta)}{2n}} \\\\ 
+\sup _{g \in \mathcal{G}} \lbrace \sum _{i = 1} ^ n g(Z _i) - \mathbb{E} [g(Z)] \rbrace \leq \sup _{g \in \mathcal{G}} \lbrace |\mathbb{E} [g(Z)] - \sum _{i = 1} ^ n g(Z _i)| \rbrace \leq 2 \mathcal{R} _n (\mathcal{G}) + (b - a) \sqrt{\frac{\log(1 / \delta)}{2n}}
+$$
+
+この2つの式を足し合わせる事で、2で割ると$(1 - \delta / 2) ^ 2 = 1 - \delta + (\delta ^ 2 / 4) \geq 1 - \delta$以上の確率で、
+
+$$
+\sup _{g \in \mathcal{G}} \lbrace |\mathbb{E} [g(Z)] - \sum _{i = 1} ^ n g(Z _i)| \rbrace \leq 2 \mathcal{R} _n (\mathcal{G}) + (b - a) \sqrt{\frac{\log(1 / \delta)}{2n}} 
+$$
