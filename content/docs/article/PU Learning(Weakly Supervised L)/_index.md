@@ -1,5 +1,5 @@
 ---
-title: "Weakly Supervised Learning"
+title: "PU Learning(sub for Weakly Supervised Learning)"
 weight: 1
 # bookFlatSection: false
 # bookToc: true

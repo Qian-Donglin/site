@@ -24,8 +24,8 @@ weight: 1
 
 Elkan, Notoらの論文にもあるように、PU LearningのSCARの着想は、データが欠損しているときの条件から来ていた。これを援用して定義してみる。
 
-- SCAR　Positive例ならば一定確率で選ぶ。
-- SAR　Selected At Random. データ$\mathbf{x}$を引数に取る関数があり、その関数の出力値がラベル付けされる確率。
+- SCAR　Positive例ならば一定確率で選ぶ。**データ$\mathbf{x}$によっても、Positiveである確率$p(y = +1 | \mathbf{x})$にも依存しない**。
+- SAR　Selected At Random. データ$\mathbf{x}$を引数に取る関数があり、その関数の出力値がラベル付けされる確率。しかし、**この確率は$p(y = +1 | \mathbf{x})$には依存しない**。
 - SNAR　Selected Not Ar Random. 上の2ケース以外。さすがに一概に論じることができない。
 
 ## SARでのPU Learningのアルゴリズム
@@ -33,6 +33,8 @@ Elkan, Notoらの論文にもあるように、PU LearningのSCARの着想は、
 傾向スコアのやり方を参考にしている。
 
 ### 傾向スコアとは何か
+
+[こちらのQiita記事](https://qiita.com/s1ok69oo/items/ab9c80a353eb45fad78d)を大いに参考にした。
 
 共変量とは、因と果の両方に依存されてる変量のこと。これらを想定しないと偽相関を見抜けない。グラフィカルモデルでいうと以下のようになる。
 
@@ -164,13 +166,38 @@ $$
 
 ### EMアルゴリズムによる推定
 
+EMアルゴリズムとは、以下のことを繰り返すものである。詳しい解説や理論的な流れは[このQiita記事](https://qiita.com/kenmatsu4/items/59ea3e5dfa3d4c161efb#4%E4%B8%80%E8%88%AC%E3%81%AEem%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0)や[このブログ](https://yamagensakam.hatenablog.com/entry/2020/01/06/015145)がわかりやすい。
+記事にあるのを少し自分のために補足する。
+
+1. 
+
+- expectation　今与えられたパラメタを使い、隠れ変数、尤度の期待値(今回は下述する$\hat{y} _i$)を計算する。
+- maximization　先ほど計算した期待値を最大化するようなパラメタを推定する。
+
+収束したらそこで終了する。
+
 データ$\mathbf{x} _i$、ラベルがついている$s _i$、$\hat{f}$を分類器、$\hat{e}$を傾向スコアの出力する関数モデルとする。
 
 $$
-y _i = p(y _i = +1 | \mathbf{x} _i, s _i, \hat{f}, \hat{e}) = s _i + (1 - s _i)\frac{\hat{f}(\mathbf{x} _i)(1 - \hat{e}(\mathbf{x} _i))}{1 - \hat{f}(\mathbf{x} _i) \hat{e}(\mathbf{x} _i)}
+\hat{y} _i = p(y _i = +1 | \mathbf{x} _i, s _i, \hat{f}, \hat{e}) = s _i + (1 - s _i)\frac{\hat{f}(\mathbf{x} _i)(1 - \hat{e}(\mathbf{x} _i))}{1 - \hat{f}(\mathbf{x} _i) \hat{e}(\mathbf{x} _i)}
 $$
 
 - ラベル付きの時は$s _i = +1$であるため、必ずpositiveである。
-- ラベルなしの場合、もし傾向スコアが0(Negative)つまり$1 = p(s = +0 | \mathbf{x})$の時は、$\hat{f}(\mathbf{x} _i)$と予測器の出力を出す。
-- ラベルなしの場合、もし傾向スコアが1(Positive)つまり$1 = p(s = +1 | \mathbf{x})$の時は、これは0になる。ラベルがついてないのにPositiveであるということは、圧倒的な自信でNegativeになる。
-- ラベルなしの場合、もし傾向スコアが0.5(ちょうど真ん中)
+- ラベルなしの場合、以下のように式変形を考えると成り立つとわかる。
+  - わかるのは、理想的な訓練の結果として$f(\mathbf{x}) = p(y = +1 | \mathbf{x})$となり、$e(\mathbf{x}) = p(s = +1 | \mathbf{x})$となること。
+  - この2つを利用して、$p(y = +1 | s = +0, \mathbf{x})$を得たい。
+  - $p(s = +1 | \mathbf{x})$は$p(y = +1 | \mathbf{x})$**条件付独立である**ことを利用する。
+
+$$
+p(y = +1 | s = +0, \mathbf{x}) = \frac{p(y = +1, s = +0, \mathbf{x})}{p(s = +0, \mathbf{x})}
+=\frac{p(y = +1, s = +0, \mathbf{x})}{1 - p(s = +1, \mathbf{x})} \\\\ 
+=\frac{p(y = +1, s = +0, \mathbf{x})}{1 - p(s = +1, y = +1, \mathbf{x})}
+=\frac{p(y = +1, s = +0 | \mathbf{x})}{1 - p(s = +1, y = +1 | \mathbf{x})} = \frac{p(y = +1 | \mathbf{x}) p(s = +0 | \mathbf{x})}{1 - p(s = +1 | \mathbf{x}) p(y = +1 | \mathbf{x})} \\\\ 
+=\frac{p(y = +1 | \mathbf{x}) (1 - p(s = +1 | \mathbf{x}))}{1 - p(s = +1 | \mathbf{x}) p(y = +1 | \mathbf{x})} = \frac{\hat{f}(\mathbf{x} _i) (1 - \hat{e}(\mathbf{x} _i))}{1 - \hat{f}(\mathbf{x} _i) \hat{e}(\mathbf{x} _i)}
+$$
+
+よって、$y _i = +1$である各データについて、予測した$\hat{y} _i$は上式のように表すことができる。**この$\log \hat{y} _i$を最大化するように(log尤度である理由は、普通に計算すると、計算上極端な値になるため。EMアルゴリズムは基本的に対数尤度に対して行う)学習を進めたい**。すでに存在する$\hat{f}, \hat{e}$を用いて計算される$\hat{y} _i$の最大化において、
+
+$$
+\argmax _{f, e} \sum _{i = 1} ^ n \mathbb{E} _{y _i | \mathbf{x} _i, s _i, \hat{f}, \hat{e}} \log p(y _i = +1 | \mathbf{x} _i, s _i, f, e)
+$$
