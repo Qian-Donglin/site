@@ -166,17 +166,29 @@ $$
 
 ### EMアルゴリズムによる推定
 
-EMアルゴリズムとは、以下のことを繰り返すものである。詳しい解説や理論的な流れは[このQiita記事](https://qiita.com/kenmatsu4/items/59ea3e5dfa3d4c161efb#4%E4%B8%80%E8%88%AC%E3%81%AEem%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0)や[このブログ](https://yamagensakam.hatenablog.com/entry/2020/01/06/015145)がわかりやすい。
-記事にあるのを少し自分のために補足する。
-
-1. 
-
-- expectation　今与えられたパラメタを使い、隠れ変数、尤度の期待値(今回は下述する$\hat{y} _i$)を計算する。
-- maximization　先ほど計算した期待値を最大化するようなパラメタを推定する。
-
-収束したらそこで終了する。
+[EMアルゴリズムの解説はこちら](../../../ML%20Basic%20Method/EM%20Algorithm/_index.md)。**$q, \theta$などの記号はこの中に準拠する**。
 
 データ$\mathbf{x} _i$、ラベルがついている$s _i$、$\hat{f}$を分類器、$\hat{e}$を傾向スコアの出力する関数モデルとする。
+今回は$p(\mathbf{X}, \mathbf{y}, \mathbf{s} | f, e)$である(複数個であることを考えて$\mathbf{x}$を複数個組み合わせて行列$\mathbf{X}$とした。他も同様)。与えられたデータ$\mathbf{X}, \mathbf{y}, \mathbf{s}$を生成する事後分布の確率を最大化するように、$f, e$をパラメタとみなして最適化を行う。
+
+EMアルゴリズムの定義より、隠れ変数$\mathbf{Z}$を用いて、変分下限$\mathcal{L}(q, \theta) = \mathbb{E} _{q(\mathbf{Z})} [ \frac{p(\mathbf{X}, \mathbf{s} | f, e)}{q(\mathbf{Z})} ]$を記述できる。
+
+そして、EMアルゴリズムの設計通り、
+
+- 今回は、隠れ変数$\mathbf{Z}$は$x$のground truthのラベル$y$とする。
+- Eステップでは、$q(\mathbf{y}) = p(\mathbf{y} | \mathbf{X}, \mathbf{s}, f, e)$と代入する。fとeはoldとなる。
+- Mステップでは、以下のような値を、$f, e$を動かして最大化する。
+
+$$
+\int p(\mathbf{y} | \mathbf{X}, \mathbf{s}, f _{old}, e _{old}) \log p(\mathbf{X}, \mathbf{s}, \mathbf{y} | f, e) d \mathbf{y} \\\\ 
+=\mathbb{E} _{\mathbf{y} | \mathbf{X}, \mathbf{s}, f _{old}, e _{old}}  [ \log p(\mathbf{X}, \mathbf{s}, \mathbf{y} | f, e) ]
+$$
+
+これを繰り返す。
+
+#### Eステップ
+
+まずは、**隠れ変数$\mathbf{y}$の事後分布である$p(\mathbf{y} | \mathbf{X}, \mathbf{s}, f, e)$を求める**。(自分の解説記事の表記では$p(\mathbf{Z} | \mathbf{X}, \theta)$に該当)
 
 $$
 \hat{y} _i = p(y _i = +1 | \mathbf{x} _i, s _i, \hat{f}, \hat{e}) = s _i + (1 - s _i)\frac{\hat{f}(\mathbf{x} _i)(1 - \hat{e}(\mathbf{x} _i))}{1 - \hat{f}(\mathbf{x} _i) \hat{e}(\mathbf{x} _i)}
@@ -188,6 +200,8 @@ $$
   - この2つを利用して、$p(y = +1 | s = +0, \mathbf{x})$を得たい。
   - $p(s = +1 | \mathbf{x})$は$p(y = +1 | \mathbf{x})$**条件付独立である**ことを利用する。
 
+これらを利用して、上式は以下のように導出できる。
+
 $$
 p(y = +1 | s = +0, \mathbf{x}) = \frac{p(y = +1, s = +0, \mathbf{x})}{p(s = +0, \mathbf{x})}
 =\frac{p(y = +1, s = +0, \mathbf{x})}{1 - p(s = +1, \mathbf{x})} \\\\ 
@@ -196,8 +210,41 @@ p(y = +1 | s = +0, \mathbf{x}) = \frac{p(y = +1, s = +0, \mathbf{x})}{p(s = +0, 
 =\frac{p(y = +1 | \mathbf{x}) (1 - p(s = +1 | \mathbf{x}))}{1 - p(s = +1 | \mathbf{x}) p(y = +1 | \mathbf{x})} = \frac{\hat{f}(\mathbf{x} _i) (1 - \hat{e}(\mathbf{x} _i))}{1 - \hat{f}(\mathbf{x} _i) \hat{e}(\mathbf{x} _i)}
 $$
 
-よって、$y _i = +1$である各データについて、予測した$\hat{y} _i$は上式のように表すことができる。**この$\log \hat{y} _i$を最大化するように(log尤度である理由は、普通に計算すると、計算上極端な値になるため。EMアルゴリズムは基本的に対数尤度に対して行う)学習を進めたい**。すでに存在する$\hat{f}, \hat{e}$を用いて計算される$\hat{y} _i$の最大化において、
+#### Mステップ
+
+先ほど得た$q(\mathbf{y}) = p(\mathbf{y} | \mathbf{X}, \mathbf{s}, f, e)$については以下の式となる。
 
 $$
-\argmax _{f, e} \sum _{i = 1} ^ n \mathbb{E} _{y _i | \mathbf{x} _i, s _i, \hat{f}, \hat{e}} \log p(y _i = +1 | \mathbf{x} _i, s _i, f, e)
+q(\mathbf{y}) = p(\mathbf{y} | \mathbf{X}, \mathbf{s}, f, e) = s _i + (1 - s _i)\frac{\hat{f}(\mathbf{x} _i)(1 - \hat{e}(\mathbf{x} _i))}{1 - \hat{f}(\mathbf{x} _i) \hat{e}(\mathbf{x} _i)}
 $$
+
+これをもって、Eステップの最大化は以下の式に対して行う。
+
+$$
+\int p(\mathbf{y} | \mathbf{X}, \mathbf{s}, f _{old}, e _{old}) \log p(\mathbf{X}, \mathbf{s}, \mathbf{y} | f, e) d \mathbf{y} \\\\ 
+=\mathbb{E} _{\mathbf{y} | \mathbf{X}, \mathbf{s}, f _{old}, e _{old}}  [ \log p(\mathbf{X}, \mathbf{s}, \mathbf{y} | f, e) ]
+$$
+
+対数尤度での最大化なので、本体の尤度$p(\mathbf{X}, \mathbf{s}, \mathbf{y} | f, e)$を最大化するような$f, e$とは何かを考える。仮定より、傾向スコアは$p(s = +1 | \mathbf{x})$であり、$p(y = +1 | \mathbf{x})$には依存しないとなるので、それぞれ**独立に最大化する**ことを考えればよい。
+
+$\mathbf{y}$については、
+
+- $y _i = 1$とされたものでは、分類器$f(\mathbf{x} _i)$も1に近づくべき。これを対数をとったもので最適化。
+- $y _i = 0$とされたものでは、分類器$f(\mathbf{x} _i)$も0に近づくべき。これを対数をとったもので最適化。
+
+と設計されている。よって、以下の**損失関数の最小化**としてる。予測した隠れ変数の$\mathbf{y}$は下式では$\hat{y} _i$と記述されている。
+
+$$
+\sum _{i = 1} ^ n \hat{y} _i \log f(\mathbf{x} _i) + (1 - \hat{y} _i) \log (1 - f(\mathbf{x} _i))
+$$
+
+同様に、傾向スコアの予測器も以下のように設計できる。
+
+- $s _i = 1$とされたものでは、傾向スコア$e(\mathbf{x} _i)$も1に近づくべき。これを対数をとったもので最適化。
+- $s _i = 0$とされたものでは、傾向スコア$e(\mathbf{x} _i)$も0に近づくべき。これを対数をとったもので最適化。
+
+$$
+\sum _{i = 1} ^ n s _i \log e(\mathbf{x} _i) + (1 - s _i) \log (1 - e(\mathbf{x} _i))
+$$
+
+対数を取る事により、$(0, 1)$の値域が$(-\infty, 0)$となるので、大きなスケールに拡張されより最小化が重要になる。**収束判定、傾向スコアと識別器の「両方」が収束したら終了とする**。傾向スコアの変化は、最後の$n$回の傾向スコア予測での変化量の平均と考えてOK。

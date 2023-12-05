@@ -24,7 +24,9 @@ p(\mathbf{X} | \theta) = \int p(\mathbf{X}, \mathbf{Z} | \theta) d \mathbf{Z} \\
 \log p(\mathbf{X} | \theta) = \log \int p(\mathbf{X}, \mathbf{Z} | \theta) d \mathbf{Z}
 $$
 
-しかし、$\log \int$は扱いづらい！(以下の参考資料では$\log \Sigma$となっている)。ここで、**いい感じの関数**$q(\mathbf{Z})$を導入することで、
+実際には、隠れ変数$\mathbf{Z}$は明示的に設計者が決めなければならない。なぜならば、**以降のEステップもMステップも明確に$\mathbf{Z}$についての条件付確率、条件付期待値を求めるためである**。
+
+しかし、$\log \int$は扱いづらい！(以下の参考資料では$\log \Sigma$となっている)。ここで、**いい感じの関数**$q(\mathbf{Z})$を導入することで、以下のように式変形できる。なお、**$q$が何であるかは明示的に決める必要はない**。以下のEステップで自明に決まるからである。
 
 $$
 \int q(\mathbf{Z}) \frac{p(\mathbf{X}, \mathbf{Z} | \theta)}{q(\mathbf{Z})} d \mathbf{Z} = \mathbb{E} _{q(\mathbf{Z})} [ \frac{p(\mathbf{X}, \mathbf{Z} | \theta)}{q(\mathbf{Z})} ]
@@ -65,4 +67,21 @@ $$
 $$
 
 この式において、$\theta$を固定しているので、左辺は定数となる。この時、$q$を動かして$\mathcal{L} (q, \theta)$を最大化するということは、$KL [ q(\mathbf{Z}) | p(\mathbf{Z} | \mathbf{X}, \theta) ]$の最小化と同じ意味であり、KLダイバージェンスが0ということは、解は$q(\mathbf{Z}) = p(\mathbf{Z} | \mathbf{X}, \theta)$である。
+
+### Mステップ
+$q(\mathbf{Z}) = p(\mathbf{Z} | \mathbf{X}, \theta _{old})$を代入して解く。ここで、**$\theta _{old}$は今までの$\theta$であり、パラメタ$\theta$の最適化を行う際には定数として固定するものである**。このように一方を固定してもう一方を最適化するのはよくある手法。
+
+$$
+\mathcal{L}(q, \theta) = \int q(\mathbf{Z}) \log \frac{p(\mathbf{X}, \mathbf{Z} | \theta)}{q(\mathbf{Z})} d \mathbf{Z}
+=\int p(\mathbf{Z} | \mathbf{X}, \theta _{old}) \log \frac{p(\mathbf{X}, \mathbf{Z} | \theta)}{p(\mathbf{Z} | \mathbf{X}, \theta _{old})} d \mathbf{Z} \\\\ 
+= \int p(\mathbf{Z} | \mathbf{X}, \theta _{old}) \log p(\mathbf{X}, \mathbf{Z} | \theta) d \mathbf{Z} - \int p(\mathbf{Z} | \mathbf{X}, \theta _{old}) - \log p(\mathbf{Z} | \mathbf{X}, \theta _{old}) d \mathbf{Z} \\\\ 
+=\int p(\mathbf{Z} | \mathbf{X}, \theta _{old}) \log p(\mathbf{X}, \mathbf{Z} | \theta) d \mathbf{Z} - \mathrm{const}
+$$
+
+このように、前半だけ$\theta$で最小化できればよい。つまり、**以下の対数尤度の条件付期待値が$\theta$において最適化できるということであれば、EMアルゴリズムを用いて最終的に最適解へ収束できる**。
+
+$$
+\int p(\mathbf{Z} | \mathbf{X}, \theta _{old}) \log p(\mathbf{X}, \mathbf{Z} | \theta) d \mathbf{Z}
+= \mathbb{E} _{\mathbf{Z} | \mathbf{X}, \theta _{old}} [ \log p(\mathbf{X}, \mathbf{Z} | \theta) ]
+$$
 
